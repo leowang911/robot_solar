@@ -1,0 +1,14 @@
+<launch>
+  <!-- 启动虚拟节点 -->
+  <node pkg="rviz_sim" type="virtual_marker_generator.py" name="marker_generator"/>
+  <node pkg="robot_localization" type="dock_control.py" name="dock_control"/>
+  <node pkg="rviz_sim" type="virtual_actuator.py" name="virtual_actuator"/>
+  
+  <!-- 启动RViz -->
+  <node pkg="rviz" type="rviz" name="rviz" 
+        args="-d $(find rviz_sim)/config/docking.rviz"/>
+  
+  <!-- 静态TF发布 -->
+  <node pkg="tf2_ros" type="static_transform_publisher" 
+        name="camera_tf" args="0.3 0 0.2 0 0 0 base_link camera"/>
+</launch>

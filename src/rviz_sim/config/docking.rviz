@@ -1,0 +1,31 @@
+Panels:
+  - Class: rviz/Displays
+  - Class: rviz/Selection
+  - Class: rviz/Tool Properties
+  - Class: rviz/Views
+  - Class: rviz/Time
+
+Visualization Manager:
+  Displays:
+    - Class: rviz/TF
+      Enabled: true
+      Marker Scale: 0.3
+      Show Arrows: true
+      Show Names: true
+    
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Topic: /virtual_markers
+    
+    - Class: rviz/Path
+      Enabled: true
+      Topic: /trajectory
+    
+  Global Options:
+    Background Color: 48; 48; 48
+    Fixed Frame: odom
+    
+  Views:
+    Current:
+      Class: rviz/Orbit
+      Target Frame: base_link
