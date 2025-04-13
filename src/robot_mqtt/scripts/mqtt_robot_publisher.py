@@ -37,7 +37,53 @@ class MQTTRobotPublisher:
             "route_id": "unknown",
             "battery_voltage": 0.0
         }
-        
+    
+
+    def _connect_mqtt(self):
+        """连接MQTT服务器并启动循环"""
+        try:
+            self.mqtt_client.connect(self.mqtt_broker, self.mqtt_port, 60)
+            self.mqtt_client.loop_start()
+            rospy.loginfo(f"Connected to MQTT broker at {self.mqtt_broker}:{self.mqtt_port}")
+        except Exception as e:
+            rospy.logerr(f"MQTT connection failed: {str(e)}")
+            rospy.signal_shutdown("MQTT connection error")
+
+    def _on_mqtt_connect(self, client, userdata, flags, rc):
+        """MQTT连接回调"""
+        if rc == 0:
+            rospy.loginfo("MQTT connected successfully")
+            client.subscribe(self.mqtt_topic)
+        else:
+            rospy.logerr(f"MQTT connection failed with code {rc}")
+
+    def _on_mqtt_message(self, client, userdata, msg):
+        """MQTT消息接收回调"""
+        try:
+            # 解析消息（假设为JSON格式）
+            payload = msg.payload.decode('utf-8')
+            data = json.loads(payload)
+            
+            # 转换为ROS消息并发布
+            ros_msg = String()
+            ros_msg.data = payload
+            self.ros_pub.publish(ros_msg)
+            rospy.loginfo(f"Received MQTT message: {payload}")
+        except Exception as e:
+            rospy.logwarn(f"Failed to process MQTT message: {str(e)}")
+
+    def _on_mqtt_disconnect(self, client, userdata, rc):
+        """MQTT断开连接回调"""
+        rospy.logwarn(f"MQTT disconnected, attempting reconnect... (rc={rc})")
+        self._connect_mqtt()  # 自动重连
+
+    def shutdown(self):
+        """节点关闭时清理资源"""
+        self.mqtt_client.loop_stop()
+        self.mqtt_client.disconnect()
+        rospy.loginfo("MQTT client disconnected")
+
+
     # ROS回调函数
     def imu_callback(self, msg):
         self.robot_data["acceleration"] = {
