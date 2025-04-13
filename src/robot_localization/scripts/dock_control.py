@@ -181,13 +181,13 @@ class ArucoDockingController:
     def calculate_center_target(self):
         """计算中间标记前的目标点"""
 
-        # if self.current_target is None:
-        #     control = controlData()
-        #     control.distance = 0
-        #     control.target_yaw = 0
-        #     control.robot_state = 1
-        #     self.control_pub.publish(control)
-        #     return
+        if self.current_target is None:
+            control = controlData()
+            control.distance = 0
+            control.target_yaw = 0
+            control.robot_state = 1
+            self.control_pub.publish(control)
+            return
 
         marker_distance = math.sqrt(self.markers['center']['position'][0]^2 + self.markers['center']['position'][1]^2)
         if marker_distance > 1:
