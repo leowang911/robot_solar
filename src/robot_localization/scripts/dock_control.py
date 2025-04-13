@@ -16,18 +16,25 @@ from std_msgs.msg import Int16, Int32,Header
 
 class ArucoDockingController:
     def __init__(self):
+        
+        self.info = True
+        
         # 坐标系参数
         self.marker_spacing = 1.0  # 左右标记间距（米）
         self.target_distance = 1.0  # 中间标记前停止距离
         self.align_threshold = math.radians(0.1)  # 航向对准阈值
         self.current_yaw = 0.0 # 当前航向角
         self.target_yaw = 0.0 # 目标航向角
-        self.latitude = 0.0
-        self.longitude = 0.0
-        self.latitude_drone = 0.0
-        self.longitude_drone = 0.0
+        self.latitude = 40.123456
+        self.longitude = -74.123456
+        self.latitude_drone = 40.123456
+        # self.longitude_drone = -74.123339
+        self.longitude_drone = -74.123456
+        self.yaw_drone = 0.0
         self.speed = 0.0
-        self.distance_base = 0.0
+        self.distance2drone = 0.0
+        self.yaw2drone = 0.0
+        
         
         # TF配置
         self.tf_buffer = tf2_ros.Buffer()
@@ -183,18 +190,18 @@ class ArucoDockingController:
             self.state = "SEARCH"
             self.current_target = None  # 清空目标
 
-        rospy.loginfo(f"当前状态: {self.state}")
+        # rospy.loginfo(f"当前状态: {self.state}")
 
     def calculate_center_target(self):
         """计算中间标记前的目标点"""
 
-        if self.current_target is None:
-            control = controlData()
-            control.distance = 0
-            control.target_yaw = 0
-            control.robot_state = 1
-            self.control_pub.publish(control)
-            return
+        # if self.current_target is None:
+        #     control = controlData()
+        #     control.distance = 0
+        #     control.target_yaw = 0
+        #     control.robot_state = 1
+        #     self.control_pub.publish(control)
+        #     return
 
         marker_distance = math.sqrt(self.markers['center']['position'][0]**2 + self.markers['center']['position'][1]**2)
         if marker_distance > 1:
@@ -202,13 +209,13 @@ class ArucoDockingController:
             # 保持目标距离（沿X轴）
             rot = self.markers['center']['orientation']
             R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
-            self.pos_desire = R@[0, 0, self.target_distance] + pos
+            self.pos_target = R@[0, 0, self.target_distance] + pos
 
             if self.get_marker_yaw(self.markers['center']) is None:
                 rospy.logwarn("无法获取航向角")
                 return None
             return {
-                'position': self.pos_desire,
+                'position': self.pos_target,
                 # 'position': np.array([pos[0] - self.target_distance, pos[1], 0]),
                 'yaw': self.get_marker_yaw(self.markers['center'])
             }
@@ -241,22 +248,22 @@ class ArucoDockingController:
 
     def get_marker_yaw(self, marker):
         """从标记位姿获取航向角（已通过TF旋转补偿）"""
-        t = self.pos_desire
-        yaw = math.atan2(t[0], t[1])
+        t = self.pos_target
+        yaw = math.atan2(t[1], t[0])
         # _, _, yaw = euler_from_quaternion([q.x, q.y, q.z, q.w])
         return yaw  
     
-    def yaw_to_target_yaw_angle(self, yaw):
+    def yaw_to_target_yaw_angle(self, yaw, current_yaw):
         """将航向角转换为控制角度"""
         # rospy.loginfo(f"current_yaw: {self.current_yaw}")
-        angle= np.uint16(math.degrees(yaw)*100) + np.uint16(self.current_yaw*100)
+        angle= (math.degrees(yaw)*100) + current_yaw*100
         # rospy.loginfo(f"angle: {angle}")
         if angle > 36000:
             angle -= 36000
         if angle < 0:
             angle += 36000
         # rospy.loginfo(f"angle: {angle}")
-        return angle
+        return np.uint16(angle)
 
     def apply_yaw_filter(self, raw_yaw):
         """应用组合滤波器到原始航向角"""
@@ -285,65 +292,88 @@ class ArucoDockingController:
         return self.filtered_yaw
 
     def gps_calculation(self, lat1, lon1, lat2, lon2):
-        utm1 = utm.from_latlon(lat1, lon1)
-        utm2 = utm.from_latlon(lat2, lon2)
+        utm1 = utm.fromLatLong(lat1, lon1)
+        utm2 = utm.fromLatLong(lat2, lon2)
+        
         easting_diff = utm2.easting - utm1.easting
         northing_diff = utm2.northing - utm1.northing
         # 航向角（北向为0，北偏东为正0-360）
         # 计算无人机相对于基坐标系的坐标
-        self.distance = math.sqrt(easting_diff**2 + northing_diff**2)
-        self.desired_yaw = math.atan2(northing_diff, easting_diff)
-
-
+        self.distance2drone = math.sqrt(easting_diff**2 + northing_diff**2)
+        self.yaw2drone = math.atan2(northing_diff, easting_diff)
 
     def control_loop(self, event):
         """主控制循环"""
         control = controlData()
         #计算gps距离
-        gps_distance = math.sqrt((self.latitude - self.latitude_drone)**2 + (self.longitude - self.longitude_drone)**2)
+        gps_calculation = self.gps_calculation(self.latitude, self.longitude, self.latitude_drone, self.longitude_drone)
+        # rospy.loginfo(f"gps_calculation: {gps_calculation}")
+        if self.distance2drone > 2 and self.current_target is None: #gps距离大于2米,通过gps数据大致导航
+            control.distance = np.uint16(self.distance2drone*1000)
+            rospy.loginfo(f"gps_yaw: {self.yaw_to_target_yaw_angle(self.yaw2drone, 0)}")
+            # rospy.loginfo(f"gps_distance: {self.distance2drone}")
+            control.target_yaw = self.yaw_to_target_yaw_angle(self.yaw2drone, 0)
+            control.robot_state = 2
+        else: #gps距离小于2米,通过aruco数据导航
+            if self.current_target:
+            # 计算当前状态,行走到目标点前1m
+                current_pos = np.array([0, 0])  # 基坐标系原点
+                target_vec = self.current_target['position'][:2] - current_pos
+                self.target_distance = np.linalg.norm(target_vec) 
+                self.target_yaw = math.atan2(target_vec[1], target_vec[0])
+                
+                # 航向误差
+                yaw_error = self.target_yaw - self.current_target['yaw']
+                # rospy.loginfo(f"\n yaw: {target_yaw }\n distance: {distance}\n yaw_error: {yaw_error}\n state: {self.state}\n")
+                # 状态处理
 
-        if 
-
-
-
-
-        if self.current_target:
-            # 计算当前状态
-            current_pos = np.array([0, 0])  # 基坐标系原点
-            target_vec = self.current_target['position'][:2] - current_pos
-            distance = np.linalg.norm(target_vec) 
-            desired_yaw = math.atan2(target_vec[0], target_vec[1])
-            
-            # 航向误差
-            yaw_error = desired_yaw - self.current_target['yaw']
-            # rospy.loginfo(f"\n yaw: {desired_yaw }\n distance: {distance}\n yaw_error: {yaw_error}\n state: {self.state}\n")
-            
-
-            # 状态处理
-            if distance > 0.1:
-                # if abs(yaw_error) > self.align_threshold:
-                    # 航向调整阶段
-                control.distance = int(distance*1000)
-                control.target_yaw = self.yaw_to_target_yaw_angle(self.current_target['yaw'])
-                control.robot_state = 2
-                # else:
-                #     # 直线移动阶段
-                #     control.distance = int(distance*1000)
-                #     control.target_yaw = self.yaw_to_target_yaw_angle(desired_yaw)
-            else:
-                # 到达目标位置
-                if self.state == "FINAL_APPROACH":
-                    control.distance = 0
-                    control.target_yaw = self.yaw_to_target_yaw_angle(self.current_target['yaw'])
+                if self.target_distance > 0.1:
+                    # if abs(yaw_error) > self.align_threshold:
+                        # 航向调整阶段
+                    control.distance = int(self.target_distance*1000)
+                    control.target_yaw = self.yaw_to_target_yaw_angle(self.current_target['yaw'],self.current_yaw)
+                    control.robot_state = 2
+                    # else:
+                    #     # 直线移动阶段
+                    #     control.distance = int(distance*1000)
+                    #     control.target_yaw = self.yaw_to_target_yaw_angle(target_yaw)
                 else:
-                    # 进入最终对接
-                    self.state = "FINAL_DOCKING"
-        
+                    # 到达目标位置
+                    if self.state == "FINAL_APPROACH":
+                        control.distance = 0
+                        control.target_yaw = self.yaw_to_target_yaw_angle(self.current_target['yaw'],self.current_yaw)
+                    else:
+                        # 进入最终对接
+                        self.state = "FINAL_DOCKING"
+
+            else:
+                control.distance = 0
+                control.target_yaw = 0
+                control.robot_state = 2
+
+        # 查看所有变量
+        if self.info:
+            rospy.loginfo(f"当前状态: {self.state}")
+            # rospy.loginfo(f"当前航向角: {self.current_yaw}")
+            # rospy.loginfo(f"目标航向角: {self.target_yaw}")
+            # rospy.loginfo(f"目标距离: {self.target_distance}")
+            # rospy.loginfo(f"当前速度: {self.speed}")
+            # rospy.loginfo(f"无人机坐标: {self.latitude_drone}, {self.longitude_drone}")
+            # rospy.loginfo(f"基坐标系坐标: {self.latitude}, {self.longitude}")
+            # rospy.loginfo(f"无人机航向角: {self.yaw_drone}")
+            # rospy.loginfo(f"无人机与基坐标系距离: {self.distance2drone}")  
+            # rospy.loginfo(f"无人机航向角: {self.yaw2drone}")
+
         # 发布控制指令
         control.header.stamp = rospy.Time.now()
         control.header.seq = self.control_seq
         self.control_pub.publish(control)
         self.control_seq += 1
+
+
+
+
+
         
 
 if __name__ == '__main__':

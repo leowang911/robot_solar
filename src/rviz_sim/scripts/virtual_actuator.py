@@ -27,8 +27,8 @@ class VirtualActuator:
         
         # 直线运动
         if msg.distance > 0:
-            dx = msg.distance / 1000.0 * np.sin(self.current_pose[2])
-            dy = msg.distance / 1000.0 * np.cos(self.current_pose[2])
+            dx = msg.distance / 1000.0 * np.cos(self.current_pose[2])
+            dy = msg.distance / 1000.0 * np.sin(self.current_pose[2])
             self.current_pose[0] = -dx
             self.current_pose[1] = -dy
             self.distance = msg.distance / 1000.0
@@ -40,7 +40,7 @@ class VirtualActuator:
         
         self.rotation_euler = [0, 0, self.current_pose[2]]
         self.translation = [self.current_pose[0], self.current_pose[1], 0]
-        # self.translation = [0,self.distance,0]
+        # self.translation1 = [self.distance,0,0]
 
         # 生成旋转矩阵
         R = tf.transformations.euler_matrix(*self.rotation_euler)
