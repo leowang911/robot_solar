@@ -7,6 +7,8 @@ import numpy as np
 from tf2_geometry_msgs import do_transform_pose
 from tf.transformations import euler_from_quaternion
 import tf.transformations
+from geographic_msgs.msg import GeoPoint
+from geodesy import utm
 from geometry_msgs.msg import PoseStamped, Twist, PoseArray
 from robot_control.msg import controlData 
 from robot_localization.msg import INSPVAE,baseStatus, GPSData
@@ -19,8 +21,13 @@ class ArucoDockingController:
         self.target_distance = 1.0  # 中间标记前停止距离
         self.align_threshold = math.radians(0.1)  # 航向对准阈值
         self.current_yaw = 0.0 # 当前航向角
+        self.target_yaw = 0.0 # 目标航向角
         self.latitude = 0.0
         self.longitude = 0.0
+        self.latitude_drone = 0.0
+        self.longitude_drone = 0.0
+        self.speed = 0.0
+        self.distance_base = 0.0
         
         # TF配置
         self.tf_buffer = tf2_ros.Buffer()
@@ -105,7 +112,7 @@ class ArucoDockingController:
         """处理基坐标系状态数据"""
         # 处理IMU数据
         self.speed = msg.speed
-        self.distance1 = msg.distance
+        self.distance_base = msg.distance
         self.sensor_state = msg.sensor_state
         self.complete_state = msg.complete_state
         self.rc_control = msg.rc_control
@@ -189,7 +196,7 @@ class ArucoDockingController:
             self.control_pub.publish(control)
             return
 
-        marker_distance = math.sqrt(self.markers['center']['position'][0]^2 + self.markers['center']['position'][1]^2)
+        marker_distance = math.sqrt(self.markers['center']['position'][0]**2 + self.markers['center']['position'][1]**2)
         if marker_distance > 1:
             pos = self.markers['center']['position']
             # 保持目标距离（沿X轴）
@@ -240,9 +247,9 @@ class ArucoDockingController:
         return yaw  
     
     def yaw_to_target_yaw_angle(self, yaw):
-        """将航向角转换为角度"""
+        """将航向角转换为控制角度"""
         # rospy.loginfo(f"current_yaw: {self.current_yaw}")
-        angle= np.int16(math.degrees(yaw)*100) + np.int16(self.current_yaw*100)
+        angle= np.uint16(math.degrees(yaw)*100) + np.uint16(self.current_yaw*100)
         # rospy.loginfo(f"angle: {angle}")
         if angle > 36000:
             angle -= 36000
@@ -277,10 +284,29 @@ class ArucoDockingController:
         rospy.logdebug(f"滤波前: {math.degrees(raw_yaw):.2f}°, 滤波后: {math.degrees(self.filtered_yaw):.2f}°")
         return self.filtered_yaw
 
+    def gps_calculation(self, lat1, lon1, lat2, lon2):
+        utm1 = utm.from_latlon(lat1, lon1)
+        utm2 = utm.from_latlon(lat2, lon2)
+        easting_diff = utm2.easting - utm1.easting
+        northing_diff = utm2.northing - utm1.northing
+        # 航向角（北向为0，北偏东为正0-360）
+        # 计算无人机相对于基坐标系的坐标
+        self.distance = math.sqrt(easting_diff**2 + northing_diff**2)
+        self.desired_yaw = math.atan2(northing_diff, easting_diff)
+
+
+
     def control_loop(self, event):
         """主控制循环"""
         control = controlData()
-        # self.check_data_expiry()  # 先执行数据清理
+        #计算gps距离
+        gps_distance = math.sqrt((self.latitude - self.latitude_drone)**2 + (self.longitude - self.longitude_drone)**2)
+
+        if 
+
+
+
+
         if self.current_target:
             # 计算当前状态
             current_pos = np.array([0, 0])  # 基坐标系原点
