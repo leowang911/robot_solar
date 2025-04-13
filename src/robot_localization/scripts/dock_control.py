@@ -21,7 +21,8 @@ class ArucoDockingController:
         
         # 坐标系参数
         self.marker_spacing = 1.0  # 左右标记间距（米）
-        self.target_distance = 1.0  # 中间标记前停止距离
+        self.stop_distance = 1.0  # 中间标记前停止距离
+        self.target_distance = 0.0 # 目标距离（米）
         self.align_threshold = math.radians(0.1)  # 航向对准阈值
         self.current_yaw = 0.0 # 当前航向角
         self.target_yaw = 0.0 # 目标航向角
@@ -60,6 +61,7 @@ class ArucoDockingController:
         rospy.Subscriber("/camera/aruco_100/pose", PoseStamped, self.left_cb)
         rospy.Subscriber("/camera/aruco_101/pose", PoseStamped, self.right_cb)
         rospy.Subscriber("/camera/aruco_102/pose", PoseStamped, self.center_cb)
+        # rospy.Subscriber("/virtual_marker_102/pose", PoseStamped, self.center_cb)
         # rospy.Subscriber("/virtual_markers", PoseArray, self.markers_cb)
         
         # 发布器
@@ -204,12 +206,12 @@ class ArucoDockingController:
         #     return
 
         marker_distance = math.sqrt(self.markers['center']['position'][0]**2 + self.markers['center']['position'][1]**2)
-        if marker_distance > 1:
+        if marker_distance > self.target_distance:
             pos = self.markers['center']['position']
             # 保持目标距离（沿X轴）
             rot = self.markers['center']['orientation']
             R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
-            self.pos_target = R@[0, 0, self.target_distance] + pos
+            self.pos_target = R@[0, 0, self.stop_distance] + pos
 
             if self.get_marker_yaw(self.markers['center']) is None:
                 rospy.logwarn("无法获取航向角")
@@ -235,13 +237,16 @@ class ArucoDockingController:
     def estimate_center(self, side):
         """估计中间位置（基于单侧标记）"""
         marker = self.markers[side]
-        offset = self.marker_spacing/2 * (-1 if side == 'left' else 1)
+        pos = self.markers[side]['position']
+        rot = self.markers[side]['orientation']
+        R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
+        sign = 1 if side == 'right' else -1
+        # 计算中间位置 * sign
+        offset = -self.marker_spacing/2
+        self.pos_target = R@[-sign*self.stop_distance,0, offset] + pos
+        
         return {
-            'position': np.array([
-                marker['position'][0] - self.target_distance,
-                marker['position'][1] + offset,
-                0
-            ]),
+            'position': self.pos_target,
             'yaw': self.get_marker_yaw(marker)
             # 'yaw': np.arctan2(marker['position'][1], marker['position'][0]) + np.pi/2
         }

@@ -29,8 +29,8 @@ class VirtualActuator:
         if msg.distance > 0:
             dx = msg.distance / 1000.0 * np.cos(self.current_pose[2])
             dy = msg.distance / 1000.0 * np.sin(self.current_pose[2])
-            self.current_pose[0] = -dx
-            self.current_pose[1] = -dy
+            self.current_pose[0] = dx
+            self.current_pose[1] = dy
             self.distance = msg.distance / 1000.0
 
 
@@ -46,7 +46,9 @@ class VirtualActuator:
         R = tf.transformations.euler_matrix(*self.rotation_euler)
         
         # 在旋转后的坐标系下进行平移
-        rotated_translation = R[:3, :3] @ self.translation
+        # rotated_translation = R[:3, :3] @ self.translation
+        rotated_translation = [self.current_pose[0],self.current_pose[1],0]
+
         
         # 构造变换消息
         transform = TransformStamped()

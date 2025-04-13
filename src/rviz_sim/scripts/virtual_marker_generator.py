@@ -5,8 +5,9 @@ from geometry_msgs.msg import PoseStamped, PoseArray
 
 class VirtualMarkerGenerator:
     def __init__(self):
-        self.pub = rospy.Publisher('/virtual_markers', PoseArray, queue_size=1)
-        rospy.Timer(rospy.Duration(0.1), self.update_markers)
+        # self.pub = rospy.Publisher('/virtual_markers', PoseArray, queue_size=1)
+        self.pub = rospy.Publisher('/virtual_marker_102', PoseStamped, queue_size=1)
+        rospy.Timer(rospy.Duration(0.1), self.update_marker_single)
         
         # 初始标记位置（base_link坐标系）
         self.markers = {
@@ -26,6 +27,18 @@ class VirtualMarkerGenerator:
             pose.position.y = pos[1]
             pose.position.z = pos[2]
             msg.poses.append(pose)
+            
+        self.pub.publish(msg)
+
+    def update_marker_single(self, event):
+        msg = PoseStamped()
+        msg.header.stamp = rospy.Time.now()
+        msg.header.frame_id = "base_link"
+        
+        pose = PoseStamped().pose
+        pose.position.x = 1
+        pose.position.y = 0.5
+        pose.position.z = 0
             
         self.pub.publish(msg)
 
