@@ -9,6 +9,7 @@ from std_msgs.msg import UInt8
 from robot_localization.msg import baseStatus  # 根据实际包名调整
 from robot_control.msg import controlData  # 根据实际包名调整
 from std_msgs.msg import Header
+import numpy as np
 
 class BaseSerialNode:
     def __init__(self):
@@ -59,6 +60,7 @@ class BaseSerialNode:
                     stopbits=serial.STOPBITS_ONE,
                     timeout=0.1
                 )
+                
                 rospy.loginfo(f"Connected to {self.port} at {self.baudrate} baud")
         except serial.SerialException as e:
             rospy.logerr(f"Serial port error: {e}")
@@ -71,7 +73,7 @@ class BaseSerialNode:
             'target_yaw': msg.target_yaw,
             'roller_speed': msg.roller_speed,
             'yaw': msg.yaw,
-            'state': msg.robot_state
+            'robot_state': msg.robot_state
         }
         self.queue_tx_data(tx_data)
 
@@ -113,17 +115,19 @@ class BaseSerialNode:
     def create_tx_frame(self, data):
         """创建发送数据帧"""
         scaled_distance = int(data.get('distance', 0.0) )
-        scaled_target_yaw = int(data.get('target_yaw', 0.0) * 100)
-        scaled_roller_speed = int(data.get('roller_speed', 0.0) * 100)
-        scaled_yaw = int(data.get('yaw', 0.0) * 100)
+        scaled_target_yaw = np.int16(data.get('target_yaw', 0.0) )
+        scaled_roller_speed = np.uint16(data.get('roller_speed', 0.0) )
+        scaled_yaw = np.uint16(data.get('yaw', 0.0) )
+        
+        state = data.get('robot_state', 0x00)
 
-        state = data.get('state', 0x00)
-
-        if(data.state == 0x02 &
+        if(state == 0x02 &
            self.complete_state == 1):
             state = 0x01
+        
+        
 
-        frame = struct.pack('<BihhhB',
+        frame = struct.pack('<BIHHHB',
                             0x55,
                             scaled_distance & 0xFFFFFFFF,
                             scaled_target_yaw & 0xFFFF,
@@ -136,6 +140,7 @@ class BaseSerialNode:
                         #   0x00A0,  # current yaw*100
                         #   0x02, 
                             )   
+        rospy.loginfo(f"Creating frame: {frame.hex()}")
 
         # 计算校验和
         checksum = sum(frame[:12]) & 0xFF

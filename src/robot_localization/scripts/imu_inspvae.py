@@ -12,7 +12,7 @@ class IMUParser:
         rospy.init_node('imu_parser_node')
         
         # 参数配置
-        self.port = rospy.get_param('~port', '/dev/ttyUSB0')
+        self.port = rospy.get_param('~port', '/dev/ttyUSB2')
         self.baud = rospy.get_param('~baud', 230400)
         self.device_addr = 0x50  # 设备地址 (示例中的50)
         
@@ -30,15 +30,15 @@ class IMUParser:
         cmd = bytes.fromhex(f"{self.device_addr:02X} 03 00 3D 00 06")
         crc = self.calculate_crc(cmd)
         full_cmd = cmd + crc
-        rospy.loginfo(f"Sending command: {full_cmd.hex()}")
+        # rospy.loginfo(f"Sending command: {full_cmd.hex()}")
         self.ser.write(full_cmd)
 
     def parse_response(self, data):
         """解析返回数据"""
-        if len(data) < 17 & data[1]!=50:  # 至少16字节: 地址(1)+功能码(1)+长度(1)+数据(12)+CRC(2)
-            rospy.logwarn("数据长度不足")
+        if len(data) != 17 or data[0]!=0x50:  # 至少16字节: 地址(1)+功能码(1)+长度(1)+数据(12)+CRC(2)
+            rospy.logwarn("数据错误")
             return None
-        rospy.loginfo(f"Received data: {data.hex()}")
+        # rospy.loginfo(f"Received data: {data.hex()}")
         # 校验CRC
         recv_crc = data[-2:]
         calc_crc = self.calculate_crc(data[:-2])
@@ -56,7 +56,7 @@ class IMUParser:
         pitch = np.int32(((h_pitch_h << 24) | (h_pitch_l << 16) | (l_pitch_h << 8) | l_pitch_l)) / 1000.0
         yaw = np.int32(((h_yaw_h << 24) | (h_yaw_l << 16) | (l_yaw_h << 8) | l_yaw_l)) / 1000.0
         
-        rospy.loginfo(f"Parsed angles: Roll={roll}, Pitch={pitch}, Yaw={yaw}")
+        # rospy.loginfo(f"Parsed angles: Roll={roll}, Pitch={pitch}, Yaw={yaw}")
         return roll, pitch, yaw
 
     def run(self):
@@ -107,7 +107,7 @@ class IMUParser:
 
         # if yaw & 0x80000000:  # 检查最高位是否为1
         #     yaw -= 0x100000000  # 转换为负数
-        rospy.loginfo(f"Parsed angles: Roll={roll}, Pitch={pitch}, Yaw={yaw}")
+        # rospy.loginfo(f"Parsed angles: Roll={roll}, Pitch={pitch}, Yaw={yaw}")
         
         if yaw < 0:
             yaw += 360
@@ -116,7 +116,7 @@ class IMUParser:
         msg.pitch = pitch
         msg.yaw = yaw
         self.imu_pub.publish(msg)
-        rospy.loginfo(f"Published IMU data: Roll={roll}, Pitch={pitch}, Yaw={yaw}")
+        # rospy.loginfo(f"Published IMU data: Roll={roll}, Pitch={pitch}, Yaw={yaw}")
 
 
     def publish_imu(self, roll, pitch, yaw):

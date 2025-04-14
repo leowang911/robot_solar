@@ -30,8 +30,8 @@ class ArucoDockingController:
         self.latitude = 40.123456
         self.longitude = -74.123456
         self.latitude_drone = 40.123456
-        self.longitude_drone = -74.123339
-        # self.longitude_drone = -74.123456
+        # self.longitude_drone = -74.123339
+        self.longitude_drone = -74.123456
         self.yaw_drone = 0.0
         self.speed = 0.0
         self.distance2drone = 0.0
@@ -125,7 +125,7 @@ class ArucoDockingController:
         self.distance_base = msg.distance
         self.sensor_state = msg.sensor_state
         self.complete_state = msg.complete_state
-        self.rc_control = msg.rc_control
+        self.rc_control = msg.rc_state
         # self.battery = msg.battery # 电池电量(todo)
 
     def drone_gps_cb(self, msg):
@@ -138,7 +138,7 @@ class ArucoDockingController:
     def inspvae_cb(self, msg):
         self.latitude = msg.latitude
         self.longitude = msg.longitude
-        self.current_yaw = msg.yaw
+        self.current_yaw = math.radians(msg.yaw)
 
     def left_cb(self, msg): self.process_marker(msg, 'left')
     def right_cb(self, msg): self.process_marker(msg, 'right')
@@ -211,7 +211,7 @@ class ArucoDockingController:
         rot = self.markers['center']['orientation']
 
         # 大于目标距离时，先走到目标点前1m
-        if abs(marker_distance - self.stop_distance) > self.target_distance_threshold:
+        if abs(marker_distance - self.stop_distance) > self.stop_distance_threshold:
 
             R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
             self.pos_target = R@[0, 0, self.stop_distance] + pos
@@ -340,12 +340,19 @@ class ArucoDockingController:
     def control_loop(self, event):
         """主控制循环"""
         control = controlData()
+        control.distance = 0
+        control.target_yaw = 0
+        control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+        control.roller_speed = 0
+        control.robot_state = 1
+        # rospy.loginfo(f"当前状态: {self.state}")
+
         #计算gps距离
         gps_calculation = self.gps_calculation(self.latitude, self.longitude, self.latitude_drone, self.longitude_drone)
         # rospy.loginfo(f"gps_calculation: {gps_calculation}")
         if self.distance2drone > 2 and self.current_target is None: #gps距离大于2米,通过gps数据大致导航
             control.distance = np.uint16(self.distance2drone*1000)
-            rospy.loginfo(f"gps_yaw: {self.yaw_to_target_yaw_angle(self.yaw2drone, 0)}")
+            # rospy.loginfo(f"gps_yaw: {self.yaw_to_target_yaw_angle(self.yaw2drone, 0)}")
             # rospy.loginfo(f"gps_distance: {self.distance2drone}")
             control.target_yaw = self.yaw_to_target_yaw_angle(self.yaw2drone, 0)
             control.robot_state = 2
@@ -382,15 +389,16 @@ class ArucoDockingController:
                     else:
                         # 进入最终对接
                         self.state = "FINAL_DOCKING"
+                        control.robot_state = 1
 
-            else:
-                control.distance = 0
-                control.target_yaw = 0
-                control.robot_state = 2
+            # else:
+            #     control.distance = 0
+            #     control.target_yaw = 0
+            #     control.robot_state = 1
 
         # 查看所有变量
-        if self.info:
-            rospy.loginfo(f"当前状态: {self.state}")
+        # if self.info:
+            # rospy.loginfo(f"当前状态: {self.robot_state}")
             # rospy.loginfo(f"当前航向角: {self.current_yaw}")
             # rospy.loginfo(f"目标航向角: {self.target_yaw}")
             # rospy.loginfo(f"目标距离: {self.target_distance}")
