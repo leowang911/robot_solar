@@ -14,10 +14,10 @@ class ModbusGPSNode:
         rospy.init_node('modbus_gps_node')
         
         # 参数配置
-        self.port = rospy.get_param('~port', '/dev/ttyUSB0')
+        self.port = rospy.get_param('~port', '/dev/ttyUSB1')
         self.baudrate = rospy.get_param('~baudrate', 115200)
         self.slave_id = rospy.get_param('~slave_id', 0x50)
-        self.polling_rate = rospy.get_param('~polling_rate', 1.0)
+        self.polling_rate = rospy.get_param('~polling_rate', 100.0)
         
         # CRC16计算器
         self.crc16 = crcmod.mkCrcFun(0x18005, rev=True, initCrc=0xFFFF)

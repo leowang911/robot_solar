@@ -323,11 +323,6 @@
             <param name="corner_refinement"  value="$(arg corner_refinement)" />
         </node>
 
-        <node pkg="robot_localization" type="aruco_docking_controll" name="dock_control">
-            <param name="corner_refinement"  value="$(arg corner_refinement)" />
-            
-        </node>
-
 
 
 

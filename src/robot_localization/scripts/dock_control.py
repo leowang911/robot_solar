@@ -20,17 +20,18 @@ class ArucoDockingController:
         self.info = True
         
         # 坐标系参数
-        self.marker_spacing = 1.0  # 左右标记间距（米）
-        self.stop_distance = 1.0  # 中间标记前停止距离
+        self.marker_spacing = rospy.get_param('~marker_spacing', 1.0)  # 左右标记间距（米）
+        self.stop_distance = rospy.get_param('~stop_distance', 1)  # 中间标记前停止距离
+        self.stop_distance_threshold = rospy.get_param('stop_distance_threshold', 0.02)  # 停止距离阈值
         self.target_distance = 0.0 # 目标距离（米）
-        self.align_threshold = math.radians(0.1)  # 航向对准阈值
+        self.align_threshold = math.radians(1)  # 航向对准阈值
         self.current_yaw = 0.0 # 当前航向角
         self.target_yaw = 0.0 # 目标航向角
         self.latitude = 40.123456
         self.longitude = -74.123456
         self.latitude_drone = 40.123456
-        # self.longitude_drone = -74.123339
-        self.longitude_drone = -74.123456
+        self.longitude_drone = -74.123339
+        # self.longitude_drone = -74.123456
         self.yaw_drone = 0.0
         self.speed = 0.0
         self.distance2drone = 0.0
@@ -206,22 +207,30 @@ class ArucoDockingController:
         #     return
 
         marker_distance = math.sqrt(self.markers['center']['position'][0]**2 + self.markers['center']['position'][1]**2)
-        if marker_distance > self.target_distance:
-            pos = self.markers['center']['position']
-            # 保持目标距离（沿X轴）
-            rot = self.markers['center']['orientation']
+        pos = self.markers['center']['position']
+        rot = self.markers['center']['orientation']
+
+        # 大于目标距离时，先走到目标点前1m
+        if abs(marker_distance - self.stop_distance) > self.target_distance_threshold:
+
             R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
             self.pos_target = R@[0, 0, self.stop_distance] + pos
 
-            if self.get_marker_yaw(self.markers['center']) is None:
+        else:
+            pos = self.markers['center']['position']
+            rot = self.markers['center']['orientation']
+            R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
+            self.pos_target = R@[0, 0, 0] + pos
+
+        if self.get_marker_yaw(self.markers['center']) is None:
                 rospy.logwarn("无法获取航向角")
                 return None
-            return {
-                'position': self.pos_target,
-                # 'position': np.array([pos[0] - self.target_distance, pos[1], 0]),
-                'yaw': self.get_marker_yaw(self.markers['center'])
-            }
-            
+        
+        return {
+            'position': self.pos_target,
+            'yaw': self.get_marker_yaw(self.markers['center'])
+        }
+
 
     def calculate_midpoint(self):
         """计算左右标记中点"""
@@ -250,6 +259,27 @@ class ArucoDockingController:
             'yaw': self.get_marker_yaw(marker)
             # 'yaw': np.arctan2(marker['position'][1], marker['position'][0]) + np.pi/2
         }
+
+    def calculate_docking_target(self):
+        """计算中间标记前的目标点"""
+
+        marker_distance = math.sqrt(self.markers['center']['position'][0]**2 + self.markers['center']['position'][1]**2)
+        if marker_distance > self.target_distance:
+            pos = self.markers['center']['position']
+            # 保持目标距离（沿X轴）
+            rot = self.markers['center']['orientation']
+            R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
+            # self.pos_target = R@[0, 0, self.stop_distance] + pos
+            self.pos_target = pos
+
+            if self.get_marker_yaw(self.markers['center']) is None:
+                rospy.logwarn("无法获取航向角")
+                return None
+            return {
+                'position': self.pos_target,
+                # 'position': np.array([pos[0] - self.target_distance, pos[1], 0]),
+                'yaw': self.get_marker_yaw(self.markers['center'])
+            }
 
     def get_marker_yaw(self, marker):
         """从标记位姿获取航向角（已通过TF旋转补偿）"""
@@ -305,7 +335,7 @@ class ArucoDockingController:
         # 航向角（北向为0，北偏东为正0-360）
         # 计算无人机相对于基坐标系的坐标
         self.distance2drone = math.sqrt(easting_diff**2 + northing_diff**2)
-        self.yaw2drone = math.atan2(northing_diff, easting_diff)
+        self.yaw2drone = math.atan2(easting_diff, northing_diff)
 
     def control_loop(self, event):
         """主控制循环"""
@@ -346,7 +376,9 @@ class ArucoDockingController:
                     # 到达目标位置
                     if self.state == "FINAL_APPROACH":
                         control.distance = 0
+                
                         control.target_yaw = self.yaw_to_target_yaw_angle(self.current_target['yaw'],self.current_yaw)
+                        control.robot_state = 2
                     else:
                         # 进入最终对接
                         self.state = "FINAL_DOCKING"
@@ -374,12 +406,6 @@ class ArucoDockingController:
         control.header.seq = self.control_seq
         self.control_pub.publish(control)
         self.control_seq += 1
-
-
-
-
-
-        
 
 if __name__ == '__main__':
     rospy.init_node('aruco_docking_controller')

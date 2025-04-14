@@ -169,6 +169,7 @@ catkin_install_python(PROGRAMS
   scripts/base_node.py
   scripts/base_serial_node.py
   scripts/dock_control.py
+  scripts/imu_inspvae.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
