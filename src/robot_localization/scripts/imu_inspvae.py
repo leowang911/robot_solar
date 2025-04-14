@@ -15,6 +15,7 @@ class IMUParser:
         self.port = rospy.get_param('~port', '/dev/ttyUSB2')
         self.baud = rospy.get_param('~baud', 230400)
         self.device_addr = 0x50  # 设备地址 (示例中的50)
+        self.rx_frame_length = 17  # 接收数据帧长度
         
         # 初始化串口
         self.ser = serial.Serial(self.port, self.baud, timeout=1)
@@ -57,18 +58,51 @@ class IMUParser:
         yaw = np.int32(((h_yaw_h << 24) | (h_yaw_l << 16) | (l_yaw_h << 8) | l_yaw_l)) / 1000.0
         
         # rospy.loginfo(f"Parsed angles: Roll={roll}, Pitch={pitch}, Yaw={yaw}")
-        return roll, pitch, yaw
+        return {'roll': roll, 'pitch': pitch, 'yaw': yaw}
 
     def run(self):
         """主循环读取数据"""
+        buffer = bytearray()
         while not rospy.is_shutdown():
-            if self.ser.in_waiting >= 17:
-                data = self.ser.read(17)
-                angles = self.parse_response(data)
-                if angles:
-                    self.publish_inspvae_data(*angles)
+            try:
+                if self.ser.in_waiting > 0:
+                    buffer += self.ser.read(self.ser.in_waiting)
 
-    def publish_inspvae_data(self, roll, pitch, yaw):
+                # 2. 处理接收到的完整帧
+                    if len(buffer) >= self.rx_frame_length:
+                        # 查找帧头
+                        header_pos = buffer.find(b'\x50')
+                        if header_pos >= 0 and len(buffer) >= header_pos + self.rx_frame_length:
+                            # 提取完整帧
+                            frame = buffer[header_pos:header_pos+self.rx_frame_length]
+                            buffer = buffer[header_pos+self.rx_frame_length:]
+                        
+                            # 解析数据
+                            parsed = self.parse_response(frame)
+                            rospy.loginfo(f"Received frame: {frame.hex()}")
+                            if parsed:
+                                self.publish_inspvae_data(parsed)
+
+                    # 控制循环频率
+                    rospy.sleep(0.001)
+
+            except serial.SerialException as e:
+                rospy.logerr(f"Serial communication error: {e}")
+                self.init_serial()  # 尝试重新初始化串口
+                rospy.sleep(1)
+            except Exception as e:
+                rospy.logerr(f"Unexpected error: {e}")
+                rospy.sleep(1)
+            
+            
+            
+            # if self.ser.in_waiting >= 17:
+            #     data = self.ser.read(17)
+            #     angles = self.parse_response(data)
+            #     if angles:
+            #         self.publish_inspvae_data(*angles)
+
+    def publish_inspvae_data(self, angles):
         """发布INSPVAE数据"""
         msg = INSPVAE()
 
@@ -109,12 +143,19 @@ class IMUParser:
         #     yaw -= 0x100000000  # 转换为负数
         # rospy.loginfo(f"Parsed angles: Roll={roll}, Pitch={pitch}, Yaw={yaw}")
         
-        if yaw < 0:
-            yaw += 360
 
-        msg.roll = roll
-        msg.pitch = pitch
-        msg.yaw = yaw
+
+
+
+        
+
+        msg.roll = angles.get('roll', 0)
+        msg.pitch = angles.get('pitch', 0)
+        msg.yaw = angles.get('yaw', 0)
+
+        if msg.yaw < 0:
+            msg.yaw += 360
+    
         self.imu_pub.publish(msg)
         # rospy.loginfo(f"Published IMU data: Roll={roll}, Pitch={pitch}, Yaw={yaw}")
 

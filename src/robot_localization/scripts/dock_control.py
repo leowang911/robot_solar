@@ -81,6 +81,7 @@ class ArucoDockingController:
             'center': None
         }
 
+
         rospy.Timer(rospy.Duration(0.01), self.control_loop)
 
     # sim only
@@ -365,7 +366,10 @@ class ArucoDockingController:
                 self.target_yaw = math.atan2(target_vec[1], target_vec[0])
                 
                 # 航向误差
-                yaw_error = self.target_yaw - self.current_target['yaw']
+                if self.target_yaw - self.current_target['yaw']< 0.1:
+                    target_yaw = self.target_yaw
+
+
                 # rospy.loginfo(f"\n yaw: {target_yaw }\n distance: {distance}\n yaw_error: {yaw_error}\n state: {self.state}\n")
                 # 状态处理
 
