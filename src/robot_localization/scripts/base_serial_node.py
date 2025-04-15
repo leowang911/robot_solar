@@ -251,7 +251,7 @@ class BaseSerialNode:
         rospy.init_node('base_serial_node')
 
         # 参数配置
-        self.port = rospy.get_param('~port', '/dev/ttyUSB1')
+        self.port = rospy.get_param('~port', '/dev/ttyUSB0')
         self.baudrate = rospy.get_param('~baudrate', 115200)
         self.rx_frame_length = 13       # 接收帧长度
         self.tx_frame_length = 13       # 发送帧长度
@@ -344,6 +344,9 @@ class BaseSerialNode:
 
         if state == 0x02 & self.complete_state == 1:
             state = 0x01
+            self.distance_stash = data.get('distance', 0.0)
+            self.yaw_stash = data.get('target_yaw', 0.0)
+
         
         if state == 0x02 & self.complete_state == 0:
             scaled_distance = self.distance_stash
@@ -363,8 +366,7 @@ class BaseSerialNode:
         checksum = sum(frame[:12]) & 0xFF
         final_frame = frame + bytes([checksum])
         rospy.loginfo(f"Creating frame: {final_frame.hex()}")
-        self.distance_stash = data.get('distance', 0.0)
-        self.yaw_stash = data.get('target_yaw', 0.0)
+        
         return final_frame
 
     def publish_wheel_status(self, data):

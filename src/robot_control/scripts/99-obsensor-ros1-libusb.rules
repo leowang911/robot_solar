@@ -32,6 +32,7 @@ SUBSYSTEMS=="usb", ATTRS{idVendor}=="2bc5", ATTRS{idProduct}=="0701", MODE:="066
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="2bc5", ATTRS{idProduct}=="069d", MODE:="0666",  OWNER:="root", GROUP:="video", SYMLINK+="Astra Pro2"
 
 
-SUBSYSTEM=="tty", ATTRS{idVendor}=="067b", ATTRS{idProduct}=="23a3", ATTRS{serial}=="ETANb144J07", SYMLINK+="base", MODE="0666"
-SUBSYSTEM=="tty", ATTRS{idVendor}=="05e3", ATTRS{idProduct}=="7523", ATTRS{serial}=="ETANb144J07", SYMLINK+="base", MODE="0666"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="067b", ATTRS{idProduct}=="23a3", ATTRS{serial}=="ETANb144J07", SYMLINK+="rtkSerial", MODE="0666"
+KERNEL=="ttyUSB*", KERNELS=="1-2.1", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="baseSerial", MODE="0777"
+KERNEL=="ttyUSB*", KERNELS=="1-2.4", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="imu485", MODE="0777"
 
