@@ -337,11 +337,11 @@
         <param name="serial_timeout" value="0.1"/>
         </node> -->
 
-    <node pkg="robot_localization" type="imu_inspvae.py" name="imu_node">
+    <!-- <node pkg="robot_localization" type="imu_inspvae.py" name="imu_node">
         <param name="serial_port" value="/dev/ttyUSB2"/>
         <param name="baudrate" value="230400"/>
         <param name="serial_timeout" value="0.1"/>
-        </node>
+        </node> -->
 
     <node pkg="robot_localization" type="dock_control.py" name="dock_control_node">
         </node>

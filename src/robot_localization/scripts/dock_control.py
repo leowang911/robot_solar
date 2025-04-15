@@ -21,7 +21,7 @@ class ArucoDockingController:
         
         # 坐标系参数
         self.marker_spacing = rospy.get_param('~marker_spacing', 1.0)  # 左右标记间距（米）
-        self.stop_distance = rospy.get_param('~stop_distance', 1)  # 中间标记前停止距离
+        self.stop_distance = rospy.get_param('~stop_distance', 0)  # 中间标记前停止距离
         self.stop_distance_threshold = rospy.get_param('stop_distance_threshold', 0.02)  # 停止距离阈值
         self.target_distance = 0.0 # 目标距离（米）
         self.align_threshold = math.radians(1)  # 航向对准阈值
@@ -292,7 +292,9 @@ class ArucoDockingController:
     def yaw_to_target_yaw_angle(self, yaw, current_yaw):
         """将航向角转换为控制角度"""
         # rospy.loginfo(f"current_yaw: {self.current_yaw}")
+
         angle= (math.degrees(yaw)*100) + current_yaw*100
+        rospy.loginfo(f"yaw_diff: {math.degrees(yaw)}")
         # rospy.loginfo(f"angle: {angle}")
         if angle > 36000:
             angle -= 36000
