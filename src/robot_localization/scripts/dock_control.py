@@ -61,7 +61,7 @@ class ArucoDockingController:
         rospy.Subscriber("/gps/raw", GPSData, self.drone_gps_cb)
         rospy.Subscriber("/camera/aruco_100/pose", PoseStamped, self.left_cb)
         rospy.Subscriber("/camera/aruco_101/pose", PoseStamped, self.right_cb)
-        rospy.Subscriber("/camera/aruco_104/pose", PoseStamped, self.center_cb)
+        rospy.Subscriber("/camera/aruco_102/pose", PoseStamped, self.center_cb)
         # rospy.Subscriber("/virtual_marker_102/pose", PoseStamped, self.center_cb)
         # rospy.Subscriber("/virtual_markers", PoseArray, self.markers_cb)
         
