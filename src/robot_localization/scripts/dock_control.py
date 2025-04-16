@@ -400,7 +400,7 @@ class ArucoDockingController:
 
         # 查看所有变量
         # if self.info:
-            # rospy.loginfo(f"当前状态: {self.robot_state}")
+            rospy.loginfo(f"当前状态: {self.robot_state}")
             # rospy.loginfo(f"当前航向角: {self.current_yaw}")
             # rospy.loginfo(f"目标航向角: {self.target_yaw}")
             # rospy.loginfo(f"目标距离: {self.target_distance}")
