@@ -21,9 +21,9 @@ class ArucoDockingController:
         
         # 坐标系参数
         self.marker_spacing = rospy.get_param('~marker_spacing', 1.0)  # 左右标记间距（米）
-        self.stop_distance = rospy.get_param('~stop_distance', 1)  # 中间标记前停止距离
+        self.stop_distance = rospy.get_param('~stop_distance', 0)  # 中间标记前停止距离
         self.stop_distance_threshold = rospy.get_param('stop_distance_threshold', 0.02)  # 停止距离阈值
-        self.target_distance = 0.0 # 目标距离（米）
+        self.target_distance = 1.5 # 目标距离（米）
         self.align_threshold = math.radians(1)  # 航向对准阈值
         self.current_yaw = 0.0 # 当前航向角
         self.target_yaw = 0.0 # 目标航向角
@@ -292,7 +292,7 @@ class ArucoDockingController:
     def yaw_to_target_yaw_angle(self, yaw, current_yaw):
         """将航向角转换为控制角度"""
         # rospy.loginfo(f"current_yaw: {self.current_yaw}")
-        angle= (math.degrees(yaw)*100) + current_yaw*100
+        angle= (math.degrees(yaw)*100) + math.degrees(current_yaw)*100
         # rospy.loginfo(f"angle: {angle}")
         if angle > 36000:
             angle -= 36000
@@ -365,15 +365,11 @@ class ArucoDockingController:
                 self.target_distance = np.linalg.norm(target_vec) 
                 self.target_yaw = math.atan2(target_vec[1], target_vec[0])
                 
-                # 航向误差
-                if self.target_yaw - self.current_target['yaw']< 0.1:
-                    target_yaw = self.target_yaw
-
 
                 # rospy.loginfo(f"\n yaw: {target_yaw }\n distance: {distance}\n yaw_error: {yaw_error}\n state: {self.state}\n")
                 # 状态处理
 
-                if self.target_distance > 0.1:
+                if self.target_distance > self.stop_distance:
                     # if abs(yaw_error) > self.align_threshold:
                         # 航向调整阶段
                     control.distance = int(self.target_distance*1000)
@@ -394,6 +390,9 @@ class ArucoDockingController:
                         # 进入最终对接
                         self.state = "FINAL_DOCKING"
                         control.robot_state = 1
+
+            
+
 
             # else:
             #     control.distance = 0

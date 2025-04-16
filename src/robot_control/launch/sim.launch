@@ -338,7 +338,7 @@
         </node> -->
 
     <node pkg="robot_localization" type="imu_inspvae.py" name="imu_node">
-        <param name="serial_port" value="/dev/ttyUSB2"/>
+        <!-- <param name="serial_port" value="/dev/ttyUSB2"/> -->
         <param name="baudrate" value="230400"/>
         <param name="serial_timeout" value="0.1"/>
         </node>

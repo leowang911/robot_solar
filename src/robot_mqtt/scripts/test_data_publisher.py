@@ -73,11 +73,11 @@ class TestDataPublisher:
         self.control_data_msg = controlData()
         self.control_data_msg.header.frame_id = "control_data"
         self.control_data_msg.header.stamp = rospy.Time.now()
-        self.control_data_msg.distance = 2000 # 距离
-        self.control_data_msg.roller_speed = 1
-        self.control_data_msg.target_yaw = 25  # 目标航向角
-        self.control_data_msg.yaw = 55  # 偏航角
-        self.control_data_msg.robot_state = 1
+        self.control_data_msg.distance = 100 # 距离
+        self.control_data_msg.roller_speed = 0
+        self.control_data_msg.target_yaw = 2 # 目标航向角
+        self.control_data_msg.yaw = 2   # 偏航角
+        self.control_data_msg.robot_state = 2
 
         # 初始化INSPVAE消息
         self.inspvae_msg = INSPVAE()

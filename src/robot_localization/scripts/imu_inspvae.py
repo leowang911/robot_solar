@@ -154,7 +154,7 @@ class IMUParser:
         msg.yaw = angles.get('yaw', 0)
 
         if msg.yaw < 0:
-            msg.yaw += 360
+            msg.yaw += 360.0
     
         self.imu_pub.publish(msg)
         # rospy.loginfo(f"Published IMU data: Roll={roll}, Pitch={pitch}, Yaw={yaw}")

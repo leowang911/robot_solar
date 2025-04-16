@@ -327,14 +327,14 @@
         <!-- 发布base_link到其他坐标系的静态变换 -->
         <node pkg="tf2_ros" type="static_transform_publisher" 
             name="base_to_cam" 
-            args="0.2 0 0.2 -0.5 0.5 -0.5 0.5 base_link camera_link  "/>
+            args="0.232 0 0.287 -0.5 0.5 -0.5 0.5 base_link camera_link  "/>
     </group>
 
-    <node pkg="robot_localization" type="base_serial_node.py" name="base_serial_node">
+    <!-- <node pkg="robot_localization" type="base_serial_node.py" name="base_serial_node">
         <param name="serial_port" value="/dev/ttyUSB0"/>
         <param name="baudrate" value="115200"/>
         <param name="serial_timeout" value="0.1"/>
-        </node>
+        </node> -->
 
     <node pkg="robot_localization" type="imu_inspvae.py" name="imu_node">
         <param name="serial_port" value="/dev/ttyUSB2"/>
