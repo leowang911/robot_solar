@@ -179,7 +179,7 @@ class ArucoDockingController:
         # rospy.loginfo(f"有效数据: left={valid_left}, right={valid_right}, center={valid_center}")
 
         # 状态优先级更新
-        if self.state != "FINAL_DOCKING":
+        if self.state == "FINAL_DOCKING":
             self.state = "FINAL_DOCKING"
         else:
             if valid_center:
