@@ -22,7 +22,7 @@ class ArucoDockingController:
         # 坐标系参数
         self.marker_spacing = rospy.get_param('~marker_spacing', 1.0)  # 左右标记间距（米）
         self.stop_distance = rospy.get_param('~stop_distance', 0.5)  # 中间标记前停止距离
-        self.stop_distance_threshold = rospy.get_param('stop_distance_threshold', 0.02)  # 停止距离阈值
+        self.stop_distance_threshold = rospy.get_param('stop_distance_threshold', 0.1)  # 停止距离阈值
         self.target_distance = 1 # 目标距离（米）
         self.align_threshold = math.radians(1)  # 航向对准阈值
         self.current_yaw = 0 # 当前航向角
@@ -70,6 +70,7 @@ class ArucoDockingController:
         
         # 状态变量
         self.state = "SEARCH"
+        self.state_prev = "SEARCH"
         self.estimated_center = None
         self.current_target = None
         self.control_seq = 0
@@ -178,21 +179,22 @@ class ArucoDockingController:
         rospy.loginfo(f"有效数据: left={valid_left}, right={valid_right}, center={valid_center}")
 
         # 状态优先级更新
-        if valid_center:
-            self.state = "FINAL_APPROACH"
-            self.current_target = self.calculate_center_target()
-        elif valid_left and valid_right:
-            self.state = "CENTER_APPROACH"
-            self.current_target = self.calculate_midpoint()
-        elif valid_left:
-            self.state = "ESTIMATED_APPROACH"
-            self.current_target = self.estimate_center('left')
-        elif valid_right:
-            self.state = "ESTIMATED_APPROACH"
-            self.current_target = self.estimate_center('right')
-        else:
-            self.state = "SEARCH"
-            self.current_target = None  # 清空目标
+        if self.state != "FINAL_DOCKING":
+            if valid_center:
+                self.state = "FINAL_APPROACH"
+                self.current_target = self.calculate_center_target()
+            elif valid_left and valid_right:
+                self.state = "CENTER_APPROACH"
+                self.current_target = self.calculate_midpoint()
+            elif valid_left:
+                self.state = "ESTIMATED_APPROACH"
+                self.current_target = self.estimate_center('left')
+            elif valid_right:
+                self.state = "ESTIMATED_APPROACH"
+                self.current_target = self.estimate_center('right')
+            else:
+                self.state = "SEARCH"
+                self.current_target = None  # 清空目标
 
         # rospy.loginfo(f"当前状态: {self.state}")
 
@@ -340,7 +342,7 @@ class ArucoDockingController:
         # 计算无人机相对于基坐标系的坐标
         self.distance2drone = math.sqrt(easting_diff**2 + northing_diff**2)
         self.yaw2drone = math.atan2(easting_diff, northing_diff)
-        rospy.loginfo(f'distance:{self.distance2drone} yaw: {self.yaw2drone}' )
+        # rospy.loginfo(f'gps distance:{self.distance2drone} yaw: {self.yaw2drone}' )
 
     def control_loop(self, event):
         """主控制循环"""
@@ -371,7 +373,7 @@ class ArucoDockingController:
                 # rospy.loginfo(f"\n yaw: {target_yaw }\n distance: {distance}\n yaw_error: {yaw_error}\n state: {self.state}\n")
                 # 状态处理
 
-                if self.target_distance > self.stop_distance:
+                if self.target_distance > self.stop_distance_threshold:
                     # if abs(yaw_error) > self.align_threshold:
                     #     # 航向调整阶段
                     control.distance = int(self.target_distance*1000)
@@ -383,15 +385,25 @@ class ArucoDockingController:
                     #     control.target_yaw = self.yaw_to_target_yaw_angle(target_yaw)
                 else:
                     # 到达目标位置
-                    if self.state == "FINAL_APPROACH":
-                        control.distance = 0
-                
-                        control.target_yaw = self.yaw_to_target_yaw_angle(self.current_target['yaw'],self.current_yaw)
-                        control.robot_state = 2
-                    else:
-                        # 进入最终对接
-                        self.state = "FINAL_DOCKING"
+                    self.state = "FINAL_DOCKING"
+                    control.distance = 0
+                    control.target_yaw = self.yaw_to_target_yaw_angle(self.current_target['yaw'],self.current_yaw)
+                    control.robot_state = 2
+                                        
+                    if self.state_prev == "FINAL_APPROACH":
                         control.robot_state = 1
+
+                    # if self.state == "FINAL_APPROACH":
+                    #     # if self.state_prev
+                        
+
+                    #     control.distance = 0
+                    #     control.target_yaw = self.yaw_to_target_yaw_angle(self.current_target['yaw'],self.current_yaw)
+                    #     control.robot_state = 2
+                    # else:
+                    #     # 进入最终对接
+                    #     self.state = "FINAL_DOCKING"
+                    #     control.robot_state = 1
 
             # else:
             #     control.distance = 0
@@ -414,6 +426,7 @@ class ArucoDockingController:
         # 发布控制指令
         control.header.stamp = rospy.Time.now()
         control.header.seq = self.control_seq
+        self.state_prev = self.state
         self.control_pub.publish(control)
         self.control_seq += 1
 
