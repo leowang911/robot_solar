@@ -21,17 +21,17 @@ class ArucoDockingController:
         
         # 坐标系参数
         self.marker_spacing = rospy.get_param('~marker_spacing', 1.0)  # 左右标记间距（米）
-        self.stop_distance = rospy.get_param('~stop_distance', 0)  # 中间标记前停止距离
+        self.stop_distance = rospy.get_param('~stop_distance', 0.5)  # 中间标记前停止距离
         self.stop_distance_threshold = rospy.get_param('stop_distance_threshold', 0.02)  # 停止距离阈值
-        self.target_distance = 0.0 # 目标距离（米）
+        self.target_distance = 1 # 目标距离（米）
         self.align_threshold = math.radians(1)  # 航向对准阈值
-        self.current_yaw = 0.0 # 当前航向角
-        self.target_yaw = 0.0 # 目标航向角
-        self.latitude = 40.123456
-        self.longitude = -74.123456
-        self.latitude_drone = 40.123456
+        self.current_yaw = 30.32098151262 # 当前航向角
+        self.target_yaw =120.07004749195 # 目标航向角
+        self.latitude = 30.32098151262
+        self.longitude = 120.07004749195
+        self.latitude_drone = 30.32098151262
         # self.longitude_drone = -74.123339
-        self.longitude_drone = -74.123456
+        self.longitude_drone = 120.07004749195
         self.yaw_drone = 0.0
         self.speed = 0.0
         self.distance2drone = 0.0
@@ -61,7 +61,7 @@ class ArucoDockingController:
         rospy.Subscriber("/gps/raw", GPSData, self.drone_gps_cb)
         rospy.Subscriber("/camera/aruco_100/pose", PoseStamped, self.left_cb)
         rospy.Subscriber("/camera/aruco_101/pose", PoseStamped, self.right_cb)
-        rospy.Subscriber("/camera/aruco_102/pose", PoseStamped, self.center_cb)
+        rospy.Subscriber("/camera/aruco_104/pose", PoseStamped, self.center_cb)
         # rospy.Subscriber("/virtual_marker_102/pose", PoseStamped, self.center_cb)
         # rospy.Subscriber("/virtual_markers", PoseArray, self.markers_cb)
         
@@ -292,9 +292,9 @@ class ArucoDockingController:
     def yaw_to_target_yaw_angle(self, yaw, current_yaw):
         """将航向角转换为控制角度"""
         # rospy.loginfo(f"current_yaw: {self.current_yaw}")
-
-        angle= (math.degrees(yaw)*100) + current_yaw*100
-        rospy.loginfo(f"yaw_diff: {math.degrees(yaw)}")
+        # imu ccw and cw !!!!!!
+        angle= -(math.degrees(yaw)*100) + math.degrees(current_yaw)*100
+        #计算gps距离
         # rospy.loginfo(f"angle: {angle}")
         if angle > 36000:
             angle -= 36000
@@ -319,6 +319,7 @@ class ArucoDockingController:
         dt = (current_time - self.last_filter_time).to_sec()
         self.last_filter_time = current_time
         
+        #计算gps距离
         # 低通滤波公式
         alpha = dt / (self.filter_time_constant + dt)
         lowpass_yaw = alpha * raw_yaw + (1 - alpha) * self.filtered_yaw
@@ -339,6 +340,7 @@ class ArucoDockingController:
         # 计算无人机相对于基坐标系的坐标
         self.distance2drone = math.sqrt(easting_diff**2 + northing_diff**2)
         self.yaw2drone = math.atan2(easting_diff, northing_diff)
+        rospy.loginfo(f'distance:{self.distance2drone} yaw: {self.yaw2drone}' )
 
     def control_loop(self, event):
         """主控制循环"""
@@ -353,8 +355,8 @@ class ArucoDockingController:
         #计算gps距离
         gps_calculation = self.gps_calculation(self.latitude, self.longitude, self.latitude_drone, self.longitude_drone)
         # rospy.loginfo(f"gps_calculation: {gps_calculation}")
-        if self.distance2drone > 2 and self.current_target is None: #gps距离大于2米,通过gps数据大致导航
-            control.distance = np.uint16(self.distance2drone*1000)
+        if self.distance2drone > 1 and self.current_target is None: #gps距离大于2米,通过gps数据大致导航
+            control.distance = np.uint16((self.distance2drone)*1000)
             # rospy.loginfo(f"gps_yaw: {self.yaw_to_target_yaw_angle(self.yaw2drone, 0)}")
             # rospy.loginfo(f"gps_distance: {self.distance2drone}")
             control.target_yaw = self.yaw_to_target_yaw_angle(self.yaw2drone, 0)
@@ -367,17 +369,14 @@ class ArucoDockingController:
                 self.target_distance = np.linalg.norm(target_vec) 
                 self.target_yaw = math.atan2(target_vec[1], target_vec[0])
                 
-                # 航向误差
-                if self.target_yaw - self.current_target['yaw']< 0.1:
-                    target_yaw = self.target_yaw
-
+                
 
                 # rospy.loginfo(f"\n yaw: {target_yaw }\n distance: {distance}\n yaw_error: {yaw_error}\n state: {self.state}\n")
                 # 状态处理
 
-                if self.target_distance > 0.1:
+                if self.target_distance > self.stop_distance:
                     # if abs(yaw_error) > self.align_threshold:
-                        # 航向调整阶段
+                    #     # 航向调整阶段
                     control.distance = int(self.target_distance*1000)
                     control.target_yaw = self.yaw_to_target_yaw_angle(self.current_target['yaw'],self.current_yaw)
                     control.robot_state = 2
@@ -396,6 +395,9 @@ class ArucoDockingController:
                         # 进入最终对接
                         self.state = "FINAL_DOCKING"
                         control.robot_state = 1
+
+            
+
 
             # else:
             #     control.distance = 0
