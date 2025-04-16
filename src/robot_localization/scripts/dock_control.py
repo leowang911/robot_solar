@@ -175,7 +175,7 @@ class ArucoDockingController:
         valid_left = self.markers['left'] is not None
         valid_right = self.markers['right'] is not None
         valid_center = self.markers['center'] is not None
-        # rospy.loginfo(f"有效数据: left={valid_left}, right={valid_right}, center={valid_center}")
+        rospy.loginfo(f"有效数据: left={valid_left}, right={valid_right}, center={valid_center}")
 
         # 状态优先级更新
         if valid_center:
