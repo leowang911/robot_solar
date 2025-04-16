@@ -180,6 +180,8 @@ class ArucoDockingController:
 
         # 状态优先级更新
         if self.state != "FINAL_DOCKING":
+            self.state = "FINAL_DOCKING"
+        else:
             if valid_center:
                 self.state = "FINAL_APPROACH"
                 self.current_target = self.calculate_center_target()
