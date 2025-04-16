@@ -216,16 +216,17 @@ class ArucoDockingController:
         rot = self.markers['center']['orientation']
 
         # # 大于目标距离时，先走到目标点前1m
-        # if abs(marker_distance - self.stop_distance) > self.stop_distance_threshold:
+        if abs(marker_distance - self.stop_distance) > self.stop_distance_threshold:
 
-        R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
-        self.pos_target = R@[0, 0, self.stop_distance] + pos
+            R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
+            self.pos_target = R@[0, 0, self.stop_distance] + pos
 
-        # else:
-        #     pos = self.markers['center']['position']
-        #     rot = self.markers['center']['orientation']
-        #     R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
-        #     self.pos_target = R@[0, 0, 0] + pos
+        else:
+            # pos = self.markers['center']['position']
+            # rot = self.markers['center']['orientation']
+            # R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
+            # self.pos_target = R@[0, 0, 0] + pos
+            self.pos_target = [0,0,0]
 
         if self.get_marker_yaw(self.markers['center']) is None:
                 rospy.logwarn("无法获取航向角")
