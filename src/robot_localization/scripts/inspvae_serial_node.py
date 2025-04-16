@@ -69,7 +69,7 @@ def inspvae_serial_node():
             if not line:
                 continue
                 
-            # Parse INSPVAE message
+            # Parse INSPVAE message7+9
             data = parse_inspvae(line)
             if not data:
                 continue

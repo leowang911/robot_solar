@@ -12,7 +12,7 @@ class BaseSerialNode:
         rospy.init_node('base_serial_node')
 
         # 参数配置
-        self.port = rospy.get_param('~port', '/dev/ttyUSB0')
+        self.port = rospy.get_param('~port', '/dev/ttyUSB1')
         self.baudrate = rospy.get_param('~baudrate', 115200)
         self.rx_frame_length = 13       # 接收帧长度
         self.tx_frame_length = 13       # 发送帧长度
@@ -109,6 +109,7 @@ class BaseSerialNode:
 
         if self.rc_state_prev != 2 and self.rc_state == 2:
             self.last_tx_data_prev = data
+            state = 0x01
 
         if self.complete_state == 1 or state == 0x01:
             self.last_tx_data_prev = data

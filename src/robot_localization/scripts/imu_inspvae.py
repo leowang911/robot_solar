@@ -21,7 +21,7 @@ class IMUParser:
         self.ser = serial.Serial(self.port, self.baud, timeout=1)
         
         # 发布IMU数据
-        self.imu_pub = rospy.Publisher('/inspvae_data', INSPVAE, queue_size=10)
+        self.imu_pub = rospy.Publisher('/inspvae_data', INSPVAE, queue_size=1)
         
         # 定时发送查询指令
         self.timer = rospy.Timer(rospy.Duration(0.02), self.send_query_cmd)
@@ -84,7 +84,7 @@ class IMUParser:
                                 self.publish_inspvae_data(parsed)
 
                     # 控制循环频率
-                    rospy.sleep(0.001)
+                    rospy.sleep(0.005)
 
             except serial.SerialException as e:
                 rospy.logerr(f"Serial communication error: {e}")
