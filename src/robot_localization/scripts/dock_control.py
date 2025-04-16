@@ -25,8 +25,8 @@ class ArucoDockingController:
         self.stop_distance_threshold = rospy.get_param('stop_distance_threshold', 0.02)  # 停止距离阈值
         self.target_distance = 1 # 目标距离（米）
         self.align_threshold = math.radians(1)  # 航向对准阈值
-        self.current_yaw = 30.32098151262 # 当前航向角
-        self.target_yaw =120.07004749195 # 目标航向角
+        self.current_yaw = 0 # 当前航向角
+        self.target_yaw = 0# 目标航向角
         self.latitude = 30.32098151262
         self.longitude = 120.07004749195
         self.latitude_drone = 30.32098151262
@@ -137,8 +137,8 @@ class ArucoDockingController:
         self.yaw_drone = msg.yaw
 
     def inspvae_cb(self, msg):
-        self.latitude = msg.latitude
-        self.longitude = msg.longitude
+        # self.latitude = msg.latitude
+        # self.longitude = msg.longitude
         self.current_yaw = math.radians(msg.yaw)
 
     def left_cb(self, msg): self.process_marker(msg, 'left')
