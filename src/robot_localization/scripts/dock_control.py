@@ -176,7 +176,7 @@ class ArucoDockingController:
         valid_left = self.markers['left'] is not None
         valid_right = self.markers['right'] is not None
         valid_center = self.markers['center'] is not None
-        rospy.loginfo(f"有效数据: left={valid_left}, right={valid_right}, center={valid_center}")
+        # rospy.loginfo(f"有效数据: left={valid_left}, right={valid_right}, center={valid_center}")
 
         # 状态优先级更新
         if self.state != "FINAL_DOCKING":
@@ -374,6 +374,7 @@ class ArucoDockingController:
                 # 状态处理
 
                 if self.target_distance > self.stop_distance_threshold:
+                    rospy.loginfo(f"target_distance: {self.target_distance}")
                     # if abs(yaw_error) > self.align_threshold:
                     #     # 航向调整阶段
                     control.distance = int(self.target_distance*1000)
