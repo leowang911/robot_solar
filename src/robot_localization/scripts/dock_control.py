@@ -43,7 +43,7 @@ class ArucoDockingController:
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 
         # 新增数据有效期参数（单位：秒）
-        self.data_expiry = 0.5  # 0.5秒未更新的数据视为失效
+        self.data_expiry = 1  # 0.5秒未更新的数据视为失效
         self.marker_time = {'left': None, 'right': None, 'center': None}
         
          # 新增滤波参数
