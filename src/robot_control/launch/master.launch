@@ -388,6 +388,6 @@
     <!-- <node pkg="robot_localization" type="dock_control.py" name="dock_control_node">
         </node> -->
 
-    <!-- <node pkg="rviz_sim" type="virtual_actuator.py" name="virtual_actuator"> 
-     </node> -->
+    <node pkg="rviz_sim" type="virtual_actuator.py" name="virtual_actuator"> 
+     </node>
 </launch>
