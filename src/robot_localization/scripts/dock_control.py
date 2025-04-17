@@ -458,9 +458,12 @@ class ArucoDockingController:
             pt=np.array(pt).T
             fx,fy,cx,cy=[612.3629150390625, 637.8858032226562, 612.5785522460938, 362.7610168457031]
             point=self.pixel_to_point(pt, fx,fy,cx,cy)
-            
-            a,b,c,d,centp=self.fit_plane_to_points(point.T)
-            pose_q= self.get_pose(a,b,c)
+            if point.shape[1]>20:
+                a,b,c,d,centp=self.fit_plane_to_points(point.T)
+                pose_q= self.get_pose(a,b,c)
+            else:
+                centp=np.array([0,0,0])
+                pose_q= self.get_pose(0,0,1)            
         else:
             centp=np.array([0,0,0])
             pose_q= self.get_pose(0,0,1)
