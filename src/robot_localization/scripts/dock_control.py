@@ -48,6 +48,16 @@ class ArucoDockingController:
         self.marker_time = {'left': None, 'right': None, 'center': None, 'center_left': None, 'center_right': None}
         self.valid_center_markers = []
         
+
+         # 存储检测数据（基坐标系）
+        self.markers = {
+            'left': None, 
+            'right': None,
+            'center': None,
+            'center_left': None,
+            'center_right': None
+        }
+
         #  # 新增滤波参数
         # self.filter_enabled = True          # 滤波开关
         # self.filter_time_constant = 0.2     # 低通滤波时间常数（秒）
@@ -92,15 +102,7 @@ class ArucoDockingController:
 
         self.control_seq = 0
         
-        # 存储检测数据（基坐标系）
-        self.markers = {
-            'left': None, 
-            'right': None,
-            'center': None,
-            'center_left': None,
-            'center_right': None
-        }
-
+       
 
         #rospy.Timer(rospy.Duration(0.01), self.control_loop)
         rospy.Timer(rospy.Duration(0.10), self.control_loop)
