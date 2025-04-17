@@ -45,16 +45,16 @@ class ArucoDockingController:
         # 新增数据有效期参数（单位：秒）
         self.data_expiry = 1  # 0.5秒未更新的数据视为失效
         self.marker_time = {'left': None, 'right': None, 'center': None, 'center_left': None, 'center_right': None}
-        self.valid_center_markers = None
+        self.valid_center_markers = []
         
-         # 新增滤波参数
-        self.filter_enabled = True          # 滤波开关
-        self.filter_time_constant = 0.2     # 低通滤波时间常数（秒）
-        self.ema_alpha = 0.3                # EMA平滑系数（0-1）
+        #  # 新增滤波参数
+        # self.filter_enabled = True          # 滤波开关
+        # self.filter_time_constant = 0.2     # 低通滤波时间常数（秒）
+        # self.ema_alpha = 0.3                # EMA平滑系数（0-1）
         
-        # 滤波状态变量
-        self.filtered_yaw = 0.0             # 滤波后航向角
-        self.last_filter_time = None        # 上次滤波时间
+        # # 滤波状态变量
+        # self.filtered_yaw = 0.0             # 滤波后航向角
+        # self.last_filter_time = None        # 上次滤波时间
         
 
 
@@ -162,7 +162,7 @@ class ArucoDockingController:
         base_data = self.transform_to_base(msg)
         if base_data:
             self.markers[marker_type] = base_data
-            self.marker_time[marker_type] = rospy.Time.now()  # 记录时间戳
+            self.marker_time[marker_type] = msg.header.stamp # 记录时间戳
             # 记录更新时间
             self.update_state()
 
