@@ -37,7 +37,7 @@ class ArucoDockingController:
         self.speed = 0.0
         self.distance2drone = 0.0
         self.yaw2drone = 0.0
-        
+        self.depth_image = None
         
         # TF配置
         self.tf_buffer = tf2_ros.Buffer()
