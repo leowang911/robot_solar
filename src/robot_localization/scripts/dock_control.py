@@ -215,20 +215,23 @@ class ArucoDockingController:
                 self.state = "FINAL_APPROACH"
                 
                 self.valid_center_markers.append(self.markers['center'])
-                if valid_center_left:
-                    self.valid_center_markers.append(self.markers['center_left'])
-                if valid_center_right:
-                    self.valid_center_markers.append(self.markers['center_right'])
+                # if valid_center_left:
+                #     self.valid_center_markers.append(self.markers['center_left'])
+                # if valid_center_right:
+                #     self.valid_center_markers.append(self.markers['center_right'])
                 valid_target.append(self.calculate_center_target())
+                rospy.loginfo(f"center: {valid_target}")
 
         
 
             if valid_center_left:
                 valid_target.append(self.calculate_center_side_target('center_left'))
+                rospy.loginfo(f"left: {valid_target}")
 
             
             if valid_center_right:
                 valid_target.append(self.calculate_center_side_target('center_right'))
+                rospy.loginfo(f"right: {valid_target}")
 
 
             if len(valid_target)>0:
@@ -300,18 +303,19 @@ class ArucoDockingController:
 
         marker_distance = math.sqrt(self.markers['center']['position'][0]**2 + self.markers['center']['position'][1]**2)
         pos = self.markers['center']['position']
+        rot = self.markers['orientation']
 
-        sum_q = np.zeros(4)
-        for p in self.valid_center_markers:
-            q = p['orientation']
-            sum_q += np.array([q.x, q.y, q.z, q.w])
-        norm = np.linalg.norm(sum_q)
-        if norm < 1e-6:
-            avg_q = np.array([0.0, 0.0, 0.0, 1.0])  # 单位四元数
-        else:
-            avg_q = sum_q / norm
+        # sum_q = np.zeros(4)
+        # for p in self.valid_center_markers:
+        #     q = p['orientation']
+        #     sum_q += np.array([q.x, q.y, q.z, q.w])
+        # norm = np.linalg.norm(sum_q)
+        # if norm < 1e-6:
+        #     avg_q = np.array([0.0, 0.0, 0.0, 1.0])  # 单位四元数
+        # else:
+        #     avg_q = sum_q / norm
         
-        rot = avg_q
+        # rot = avg_q
 
 
         # rot = self.markers['center']['orientation']
@@ -319,14 +323,14 @@ class ArucoDockingController:
         # # # 大于目标距离时，先走到目标点前1m
         # if abs(marker_distance - self.stop_distance) > self.stop_distance_threshold:
 
-        R = tf.transformations.quaternion_matrix(avg_q)[:3, :3]
+        R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
         self.pos_target = R@[0, 0, self.stop_distance] + pos
 
         # else:
         #     # pos = self.markers['center']['position']
         #     # rot = self.markers['center']['orientation']
         # R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
-        pos_center = R@[0, 0, 0] + pos
+        pos_center =  pos
         #     self.pos_target = [0,0,0]
 
         # if self.get_marker_yaw(self.markers['center']) is None:
@@ -521,7 +525,7 @@ class ArucoDockingController:
 
         # 查看所有变量
         # if self.info:
-            rospy.loginfo(f"当前状态: {self.state}")
+            rospy.loginfo(f"当前状态: {self.pos_target}")
             # rospy.loginfo(f"当前航向角: {self.current_yaw}")
             # rospy.loginfo(f"目标航向角: {self.target_yaw}")
             # rospy.loginfo(f"目标距离: {self.target_distance}")
