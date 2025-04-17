@@ -1,6 +1,6 @@
 # msg/controlData.msg
 Header header
-uint32 distance       # m
+int32 distance       # m
 uint16 target_yaw    # degree
 uint16 roller_speed    #m/s
 uint16 yaw           #degree
