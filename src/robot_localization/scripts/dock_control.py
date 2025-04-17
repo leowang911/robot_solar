@@ -79,9 +79,9 @@ class ArucoDockingController:
         self.state_prev = "SEARCH"
         self.estimated_center = None
         self.current_target = {
-            'position': np.array([0, 0, 0]),
-            'yaw': 0,
-            'center': np.array([0, 0, 0]),
+            'position': np.array([0.0, 0.0, 0.0]),
+            'yaw': 0.0,
+            'center': np.array([0.0, 0.0, 0.0]),
         }
 
 
