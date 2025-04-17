@@ -84,7 +84,9 @@ class ArucoDockingController:
         self.markers = {
             'left': None, 
             'right': None,
-            'center': None
+            'center': None,
+            'center_left': None,
+            'center_right': None
         }
 
 
