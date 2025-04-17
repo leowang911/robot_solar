@@ -238,7 +238,7 @@ class ArucoDockingController:
         if self.state == "FINAL_DOCKING":
             self.state = "FINAL_DOCKING"
         else:
-            if valid_center :
+            if self.markers['center'] is not None :
                 self.state = "FINAL_APPROACH"
                 
                 self.valid_center_markers.append(self.markers['center'])
@@ -251,12 +251,12 @@ class ArucoDockingController:
 
         
 
-            if valid_center_left:
+            if self.markers['center_left'] is not None:
                 valid_target.append(self.calculate_center_side_target('center_left'))
                 rospy.loginfo(f"left: {valid_target}")
 
             
-            if valid_center_right:
+            if self.markers['center_right'] is not None:
                 valid_target.append(self.calculate_center_side_target('center_right'))
                 rospy.loginfo(f"right: {valid_target}")
 
