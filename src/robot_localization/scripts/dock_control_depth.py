@@ -74,6 +74,9 @@ class ArucoDockingController:
         
         # 发布器
         self.control_pub = rospy.Publisher("/control_data", controlData, queue_size=1)
+        self.pose1_pub = rospy.Publisher("/marker_pose1", PoseStamped, queue_size=1)
+        self.pose2_pub = rospy.Publisher("/marker_pose2", PoseStamped, queue_size=1)
+        self.pose3_pub = rospy.Publisher("/marker_pose3", PoseStamped, queue_size=1)
         
         # 状态变量
         self.state = "SEARCH"
@@ -297,8 +300,18 @@ class ArucoDockingController:
     def calculate_center_side_target(self, side):
         """计算中间标记前的目标点（基于单侧标记）"""
         marker = self.markers[side]
-        pos = marker['position']
-        rot = marker['orientation']
+        # pos = marker['position']
+        # rot = marker['orientation']
+        
+        pose_stamped=self.get_rot(self.markers['center']['pixel'])
+        pose = pose_stamped.pose
+        if side == 'center_left':
+            self.pose2_pub.publish(pose_stamped)
+        else:
+            self.pose3_pub.publish(pose_stamped)
+            
+        pos=np.array([pose.position.x,pose.position.y,pose.position.z])
+        rot=pose.orientation
         R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
         sign = 1 if side == 'center_right' else -1
         # 计算中间位置 * sign
@@ -412,7 +425,7 @@ class ArucoDockingController:
                 rospy.Duration(0.1)
             )
         transformed = do_transform_pose(pose, transform)
-        return transformed.pose
+        return transformed
     def calculate_center_target(self):
         """计算中间标记前的目标点"""
 
@@ -427,7 +440,9 @@ class ArucoDockingController:
         marker_distance = math.sqrt(self.markers['center']['position'][0]**2 + self.markers['center']['position'][1]**2)
         #pos = self.markers['center']['position']
         #rot = self.markers['orientation']
-        pose=self.get_rot(self.markers['center']['pixel'])
+        pose_stamped=self.get_rot(self.markers['center']['pixel'])
+        pose = pose_stamped.pose
+        self.pose1_pub.publish(pose_stamped)
         pos=np.array([pose.position.x,pose.position.y,pose.position.z])
         rot=pose.orientation
         # sum_q = np.zeros(4)
@@ -672,6 +687,7 @@ class ArucoDockingController:
         control.header.seq = self.control_seq
         self.state_prev = self.state
         self.control_pub.publish(control)
+        
         self.control_seq += 1
 
 if __name__ == '__main__':
