@@ -198,12 +198,14 @@ class ArucoDockingController:
         else:
             if valid_center :
                 self.state = "FINAL_APPROACH"
-                self.current_target = self.calculate_center_target()
+                
                 self.valid_center_markers.append(self.markers['center'])
                 if valid_center_left:
                     self.valid_center_markers.append(self.markers['center_left'])
                 if valid_center_right:
                     self.valid_center_markers.append(self.markers['center_right'])
+                
+                self.current_target = self.calculate_center_target()
             elif valid_left and valid_right:
                 self.state = "CENTER_APPROACH"
                 self.current_target = self.calculate_midpoint()
