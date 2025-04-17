@@ -9,7 +9,7 @@ from tf.transformations import euler_from_quaternion
 import tf.transformations
 from geographic_msgs.msg import GeoPoint
 from geodesy import utm
-from geometry_msgs.msg import PoseStamped, Twist, PoseArray
+from geometry_msgs.msg import PoseStamped, Twist, PoseArray,PointStamped
 from robot_control.msg import controlData 
 from robot_localization.msg import INSPVAE,baseStatus, GPSData
 from std_msgs.msg import Int16, Int32,Header
@@ -63,11 +63,11 @@ class ArucoDockingController:
         rospy.Subscriber("/inspvae_data", INSPVAE, self.inspvae_cb)
         rospy.Subscriber("/base_status", baseStatus, self.base_cb)
         rospy.Subscriber("/gps/raw", GPSData, self.drone_gps_cb)
-        rospy.Subscriber("/camera/aruco_100/pose", PoseStamped, self.left_cb)
-        rospy.Subscriber("/camera/aruco_101/pose", PoseStamped, self.right_cb)
-        rospy.Subscriber("/camera/aruco_102/pose", PoseStamped, self.center_cb)
-        rospy.Subscriber("/camera/aruco_103/pose", PoseStamped, self.center_left_cb)
-        rospy.Subscriber("/camera/aruco_104/pose", PoseStamped, self.center_right_cb)
+        rospy.Subscriber("/camera/aruco_100/pixel", PointStamped, self.left_cb)
+        rospy.Subscriber("/camera/aruco_101/pixel", PointStamped, self.right_cb)
+        rospy.Subscriber("/camera/aruco_102/pixel", PointStamped, self.center_cb)
+        rospy.Subscriber("/camera/aruco_103/pixel", PointStamped, self.center_left_cb)
+        rospy.Subscriber("/camera/aruco_104/pixel", PointStamped, self.center_right_cb)
         rospy.Subscriber("/camera/depth/image_raw", Image, self.depth_cb)
         # rospy.Subscriber("/virtual_marker_102/pose", PoseStamped, self.center_cb)
         # rospy.Subscriber("/virtual_markers", PoseArray, self.markers_cb)
@@ -194,13 +194,13 @@ class ArucoDockingController:
 
     def process_marker(self, msg, marker_type):
         """处理ArUco检测数据（增加时间戳）"""
-        base_data = self.transform_to_base(msg)
-        if base_data:
-            self.markers[marker_type] = base_data
-            self.marker_time[marker_type] = msg.header.stamp # 记录时间戳
-            # self.markers_pixel[marker_type] = msg.pose.pixel
-            # 记录更新时间
-            self.update_state()
+        # base_data = self.transform_to_base(msg)
+        # if base_data:
+        self.markers[marker_type] = msg.point
+        self.marker_time[marker_type] = msg.header.stamp # 记录时间戳
+        # self.markers_pixel[marker_type] = msg.pose.pixel
+        # 记录更新时间
+        self.update_state()
 
     def check_data_expiry(self):
         """清除过期数据"""
@@ -437,10 +437,10 @@ class ArucoDockingController:
         #     self.control_pub.publish(control)
         #     return
 
-        marker_distance = math.sqrt(self.markers['center']['position'][0]**2 + self.markers['center']['position'][1]**2)
+        # marker_distance = math.sqrt(self.markers['center']['position'][0]**2 + self.markers['center']['position'][1]**2)
         #pos = self.markers['center']['position']
         #rot = self.markers['orientation']
-        pose_stamped=self.get_rot(self.markers['center']['pixel'])
+        pose_stamped=self.get_rot(self.markers['center'])
         pose = pose_stamped.pose
         self.pose1_pub.publish(pose_stamped)
         pos=np.array([pose.position.x,pose.position.y,pose.position.z])
@@ -501,7 +501,7 @@ class ArucoDockingController:
         marker = self.markers[side]
         # pos = self.markers[side]['position']
         # rot = self.markers[side]['orientation']
-        pose=self.get_rot(self.markers[side]['pixel'])
+        pose=self.get_rot(self.markers[side])
         pos=np.array([pose.position.x,pose.position.y,pose.position.z])
         rot=pose.orientation
 
