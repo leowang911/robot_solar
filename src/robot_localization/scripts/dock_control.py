@@ -14,6 +14,7 @@ from robot_control.msg import controlData
 from robot_localization.msg import INSPVAE,baseStatus, GPSData
 from std_msgs.msg import Int16, Int32,Header
 from sensor_msgs.msg import Image
+import time
 class ArucoDockingController:
     def __init__(self):
         
@@ -703,6 +704,7 @@ class ArucoDockingController:
                     #     control.target_yaw = self.yaw_to_target_yaw_angle(target_yaw)
                 else:
                     # 到达目标位置
+                    time.sleep(0.4)
                     self.state = "FINAL_DOCKING"
 
                     control.distance = 0
