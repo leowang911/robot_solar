@@ -447,8 +447,8 @@ class ArucoDockingController:
     def get_rot(self,pixel):
         u=int(pixel.x)
         v=int(pixel.y)
-        u_ax=np.arange(u-10,u+10)
-        v_ax=np.arange(v-10,v+10)
+        u_ax=np.arange(u-13,u+13)
+        v_ax=np.arange(v-13,v+13)
         if self.depth_image is not None:
             pt=[]
             for i in u_ax:
@@ -462,11 +462,11 @@ class ArucoDockingController:
                 a,b,c,d,centp=self.fit_plane_to_points(point.T)
                 pose_q= self.get_pose(a,b,c)
             else:
-                centp=np.array([0,0,0])
-                pose_q= self.get_pose(0,0,1)            
+                centp=np.array([0,0,0.3])
+                pose_q= self.get_pose(0,0,-1)            
         else:
-            centp=np.array([0,0,0])
-            pose_q= self.get_pose(0,0,1)
+            centp=np.array([0,0,0.3])
+            pose_q= self.get_pose(0,0,-1)
         pose= PoseStamped()
         pose.header.frame_id = "camera_link"
         pose.header.stamp = rospy.Time.now()
