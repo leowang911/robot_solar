@@ -58,6 +58,18 @@ class ArucoDockingController:
             'center_right': None
         }
 
+
+        # 状态变量
+        self.state = "SEARCH"
+        self.state_prev = "SEARCH"
+        self.estimated_center = None
+        self.current_target = {
+            'position': np.array([0.0, 0.0, 0.0]),
+            'yaw': 0.0,
+            'center': np.array([0.0, 0.0, 0.0]),
+        }
+
+
         #  # 新增滤波参数
         # self.filter_enabled = True          # 滤波开关
         # self.filter_time_constant = 0.2     # 低通滤波时间常数（秒）
@@ -88,16 +100,7 @@ class ArucoDockingController:
         self.pose2_pub = rospy.Publisher("/marker_pose2", PoseStamped, queue_size=1)
         self.pose3_pub = rospy.Publisher("/marker_pose3", PoseStamped, queue_size=1)
         
-        # 状态变量
-        self.state = "SEARCH"
-        self.state_prev = "SEARCH"
-        self.estimated_center = None
-        self.current_target = {
-            'position': np.array([0.0, 0.0, 0.0]),
-            'yaw': 0.0,
-            'center': np.array([0.0, 0.0, 0.0]),
-        }
-
+        
 
 
         self.control_seq = 0
@@ -237,11 +240,12 @@ class ArucoDockingController:
         # rospy.loginfo(f"有效数据: left={valid_left}, right={valid_right}, center={valid_center}")
 
         # 状态优先级更新
-        if self.state == "FINAL_DOCKING":
-            self.state = "FINAL_DOCKING"
-        else:
+        # if self.state == "FINAL_DOCKING":
+        #     self.state = "FINAL_DOCKING"
+        # else:
+        if True:
             if self.markers['center'] is not None :
-                self.state = "FINAL_APPROACH"
+                # self.state = "FINAL_APPROACH"
                 
                 self.valid_center_markers.append(self.markers['center'])
                 # if valid_center_left:
