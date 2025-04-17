@@ -249,7 +249,7 @@ class ArucoDockingController:
         # # 大于目标距离时，先走到目标点前1m
         if abs(marker_distance - self.stop_distance) > self.stop_distance_threshold:
 
-            R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
+            R = tf.transformations.quaternion_matrix(avg_q)[:3, :3]
             self.pos_target = R@[0, 0, self.stop_distance] + pos
 
         else:
