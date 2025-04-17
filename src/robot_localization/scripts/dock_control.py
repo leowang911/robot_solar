@@ -382,7 +382,7 @@ class ArucoDockingController:
         yaw = math.atan2(t[1], t[0])
         # _, _, yaw = euler_from_quaternion([q.x, q.y, q.z, q.w])
         return yaw  
-    _
+    
     def yaw_to_target_yaw_angle(self, yaw, current_yaw):
         """将航向角转换为控制角度"""
         rospy.loginfo(f"current_yaw: {self.current_yaw}")
