@@ -237,7 +237,7 @@ class ArucoDockingController:
 
         sum_q = np.zeros(4)
         for p in self.valid_center_markers:
-            q = p.orientation
+            q = p['orientation']
             sum_q += np.array([q.x, q.y, q.z, q.w])
         norm = np.linalg.norm(sum_q)
         if norm < 1e-6:
