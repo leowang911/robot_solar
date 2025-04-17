@@ -136,7 +136,7 @@ class BaseSerialNode:
         #     tx_target_yaw = self.yaw_prev
 
 
-        frame = struct.pack('<BIHHHB',
+        frame = struct.pack('<BiHHHB',
                             0x55,
                             tx_distance & 0xFFFFFFFF,
                             tx_target_yaw & 0xFFFF,
