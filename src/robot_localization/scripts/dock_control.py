@@ -315,9 +315,10 @@ class ArucoDockingController:
         pos_center = R@[0, 0, 0] + pos
         #     self.pos_target = [0,0,0]
 
-        if self.get_marker_yaw(self.markers['center']) is None:
-                rospy.logwarn("无法获取航向角")
-                return None
+        # if self.get_marker_yaw(self.markers['center']) is None:
+        #         rospy.logwarn("无法获取航向角")
+        #         return None
+        
         
         return {
             'position': self.pos_target,
