@@ -303,7 +303,7 @@ class ArucoDockingController:
         # pos = marker['position']
         # rot = marker['orientation']
         
-        pose_stamped=self.get_rot(self.markers['center'])
+        pose_stamped=self.get_rot(self.markers[side])
         pose = pose_stamped.pose
         if side == 'center_left':
             self.pose2_pub.publish(pose_stamped)
