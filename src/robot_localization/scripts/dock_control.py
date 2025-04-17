@@ -397,8 +397,8 @@ class ArucoDockingController:
         qua=self.axes_to_quaternion(xaxis, yaxis, zaxis)
         return qua
     def get_rot(self,pixel):
-        u=int(pixel[0])
-        v=int(pixel[1])
+        u=int(pixel.x)
+        v=int(pixel.y)
         u=np.arange(u-10,u+10)
         v=np.arange(v-10,v+10)
         if self.depth_image:
