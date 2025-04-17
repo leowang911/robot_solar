@@ -9,7 +9,7 @@ from tf.transformations import euler_from_quaternion
 import tf.transformations
 from geographic_msgs.msg import GeoPoint
 from geodesy import utm
-from geometry_msgs.msg import PoseStamped, Twist, PoseArray,PointStamped
+from geometry_msgs.msg import PoseStamped, Twist, PoseArray,PointStamped,Quaternion
 from robot_control.msg import controlData 
 from robot_localization.msg import INSPVAE,baseStatus, GPSData
 from std_msgs.msg import Int16, Int32,Header
@@ -351,6 +351,39 @@ class ArucoDockingController:
         D = -np.dot(normal, centroid)
         
         return A, B, C, D,centroid
+    
+    def rotation_matrix_to_quaternion(self,R):
+        # 旋转矩阵转欧拉角（弧度）
+        # 计算四元数分量的平方
+        qw_sq = 0.25 * (1 + R[0,0] + R[1,1] + R[2,2])
+        qx_sq = 0.25 * (1 + R[0,0] - R[1,1] - R[2,2])
+        qy_sq = 0.25 * (1 - R[0,0] + R[1,1] - R[2,2])
+        qz_sq = 0.25 * (1 - R[0,0] - R[1,1] + R[2,2])
+        
+        # 选择最大分量避免除以零
+        max_idx = np.argmax([qw_sq, qx_sq, qy_sq, qz_sq])
+        if max_idx == 0:
+            qw = np.sqrt(qw_sq)
+            qx = (R[2,1] - R[1,2]) / (4 * qw)
+            qy = (R[0,2] - R[2,0]) / (4 * qw)
+            qz = (R[1,0] - R[0,1]) / (4 * qw)
+        elif max_idx == 1:
+            qx = np.sqrt(qx_sq)
+            qw = (R[2,1] - R[1,2]) / (4 * qx)
+            qy = (R[1,0] + R[0,1]) / (4 * qx)
+            qz = (R[0,2] + R[2,0]) / (4 * qx)
+        elif max_idx == 2:
+            qy = np.sqrt(qy_sq)
+            qw = (R[0,2] - R[2,0]) / (4 * qy)
+            qx = (R[1,0] + R[0,1]) / (4 * qy)
+            qz = (R[2,1] + R[1,2]) / (4 * qy)
+        else:
+            qz = np.sqrt(qz_sq)
+            qw = (R[1,0] - R[0,1]) / (4 * qz)
+            qx = (R[0,2] + R[2,0]) / (4 * qz)
+            qy = (R[2,1] + R[1,2]) / (4 * qz)
+        return np.array([qx, qy, qz, qw])  # 返回 [x, y, z, w]
+   
     def axes_to_quaternion(self,x_axis, y_axis, z_axis):
         """
         将坐标轴方向向量转换为四元数
@@ -378,7 +411,7 @@ class ArucoDockingController:
         rotation_matrix[:3, 2] = z_axis  # 第三列为Z轴
         
         # 3. 旋转矩阵转四元数
-        q = quaternion_from_matrix(rotation_matrix)
+        q = self.rotation_matrix_to_quaternion(rotation_matrix)
         
         # 4. 转换为ROS Quaternion消息
         quaternion_msg = Quaternion()
