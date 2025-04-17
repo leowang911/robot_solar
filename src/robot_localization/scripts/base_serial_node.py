@@ -12,7 +12,7 @@ class BaseSerialNode:
         rospy.init_node('base_serial_node')
 
         # 参数配置
-        self.port = rospy.get_param('~port', '/dev/ttyUSB1')
+        self.port = rospy.get_param('~port', '/dev/baseSerial')
         self.baudrate = rospy.get_param('~baudrate', 115200)
         self.rx_frame_length = 13       # 接收帧长度
         self.tx_frame_length = 13       # 发送帧长度
