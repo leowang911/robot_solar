@@ -598,6 +598,7 @@ class ArucoDockingController:
         """从标记位姿获取航向角（已通过TF旋转补偿）"""
         t = pos_target
         yaw = math.atan2(t[1], t[0])
+        
         # _, _, yaw = euler_from_quaternion([q.x, q.y, q.z, q.w])
         return yaw  
     
@@ -701,6 +702,7 @@ class ArucoDockingController:
                     control.distance = 0
                     control.target_yaw = self.yaw_to_target_yaw_angle(self.get_marker_yaw(self.current_target['center']),self.current_yaw)
                     control.robot_state = 2
+                    rospy.loginfo(f"到达目标位置: {self.current_target['center']},{self.get_marker_yaw(self.current_target['center'])}")
                                         
                     if self.state_prev == "FINAL_APPROACH":
                         control.robot_state = 1
