@@ -18,7 +18,7 @@ class ArucoDockingController:
     def __init__(self):
         
         self.info = True
-        
+        self.logprint=False
         # 坐标系参数
         self.marker_spacing = rospy.get_param('~marker_spacing', 1.0)  # 左右标记间距（米）
         self.stop_distance = rospy.get_param('~stop_distance', 1.0)  # 中间标记前停止距离
@@ -90,7 +90,8 @@ class ArucoDockingController:
         }
 
 
-        rospy.Timer(rospy.Duration(0.01), self.control_loop)
+        #rospy.Timer(rospy.Duration(0.01), self.control_loop)
+        rospy.Timer(rospy.Duration(0.10), self.control_loop)
 
     # sim only
     def markers_cb(self, msg):
