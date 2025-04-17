@@ -401,7 +401,7 @@ class ArucoDockingController:
         v=int(pixel.y)
         u=np.arange(u-10,u+10)
         v=np.arange(v-10,v+10)
-        if self.depth_image:
+        if self.depth_image is not None:
             z=self.depth_image[v-10:v+10,u-10:u+10].reshape(-1)
             fx,fy,cx,cy=[612.3629150390625, 637.8858032226562, 612.5785522460938, 362.7610168457031]
             point=self.pixel_to_point((u,v,z), fx,fy,cx,cy)
