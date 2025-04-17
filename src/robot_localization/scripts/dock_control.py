@@ -44,7 +44,8 @@ class ArucoDockingController:
 
         # 新增数据有效期参数（单位：秒）
         self.data_expiry = 1  # 0.5秒未更新的数据视为失效
-        self.marker_time = {'left': None, 'right': None, 'center': None}
+        self.marker_time = {'left': None, 'right': None, 'center': None, 'center_left': None, 'center_right': None}
+        self.valid_center_markers = None
         
          # 新增滤波参数
         self.filter_enabled = True          # 滤波开关
@@ -54,6 +55,8 @@ class ArucoDockingController:
         # 滤波状态变量
         self.filtered_yaw = 0.0             # 滤波后航向角
         self.last_filter_time = None        # 上次滤波时间
+        
+
 
         # 订阅器
         rospy.Subscriber("/inspvae_data", INSPVAE, self.inspvae_cb)
@@ -62,6 +65,8 @@ class ArucoDockingController:
         rospy.Subscriber("/camera/aruco_100/pose", PoseStamped, self.left_cb)
         rospy.Subscriber("/camera/aruco_101/pose", PoseStamped, self.right_cb)
         rospy.Subscriber("/camera/aruco_102/pose", PoseStamped, self.center_cb)
+        rospy.Subscriber("/camera/aruco_103/pose", PoseStamped, self.center_left_cb)
+        rospy.Subscriber("/camera/aruco_104/pose", PoseStamped, self.center_right_cb)
         # rospy.Subscriber("/virtual_marker_102/pose", PoseStamped, self.center_cb)
         # rospy.Subscriber("/virtual_markers", PoseArray, self.markers_cb)
         
@@ -145,6 +150,10 @@ class ArucoDockingController:
     def left_cb(self, msg): self.process_marker(msg, 'left')
     def right_cb(self, msg): self.process_marker(msg, 'right')
     def center_cb(self, msg): self.process_marker(msg, 'center')
+    def center_left_cb(self, msg): self.process_marker(msg, 'center_left')
+    def center_right_cb(self, msg): self.process_marker(msg, 'center_right')
+
+
 
     def process_marker(self, msg, marker_type):
         """处理ArUco检测数据（增加时间戳）"""
@@ -171,20 +180,28 @@ class ArucoDockingController:
     def update_state(self):
         """状态机更新（增加数据有效性检查）"""
         self.check_data_expiry()  # 先执行数据清理
+        self.valid_center_markers = []
         
         # 检查是否有有效数据
         valid_left = self.markers['left'] is not None
         valid_right = self.markers['right'] is not None
         valid_center = self.markers['center'] is not None
+        valid_center_left = self.markers['center_left'] is not None
+        valid_center_right = self.markers['center_right'] is not None
         # rospy.loginfo(f"有效数据: left={valid_left}, right={valid_right}, center={valid_center}")
 
         # 状态优先级更新
         if self.state == "FINAL_DOCKING":
             self.state = "FINAL_DOCKING"
         else:
-            if valid_center:
+            if valid_center :
                 self.state = "FINAL_APPROACH"
                 self.current_target = self.calculate_center_target()
+                self.valid_center_markers.append(self.markers['center'])
+                if valid_center_left:
+                    self.valid_center_markers.append(self.markers['center_left'])
+                if valid_center_right:
+                    self.valid_center_markers.append(self.markers['center_right'])
             elif valid_left and valid_right:
                 self.state = "CENTER_APPROACH"
                 self.current_target = self.calculate_midpoint()
@@ -213,7 +230,21 @@ class ArucoDockingController:
 
         marker_distance = math.sqrt(self.markers['center']['position'][0]**2 + self.markers['center']['position'][1]**2)
         pos = self.markers['center']['position']
-        rot = self.markers['center']['orientation']
+
+        sum_q = np.zeros(4)
+        for p in self.valid_center_markers:
+            q = p.orientation
+            sum_q += np.array([q.x, q.y, q.z, q.w])
+        norm = np.linalg.norm(sum_q)
+        if norm < 1e-6:
+            avg_q = np.array([0.0, 0.0, 0.0, 1.0])  # 单位四元数
+        else:
+            avg_q = sum_q / norm
+        
+        rot = avg_q
+
+
+        # rot = self.markers['center']['orientation']
 
         # # 大于目标距离时，先走到目标点前1m
         if abs(marker_distance - self.stop_distance) > self.stop_distance_threshold:
