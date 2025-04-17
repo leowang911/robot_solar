@@ -253,18 +253,18 @@ class ArucoDockingController:
                 # if valid_center_right:
                 #     self.valid_center_markers.append(self.markers['center_right'])
                 valid_target.append(self.calculate_center_target())
-                rospy.loginfo(f"center: {valid_target}")
+                # rospy.loginfo(f"center: {valid_target}")
 
         
 
             if self.markers['center_left'] is not None:
                 valid_target.append(self.calculate_center_side_target('center_left'))
-                rospy.loginfo(f"left: {valid_target}")
+                # rospy.loginfo(f"left: {valid_target}")
 
             
             if self.markers['center_right'] is not None:
                 valid_target.append(self.calculate_center_side_target('center_right'))
-                rospy.loginfo(f"right: {valid_target}")
+                # rospy.loginfo(f"right: {valid_target}")
 
 
             if len(valid_target)>0:
@@ -324,8 +324,8 @@ class ArucoDockingController:
         offset = self.marker_side_spacing/2 *sign
         self.pos_target = R@np.array([-offset,0, self.stop_distance]) + pos
         pos_center = R@np.array([-offset,0, 0]) + pos
-        rospy.loginfo(f"pos: {pos}")
-        rospy.loginfo(f"self.pos_target : {self.pos_target }")
+        # rospy.loginfo(f"pos: {pos}")
+        # rospy.loginfo(f"self.pos_target : {self.pos_target }")
 
         return {
             'position': self.pos_target,
@@ -604,7 +604,7 @@ class ArucoDockingController:
     
     def yaw_to_target_yaw_angle(self, yaw, current_yaw):
         """将航向角转换为控制角度"""
-        rospy.loginfo(f"current_yaw: {self.current_yaw}")
+        # rospy.loginfo(f"current_yaw: {self.current_yaw}")
         # imu ccw and cw !!!!!! 记得根据实际情况修改 九洲需要加-
         angle= (math.degrees(yaw)*100) + math.degrees(current_yaw)*100
         #计算gps距离
@@ -685,7 +685,7 @@ class ArucoDockingController:
                 # 状态处理
 
                 if self.target_distance > self.stop_distance_threshold:
-                    rospy.loginfo(f"target_distance: {self.target_distance}")
+                    # rospy.loginfo(f"target_distance: {self.target_distance}")
                     # if abs(yaw_error) > self.align_threshold:
                     #     # 航向调整阶段
                     control.distance = int(self.target_distance*1000)
@@ -726,7 +726,7 @@ class ArucoDockingController:
 
         # 查看所有变量
         # if self.info:
-            rospy.loginfo(f"当前状态: {self.pos_target}")
+            # rospy.loginfo(f"当前状态: {self.pos_target}")
             # rospy.loginfo(f"当前航向角: {self.current_yaw}")
             # rospy.loginfo(f"目标航向角: {self.target_yaw}")
             # rospy.loginfo(f"目标距离: {self.target_distance}")
