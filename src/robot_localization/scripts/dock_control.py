@@ -682,15 +682,16 @@ class ArucoDockingController:
             # 计算当前状态,行走到目标点前1m
                 current_pos = np.array([0, 0])  # 基坐标系原点
                 target_vec = self.current_target['position'][:2] - current_pos
-                self.target_distance = np.linalg.norm(target_vec) 
-                self.target_yaw = math.atan2(target_vec[1], target_vec[0])
-                # rospy.loginfo(f"\n yaw: {target_yaw }\n distance: {distance}\n yaw_error: {yaw_error}\n state: {self.state}\n")
-                # 状态处理
+                if np.linalg.norm(target_vec) > self.stop_distance_threshold:
 
-                if self.target_distance > self.stop_distance_threshold:
-                    # rospy.loginfo(f"target_distance: {self.target_distance}")
-                    # if abs(yaw_error) > self.align_threshold:
-                    #     # 航向调整阶段
+
+                    if target_vec[0]>0:
+                        self.target_distance = np.linalg.norm(target_vec) 
+                        self.target_yaw = math.atan2(target_vec[1], target_vec[0])
+                    else:
+                        self.target_distance = -np.linalg.norm(target_vec) 
+                        self.target_yaw = 0                   
+
                     control.distance = int(self.target_distance*1000)
                     control.target_yaw = self.yaw_to_target_yaw_angle(self.current_target['yaw'],self.current_yaw)
                     control.robot_state = 2
