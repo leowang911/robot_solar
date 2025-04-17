@@ -281,7 +281,9 @@ class ArucoDockingController:
         offset = self.marker_side_spacing/2 *sign
         self.pos_target = R@[-offset,0, self.stop_distance] + pos
         pos_center = R@[-offset,0, 0] + pos
-        
+        rospy.loginfo(f"pos: {pos}")
+        rospy.loginfo(f"self.pos_target : {self.pos_target }")
+
         return {
             'position': self.pos_target,
             'yaw': self.get_marker_yaw(self.pos_target),
