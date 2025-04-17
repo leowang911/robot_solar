@@ -78,7 +78,14 @@ class ArucoDockingController:
         self.state = "SEARCH"
         self.state_prev = "SEARCH"
         self.estimated_center = None
-        self.current_target = None
+        self.current_target = {
+            'position': np.array([0, 0, 0]),
+            'yaw': 0,
+            'center': np.array([0, 0, 0]),
+        }
+
+
+
         self.control_seq = 0
         
         # 存储检测数据（基坐标系）
