@@ -388,9 +388,18 @@ class ArucoDockingController:
         quaternion_msg.w = q[3]
         return quaternion_msg
     def get_pose(self, a, b, c):
-        yaxis=np.array([0,0,1.0])
+        yaxis=np.array([0,-1.0,0.0])
         zaxis=np.array([a,b,c])
-        zaxis=zaxis/np.linalg.norm(zaxis)
+        # 计算v2在e1方向的投影
+        proj = np.dot(zaxis, yaxis) * yaxis
+        
+        # 计算正交分量并归一化
+        u2 = zaxis - proj
+        norm_u2 = np.linalg.norm(u2)
+        if norm_u2 < 1e-10:
+            raise ValueError("Vectors are parallel or invalid input")
+        zaxis = u2 / norm_u2
+        
         if zaxis[2]>0:
             zaxis=-zaxis
         xaxis=np.cross(yaxis,zaxis)
