@@ -193,6 +193,12 @@ class ArucoDockingController:
         self.check_data_expiry()  # 先执行数据清理
         self.valid_center_markers = []
         valid_target = []
+        current_target = {
+            'position': np.array([0.0, 0.0, 0.0]),
+            'yaw': 0.0,
+            'center': np.array([0.0, 0.0, 0.0]),
+        }
+
         # 检查是否有有效数据
         valid_left = self.markers['left'] is not None
         valid_right = self.markers['right'] is not None
@@ -228,15 +234,16 @@ class ArucoDockingController:
             if len(valid_target)>0:
                 for target in valid_target:
                     # rospy.loginfo(f"target: {target}")
-                    self.current_target['position']+= target['position']     
-                    self.current_target['yaw']+= target['yaw']
-                    self.current_target['center']+= target['center']  
+                    current_target['position']+= target['position']     
+                    current_target['yaw']+= target['yaw']
+                    current_target['center']+= target['center']  
                      
-                self.current_target['position'] /= len(valid_target)
-                self.current_target['yaw'] /= len(valid_target)
-                self.current_target['center'] /= len(valid_target)  
+                current_target['position'] /= len(valid_target)
+                current_target['yaw'] /= len(valid_target)
+                current_target['center'] /= len(valid_target)  
 
-
+                self.current_target = current_target    
+                            
                 return    
             
 
