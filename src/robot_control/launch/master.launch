@@ -145,11 +145,16 @@
     <arg name="frame_aggregate_mode" default="ANY"/><!-- full_frame,color_frame,ANY or disable -->
 
     <arg name="markerId1"        default="100"/>
-    <arg name="markerSize1"      default="0.2"/>    <!-- in m -->
+    <arg name="markerSize1"      default="0.18"/>    <!-- in m -->
     <arg name="markerId2"        default="101"/>
-    <arg name="markerSize2"      default="0.2"/>    <!-- in m -->
+    <arg name="markerSize2"      default="0.18"/>    <!-- in m -->
     <arg name="markerId3"        default="102"/>
     <arg name="markerSize3"      default="0.1"/>    <!-- in m -->
+    <arg name="markerId4"        default="103"/>
+    <arg name="markerSize4"      default="0.1"/>    <!-- in m -->
+    <arg name="markerId5"        default="104"/>
+    <arg name="markerSize5"      default="0.1"/>    <!-- in m -->
+    
     <arg name="eye"             default="left"/>
     <arg name="marker_frame"    default="aruco_marker_frame"/>
     <arg name="ref_frame"       default="base_link"/>  <!-- leave empty and the pose will be published wrt param parent_name -->
@@ -296,9 +301,9 @@
         </node>
 
         <node pkg="aruco_ros" type="single" name="aruco_101">
-            <remap from="/camera_info" to="/camera/color/camera_info" />
+            <!-- <remap from="/camera_info" to="/camera/color/camera_info" />
             <remap from="/image" to="/camera/color/image_raw" />
-            <remap from="/depth" to="/orbbec/depth/image_raw"/>
+            <remap from="/depth" to="/orbbec/depth/image_raw"/> -->
             <param name="use_depth" value="True"/>
             <param name="image_is_rectified" value="True"/>
             <param name="marker_size"        value="$(arg markerSize2)"/>
@@ -310,9 +315,9 @@
         </node>
 
         <node pkg="aruco_ros" type="single" name="aruco_102">
-            <remap from="/camera_info" to="/camera/color/camera_info" />
+            <!-- <remap from="/camera_info" to="/camera/color/camera_info" />
             <remap from="/image" to="/camera/color/image_raw" />
-            <remap from="/depth" to="/orbbec/depth/image_raw"/>
+            <remap from="/depth" to="/orbbec/depth/image_raw"/> -->
             <param name="use_depth" value="True"/>
             <param name="image_is_rectified" value="True"/>
             <param name="marker_size"        value="$(arg markerSize3)"/>
@@ -322,6 +327,38 @@
             <param name="marker_frame"       value="$(arg marker_frame)" />
             <param name="corner_refinement"  value="$(arg corner_refinement)" />
         </node>
+
+        <node pkg="aruco_ros" type="single" name="aruco_103">
+            <!-- <remap from="/camera_info" to="/camera/color/camera_info" />
+            <remap from="/image" to="/camera/color/image_raw" />
+            <remap from="/depth" to="/orbbec/depth/image_raw"/> -->
+            <param name="use_depth" value="True"/>
+            <param name="image_is_rectified" value="True"/>
+            <param name="marker_size"        value="$(arg markerSize4)"/>
+            <param name="marker_id"          value="$(arg markerId5)"/>
+            <param name="reference_frame"    value="$(arg ref_frame)"/>   <!-- frame in which the marker pose will be refered -->
+            <param name="camera_frame"       value="camera_link"/>
+            <param name="marker_frame"       value="$(arg marker_frame)" />
+            <param name="corner_refinement"  value="$(arg corner_refinement)" />
+        </node>
+
+
+    <node pkg="aruco_ros" type="single" name="aruco_104">
+            <!-- <remap from="/camera_info" to="/camera/color/camera_info" />
+            <remap from="/image" to="/camera/color/image_raw" />
+            <remap from="/depth" to="/orbbec/depth/image_raw"/> -->
+            <param name="use_depth" value="True"/>
+            <param name="image_is_rectified" value="True"/>
+            <param name="marker_size"        value="$(arg markerSize5)"/>
+            <param name="marker_id"          value="$(arg markerId5)"/>
+            <param name="reference_frame"    value="$(arg ref_frame)"/>   <!-- frame in which the marker pose will be refered -->
+            <param name="camera_frame"       value="camera_link"/>
+            <param name="marker_frame"       value="$(arg marker_frame)" />
+            <param name="corner_refinement"  value="$(arg corner_refinement)" />
+        </node>
+
+
+
 
         
         <!-- 发布base_link到其他坐标系的静态变换 -->
