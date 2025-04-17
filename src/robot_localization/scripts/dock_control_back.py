@@ -13,7 +13,7 @@ from geometry_msgs.msg import PoseStamped, Twist, PoseArray
 from robot_control.msg import controlData 
 from robot_localization.msg import INSPVAE,baseStatus, GPSData
 from std_msgs.msg import Int16, Int32,Header
-from sensor_msgs.msg import Image
+
 class ArucoDockingController:
     def __init__(self):
         
@@ -68,15 +68,11 @@ class ArucoDockingController:
         rospy.Subscriber("/camera/aruco_102/pose", PoseStamped, self.center_cb)
         rospy.Subscriber("/camera/aruco_103/pose", PoseStamped, self.center_left_cb)
         rospy.Subscriber("/camera/aruco_104/pose", PoseStamped, self.center_right_cb)
-        rospy.Subscriber("/camera/depth/image_raw", Image, self.depth_cb)
         # rospy.Subscriber("/virtual_marker_102/pose", PoseStamped, self.center_cb)
         # rospy.Subscriber("/virtual_markers", PoseArray, self.markers_cb)
         
         # 发布器
         self.control_pub = rospy.Publisher("/control_data", controlData, queue_size=1)
-        self.pose1_pub = rospy.Publisher("/marker_pose1", PoseStamped, queue_size=1)
-        self.pose2_pub = rospy.Publisher("/marker_pose2", PoseStamped, queue_size=1)
-        self.pose3_pub = rospy.Publisher("/marker_pose3", PoseStamped, queue_size=1)
         
         # 状态变量
         self.state = "SEARCH"
@@ -105,12 +101,6 @@ class ArucoDockingController:
         #rospy.Timer(rospy.Duration(0.01), self.control_loop)
         rospy.Timer(rospy.Duration(0.10), self.control_loop)
 
-    def depth_cb(self, msg):
-        data = np.frombuffer(msg.data, dtype=np.uint16 if msg.is_bigendian else '<u2')
-        self.depth_image = data.reshape(msg.height, msg.width)
-
-
-
     # sim only
     def markers_cb(self, msg):
         """处理虚拟标记数据"""
@@ -120,21 +110,6 @@ class ArucoDockingController:
             ps.pose = pose
             ps.header = msg.header
             self.process_marker(ps, ['left', 'right', 'center'][i])
-
-    def pixel_to_point(self,uvz, fx, fy, cx, cy):
-        """将单个像素坐标+深度转换为三维坐标"""
-        u,v,z=uvz
-
-        # 过滤无效深度值
-        valid_mask = (z > 0)
-        u = u[valid_mask]
-        v = v[valid_mask]
-        z = z[valid_mask]
-
-
-        X = (u - cx) * z / fx
-        Y = (v - cy) * z / fy
-        return np.array([X, Y, z])
 
     def transform_to_base(self, pose):
     # """将位姿转换到机器人基坐标系"""
@@ -155,8 +130,7 @@ class ArucoDockingController:
                     transformed.pose.position.y,
                     transformed.pose.position.z
                 ]),
-                'orientation': transformed.pose.orientation,
-                'pixel': np.array([pose.pixel.x, pose.pixel.y])
+                'orientation': transformed.pose.orientation
             }
         except Exception as e:
             rospy.logwarn(f"坐标转换失败: {str(e)}")
@@ -198,7 +172,6 @@ class ArucoDockingController:
         if base_data:
             self.markers[marker_type] = base_data
             self.marker_time[marker_type] = msg.header.stamp # 记录时间戳
-            # self.markers_pixel[marker_type] = msg.pose.pixel
             # 记录更新时间
             self.update_state()
 
@@ -300,18 +273,8 @@ class ArucoDockingController:
     def calculate_center_side_target(self, side):
         """计算中间标记前的目标点（基于单侧标记）"""
         marker = self.markers[side]
-        # pos = marker['position']
-        # rot = marker['orientation']
-        
-        pose_stamped=self.get_rot(self.markers['center']['pixel'])
-        pose = pose_stamped.pose
-        if side == 'center_left':
-            self.pose2_pub.publish(pose_stamped)
-        else:
-            self.pose3_pub.publish(pose_stamped)
-            
-        pos=np.array([pose.position.x,pose.position.y,pose.position.z])
-        rot=pose.orientation
+        pos = marker['position']
+        rot = marker['orientation']
         R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
         sign = 1 if side == 'center_right' else -1
         # 计算中间位置 * sign
@@ -327,105 +290,8 @@ class ArucoDockingController:
             'center': pos_center,
             # 'yaw': np.arctan2(marker['position'][1], marker['position'][0]) + np.pi/2
         }
-    def fit_plane_to_points(self,points):
-        """
-        用NumPy拟合点云所在平面
-        :param points: Nx3的NumPy数组，输入点云
-        :return: (A, B, C, D) 平面方程系数，法向量为(A, B, C)
-        """
-        # 1. 计算质心
-        centroid = np.mean(points, axis=0)
-        
-        # 2. 去中心化
-        centered = points - centroid
-        
-        # 3. 计算协方差矩阵
-        cov_matrix = np.cov(centered, rowvar=False)  # 输入为Nx3，rowvar=False表示列代表变量
-        
-        # 4. 特征分解，求最小特征值对应的特征向量（法向量）
-        eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
-        normal = eigenvectors[:, np.argmin(eigenvalues)]  # 最小特征值对应的特征向量
-        
-        # 5. 计算D：Ax0 + By0 + Cz0 + D = 0 => D = -(A*x0 + B*y0 + C*z0)
-        A, B, C = normal
-        D = -np.dot(normal, centroid)
-        
-        return A, B, C, D,centroid
-    def axes_to_quaternion(self,x_axis, y_axis, z_axis):
-        """
-        将坐标轴方向向量转换为四元数
-        :param x_axis: X轴方向向量 (np.array, shape=(3,))
-        :param y_axis: Y轴方向向量 (np.array, shape=(3,))
-        :param z_axis: Z轴方向向量 (np.array, shape=(3,))
-        :return: geometry_msgs/Quaternion 四元数
-        """
-        # 1. 检查输入向量是否正交且单位化
-        tolerance = 1e-6
-        if not (np.abs(np.dot(x_axis, y_axis)) < tolerance and
-                np.abs(np.dot(y_axis, z_axis)) < tolerance and
-                np.abs(np.dot(z_axis, x_axis)) < tolerance):
-            raise ValueError("输入向量不正交！")
-        
-        if not (np.isclose(np.linalg.norm(x_axis), 1.0, atol=tolerance) and
-                np.isclose(np.linalg.norm(y_axis), 1.0, atol=tolerance) and
-                np.isclose(np.linalg.norm(z_axis), 1.0, atol=tolerance)):
-            raise ValueError("输入向量未单位化！")
-        
-        # 2. 构建旋转矩阵 (3x3)
-        rotation_matrix = np.eye(4)  # 扩展为齐次坐标矩阵
-        rotation_matrix[:3, 0] = x_axis  # 第一列为X轴
-        rotation_matrix[:3, 1] = y_axis  # 第二列为Y轴
-        rotation_matrix[:3, 2] = z_axis  # 第三列为Z轴
-        
-        # 3. 旋转矩阵转四元数
-        q = quaternion_from_matrix(rotation_matrix)
-        
-        # 4. 转换为ROS Quaternion消息
-        quaternion_msg = Quaternion()
-        quaternion_msg.x = q[0]
-        quaternion_msg.y = q[1]
-        quaternion_msg.z = q[2]
-        quaternion_msg.w = q[3]
-        return quaternion_msg
-    def get_pose(self, a, b, c):
-        yaxis=np.array([0,0,1.0])
-        zaxis=np.array([a,b,c])
-        zaxis=zaxis/np.linalg.norm(zaxis)
-        if zaxis[2]>0:
-            zaxis=-zaxis
-        xaxis=np.cross(yaxis,zaxis)
-        qua=self.axes_to_quaternion(xaxis, yaxis, zaxis)
-        return qua
-    def get_rot(self,pixel):
-        u=int(pixel[0])
-        v=int(pixel[1])
-        u=np.arange(u-10,u+10)
-        v=np.arange(v-10,v+10)
-        if self.depth_image:
-            z=self.depth_image[v-10:v+10,u-10:u+10].reshape(-1)
-            fx,fy,cx,cy=[612.3629150390625, 637.8858032226562, 612.5785522460938, 362.7610168457031]
-            point=self.pixel_to_point((u,v,z), fx,fy,cx,cy)
-            
-            a,b,c,d,centp=self.fit_plane_to_points(point.T)
-            pose_q= self.get_pose(a,b,c)
-        else:
-            centp=np.array([0,0,0])
-            pose_q= self.get_pose(0,0,1)
-        pose= PoseStamped()
-        pose.header.frame_id = "camera_link"
-        pose.header.stamp = rospy.Time.now()
-        pose.pose.position.x = centp[0]
-        pose.pose.position.y = centp[1]
-        pose.pose.position.z = centp[2]
-        pose.pose.orientation = pose_q
-        transform = self.tf_buffer.lookup_transform(
-                'base_link',
-                pose.header.frame_id,
-                pose.header.stamp,  # 使用原始消息的时间戳
-                rospy.Duration(0.1)
-            )
-        transformed = do_transform_pose(pose, transform)
-        return transformed
+
+
     def calculate_center_target(self):
         """计算中间标记前的目标点"""
 
@@ -438,13 +304,9 @@ class ArucoDockingController:
         #     return
 
         marker_distance = math.sqrt(self.markers['center']['position'][0]**2 + self.markers['center']['position'][1]**2)
-        #pos = self.markers['center']['position']
-        #rot = self.markers['orientation']
-        pose_stamped=self.get_rot(self.markers['center']['pixel'])
-        pose = pose_stamped.pose
-        self.pose1_pub.publish(pose_stamped)
-        pos=np.array([pose.position.x,pose.position.y,pose.position.z])
-        rot=pose.orientation
+        pos = self.markers['center']['position']
+        rot = self.markers['orientation']
+
         # sum_q = np.zeros(4)
         # for p in self.valid_center_markers:
         #     q = p['orientation']
@@ -499,14 +361,8 @@ class ArucoDockingController:
     def estimate_center(self, side):
         """估计中间位置（基于单侧标记）"""
         marker = self.markers[side]
-        # pos = self.markers[side]['position']
-        # rot = self.markers[side]['orientation']
-        pose=self.get_rot(self.markers[side]['pixel'])
-        pos=np.array([pose.position.x,pose.position.y,pose.position.z])
-        rot=pose.orientation
-
-
-
+        pos = self.markers[side]['position']
+        rot = self.markers[side]['orientation']
         R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
         sign = 1 if side == 'right' else -1
         # 计算中间位置 * sign
@@ -687,7 +543,6 @@ class ArucoDockingController:
         control.header.seq = self.control_seq
         self.state_prev = self.state
         self.control_pub.publish(control)
-        
         self.control_seq += 1
 
 if __name__ == '__main__':
