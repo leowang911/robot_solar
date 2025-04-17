@@ -21,6 +21,7 @@ class ArucoDockingController:
         self.logprint=False
         # 坐标系参数
         self.marker_spacing = rospy.get_param('~marker_spacing', 1.0)  # 左右标记间距（米）
+        self.marker_side_spacing   = rospy.get_param('~marker_side_spacing', 0.8)  # 中间标记与侧标记间距（米）
         self.stop_distance = rospy.get_param('~stop_distance', 1.0)  # 中间标记前停止距离
         self.stop_distance_threshold = rospy.get_param('stop_distance_threshold', 0.1)  # 停止距离阈值
         self.target_distance = 1 # 目标距离（米）
@@ -184,7 +185,7 @@ class ArucoDockingController:
         """状态机更新（增加数据有效性检查）"""
         self.check_data_expiry()  # 先执行数据清理
         self.valid_center_markers = []
-        
+        valid_target = []
         # 检查是否有有效数据
         valid_left = self.markers['left'] is not None
         valid_right = self.markers['right'] is not None
@@ -205,22 +206,72 @@ class ArucoDockingController:
                     self.valid_center_markers.append(self.markers['center_left'])
                 if valid_center_right:
                     self.valid_center_markers.append(self.markers['center_right'])
-                
-                self.current_target = self.calculate_center_target()
-            elif valid_left and valid_right:
-                self.state = "CENTER_APPROACH"
-                self.current_target = self.calculate_midpoint()
-            elif valid_left:
-                self.state = "ESTIMATED_APPROACH"
+                valid_target.append(self.calculate_center_target())
+
+        
+
+            if valid_center_left:
+                valid_target.append(self.calculate_center_side_target('center_left'))
+
+            
+            if valid_center_right:
+                valid_target.append(self.calculate_center_side_target('center_right'))
+
+
+            if len(valid_target)>0:
+                for target in valid_target:
+                    # rospy.loginfo(f"target: {target}")
+                    self.current_target['position']+= target['position']     
+                    self.current_target['yaw']+= target['yaw']
+                    self.current_target['center']+= target['center']  
+                     
+                self.current_target['position'] /= len(valid_target)
+                self.current_target['yaw'] /= len(valid_target)
+                self.current_target['center'] /= len(valid_target)  
+
+
+                return    
+            
+
+            if valid_left:
                 self.current_target = self.estimate_center('left')
-            elif valid_right:
-                self.state = "ESTIMATED_APPROACH"
+            if valid_right:
                 self.current_target = self.estimate_center('right')
-            else:
-                self.state = "SEARCH"
-                self.current_target = None  # 清空目标
+
+                
+            # elif valid_left:
+            #     self.state = "ESTIMATED_APPROACH"
+            #     self.current_target = self.estimate_center('left')
+            # elif valid_right:
+            #     self.state = "ESTIMATED_APPROACH"
+            #     self.current_target = self.estimate_center('right')
+            # else:
+            #     self.state = "SEARCH"
+            #     self.current_target = None  # 清空目标
 
         # rospy.loginfo(f"当前状态: {self.state}")
+
+
+
+    def calculate_center_side_target(self, side):
+        """计算中间标记前的目标点（基于单侧标记）"""
+        marker = self.markers[side]
+        pos = marker['position']
+        rot = marker['orientation']
+        R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
+        sign = 1 if side == 'center_right' else -1
+        # 计算中间位置 * sign
+        offset = self.marker_side_spacing/2 *sign
+        self.pos_target = R@[-offset,0, self.stop_distance] + pos
+        pos_center = R@[-offset,0, 0] + pos
+        
+        return {
+            'position': self.pos_target,
+            'yaw': self.get_marker_yaw(self.pos_target),
+            'center': pos_center,
+            # 'yaw': np.arctan2(marker['position'][1], marker['position'][0]) + np.pi/2
+        }
+
 
     def calculate_center_target(self):
         """计算中间标记前的目标点"""
@@ -251,18 +302,18 @@ class ArucoDockingController:
 
         # rot = self.markers['center']['orientation']
 
-        # # 大于目标距离时，先走到目标点前1m
-        if abs(marker_distance - self.stop_distance) > self.stop_distance_threshold:
+        # # # 大于目标距离时，先走到目标点前1m
+        # if abs(marker_distance - self.stop_distance) > self.stop_distance_threshold:
 
-            R = tf.transformations.quaternion_matrix(avg_q)[:3, :3]
-            self.pos_target = R@[0, 0, self.stop_distance] + pos
+        R = tf.transformations.quaternion_matrix(avg_q)[:3, :3]
+        self.pos_target = R@[0, 0, self.stop_distance] + pos
 
-        else:
-            # pos = self.markers['center']['position']
-            # rot = self.markers['center']['orientation']
-            # R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
-            # self.pos_target = R@[0, 0, 0] + pos
-            self.pos_target = [0,0,0]
+        # else:
+        #     # pos = self.markers['center']['position']
+        #     # rot = self.markers['center']['orientation']
+        R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
+        pos_center = R@[0, 0, 0] + pos
+        #     self.pos_target = [0,0,0]
 
         if self.get_marker_yaw(self.markers['center']) is None:
                 rospy.logwarn("无法获取航向角")
@@ -270,7 +321,8 @@ class ArucoDockingController:
         
         return {
             'position': self.pos_target,
-            'yaw': self.get_marker_yaw(self.markers['center'])
+            'yaw': self.get_marker_yaw(self.pos_target),
+            'center': pos_center,
         }
 
 
@@ -293,12 +345,13 @@ class ArucoDockingController:
         R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
         sign = 1 if side == 'right' else -1
         # 计算中间位置 * sign
-        offset = -self.marker_spacing/2
+        offset = -self.marker_spacing/2*sign
         self.pos_target = R@[-sign*self.stop_distance,0, offset] + pos
-        
+        pos_center = R@[0,0, offset] + pos
         return {
             'position': self.pos_target,
-            'yaw': self.get_marker_yaw(marker)
+            'yaw': self.get_marker_yaw(self.pos_target),
+            'center': pos_center
             # 'yaw': np.arctan2(marker['position'][1], marker['position'][0]) + np.pi/2
         }
 
@@ -323,13 +376,13 @@ class ArucoDockingController:
                 'yaw': self.get_marker_yaw(self.markers['center'])
             }
 
-    def get_marker_yaw(self, marker):
+    def get_marker_yaw(self, pos_target):
         """从标记位姿获取航向角（已通过TF旋转补偿）"""
-        t = self.pos_target
+        t = pos_target
         yaw = math.atan2(t[1], t[0])
         # _, _, yaw = euler_from_quaternion([q.x, q.y, q.z, q.w])
         return yaw  
-    
+    _
     def yaw_to_target_yaw_angle(self, yaw, current_yaw):
         """将航向角转换为控制角度"""
         rospy.loginfo(f"current_yaw: {self.current_yaw}")
@@ -426,8 +479,9 @@ class ArucoDockingController:
                 else:
                     # 到达目标位置
                     self.state = "FINAL_DOCKING"
+
                     control.distance = 0
-                    control.target_yaw = self.yaw_to_target_yaw_angle(self.current_target['yaw'],self.current_yaw)
+                    control.target_yaw = self.yaw_to_target_yaw_angle(self.get_marker_yaw(self.current_target['center']),self.current_yaw)
                     control.robot_state = 2
                                         
                     if self.state_prev == "FINAL_APPROACH":
