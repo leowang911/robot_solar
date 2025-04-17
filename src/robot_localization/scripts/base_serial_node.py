@@ -138,7 +138,7 @@ class BaseSerialNode:
 
         frame = struct.pack('<BiHHHB',
                             0x55,
-                            tx_distance & 0xFFFFFFFF,
+                            tx_distance,
                             tx_target_yaw & 0xFFFF,
                             tx_roller_speed & 0xFFFF,
                             tx_yaw & 0xFFFF,
