@@ -12,10 +12,10 @@ class IMUParser:
         rospy.init_node('imu_parser_node')
         
         # 参数配置
-        self.port = rospy.get_param('~port', '/dev/imu485')
-        self.baud = rospy.get_param('~baud', 230400)
+        self.port = rospy.get_param('~port', '/dev/ttyUSB2')
+        self.baud = rospy.get_param('~baud', 115200)
         self.device_addr = 0x50  # 设备地址 (示例中的50)
-        self.rx_frame_length = 17  # 接收数据帧长度
+        self.rx_frame_length = 7  # 接收数据帧长度
         
         # 初始化串口
         self.ser = serial.Serial(self.port, self.baud, timeout=1)
@@ -28,15 +28,45 @@ class IMUParser:
 
     def send_query_cmd(self, event):
         """发送查询指令: 50 03 00 3D 00 06 59 85"""
-        cmd = bytes.fromhex(f"{self.device_addr:02X} 03 00 3D 00 06")
+        # 50 03 00 3F 00 01 B9 87
+        # cmd = bytes.fromhex(f"{self.device_addr:02X} 03 00 3D 00 06")
+        cmd = bytes.fromhex(f"{self.device_addr:02X} 03 00 3F 00 06")
         crc = self.calculate_crc(cmd)
         full_cmd = cmd + crc
         # rospy.loginfo(f"Sending command: {full_cmd.hex()}")
         self.ser.write(full_cmd)
 
+    # 9053
+    # def parse_response(self, data):
+    #     """解析返回数据"""
+    #     if len(data) != 17 or data[0]!=0x50:  # 至少16字节: 地址(1)+功能码(1)+长度(1)+数据(12)+CRC(2)
+    #         rospy.logwarn("数据错误")
+    #         return None
+    #     # rospy.loginfo(f"Received data: {data.hex()}")
+    #     # 校验CRC
+    #     recv_crc = data[-2:]
+    #     calc_crc = self.calculate_crc(data[:-2])
+    #     if recv_crc != calc_crc:
+    #         rospy.logwarn("CRC校验失败")
+    #         return None
+        
+    #     # 提取角度数据
+    #     l_roll_h, l_roll_l, h_roll_h, h_roll_l, \
+    #     l_pitch_h, l_pitch_l, h_pitch_h, h_pitch_l, \
+    #     l_yaw_h, l_yaw_l, h_yaw_h, h_yaw_l = struct.unpack('12B', data[3:15])
+        
+    #     # 计算角度 (小端模式)
+    #     roll = np.int32(((h_roll_h << 24) | (h_roll_l << 16) | (l_roll_h << 8) | l_roll_l)) / 1000.0
+    #     pitch = np.int32(((h_pitch_h << 24) | (h_pitch_l << 16) | (l_pitch_h << 8) | l_pitch_l)) / 1000.0
+    #     yaw = np.int32(((h_yaw_h << 24) | (h_yaw_l << 16) | (l_yaw_h << 8) | l_yaw_l)) / 1000.0
+        
+    #     # rospy.loginfo(f"Parsed angles: Roll={roll}, Pitch={pitch}, Yaw={yaw}")
+    #     return {'roll': roll, 'pitch': pitch, 'yaw': yaw}
+    
+    # 101
     def parse_response(self, data):
         """解析返回数据"""
-        if len(data) != 17 or data[0]!=0x50:  # 至少16字节: 地址(1)+功能码(1)+长度(1)+数据(12)+CRC(2)
+        if len(data) != 7 or data[0]!=0x50:  # 至少16字节: 地址(1)+功能码(1)+长度(1)+数据(12)+CRC(2)
             rospy.logwarn("数据错误")
             return None
         # rospy.loginfo(f"Received data: {data.hex()}")
@@ -48,17 +78,15 @@ class IMUParser:
             return None
         
         # 提取角度数据
-        l_roll_h, l_roll_l, h_roll_h, h_roll_l, \
-        l_pitch_h, l_pitch_l, h_pitch_h, h_pitch_l, \
-        l_yaw_h, l_yaw_l, h_yaw_h, h_yaw_l = struct.unpack('12B', data[3:15])
+        yaw_h, yaw_l = struct.unpack('2B', data[3:5])
         
         # 计算角度 (小端模式)
-        roll = np.int32(((h_roll_h << 24) | (h_roll_l << 16) | (l_roll_h << 8) | l_roll_l)) / 1000.0
-        pitch = np.int32(((h_pitch_h << 24) | (h_pitch_l << 16) | (l_pitch_h << 8) | l_pitch_l)) / 1000.0
-        yaw = np.int32(((h_yaw_h << 24) | (h_yaw_l << 16) | (l_yaw_h << 8) | l_yaw_l)) / 1000.0
+        # roll = np.int32(((h_roll_h << 24) | (h_roll_l << 16) | (l_roll_h << 8) | l_roll_l)) / 1000.0
+        # pitch = np.int32(((h_pitch_h << 24) | (h_pitch_l << 16) | (l_pitch_h << 8) | l_pitch_l)) / 1000.0
+        yaw = np.int16(( (yaw_h << 8) | yaw_l)) / 1000.0
         
         # rospy.loginfo(f"Parsed angles: Roll={roll}, Pitch={pitch}, Yaw={yaw}")
-        return {'roll': roll, 'pitch': pitch, 'yaw': yaw}
+        return {'roll': 0, 'pitch': 0, 'yaw': yaw}
 
     def run(self):
         """主循环读取数据"""
