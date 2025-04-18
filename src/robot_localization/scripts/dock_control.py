@@ -667,7 +667,7 @@ class ArucoDockingController:
         #找不到旋转180
         if self.distance2drone > 1 or self.distance2drone <=0.1:
             control = controlData()
-            control.distance = -600 
+            control.distance = 0 
             # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
             # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
             control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, np.pi/10)
