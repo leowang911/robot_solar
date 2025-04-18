@@ -298,10 +298,11 @@ class ArucoDockingController:
             rospy.loginfo(f"{marker_type} marker_time: {self.marker_time[marker_type]}")
 
         if valid_center or valid_center_left or valid_center_right or valid_left or valid_right:
+            self.state = "APPROACHING"
+        else:
             self.state = "SEARCH"
             self.current_target = None  # 清空目标
-        else:
-            self.state = "APPROACHING"
+            
 
         # rospy.loginfo(f"当前状态: {self.state}")
 
