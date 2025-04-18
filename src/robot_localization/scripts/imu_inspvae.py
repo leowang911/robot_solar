@@ -118,6 +118,7 @@ class IMUParser:
                         count+=1
                     if count >=10:
                         self.init_serial() 
+                        count = 0
                     rospy.loginfo(f'buffer: {buffer.hex()}')
                 # 2. 处理接收到的完整帧
                     if len(buffer) >= self.rx_frame_length:
