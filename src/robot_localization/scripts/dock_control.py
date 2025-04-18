@@ -713,7 +713,7 @@ class ArucoDockingController:
                     # if self.state_prev == "FINAL_APPROACH":
                     #     control.robot_state = 1
 
-                    if abs(self.get_marker_yaw(self.current_target['center'])) < 0.01:
+                    if abs(self.get_marker_yaw(self.current_target['center'])) < 0.025:
                         rospy.logwarn("完成对正")
                         if self.first_align==False:
                             control.robot_state = 1
