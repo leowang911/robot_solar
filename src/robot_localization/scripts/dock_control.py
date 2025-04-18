@@ -866,6 +866,7 @@ class ArucoDockingController:
                             time.sleep(0.1)
                             while self.complete_state != 1:
                                 rospy.loginfo(f'等待回退结束 ')
+                                time.sleep(0.1)
                                 pass
                             #执行结束
                             control.distance = 0
@@ -876,6 +877,7 @@ class ArucoDockingController:
                             time.sleep(0.1)
                             while self.complete_state != 1:
                                 rospy.loginfo(f'等待回正结束 ')
+                                time.sleep(0.1)
                                 pass
                             #执行结束
                             time.sleep(0.1)
@@ -890,6 +892,7 @@ class ArucoDockingController:
                             time.sleep(0.1)
                             while self.complete_state != 1:
                                 rospy.loginfo(f'等待前进结束 ')
+                                time.sleep(0.1)
                                 pass
                             #执行结束
                             control.distance = 0
