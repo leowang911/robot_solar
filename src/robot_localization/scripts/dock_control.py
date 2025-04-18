@@ -294,8 +294,8 @@ class ArucoDockingController:
         # elif valid_right:
         #     self.state = "ESTIMATED_APPROACH"
         #     self.current_target = self.estimate_center('right')
-        # for marker_type in ['left', 'right', 'center', 'center_left', 'center_right']:
-        #     rospy.loginfo(f"{marker_type} marker_time: {self.marker_time[marker_type]}")
+        for marker_type in ['left', 'right', 'center', 'center_left', 'center_right']:
+            rospy.loginfo(f"{marker_type} marker_time: {self.marker_time[marker_type]}")
 
         if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
             self.state = "APPROACHING"
