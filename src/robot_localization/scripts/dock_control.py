@@ -217,7 +217,7 @@ class ArucoDockingController:
                 
                 self.markers[marker_type] = None
                 self.marker_time[marker_type] = None
-                rospy.loginfo(f"清除过期标记数据: {marker_type}")
+                # rospy.loginfo(f"清除过期标记数据: {marker_type}")
 
     def update_state(self):
         """状态机更新（增加数据有效性检查）"""
@@ -265,8 +265,8 @@ class ArucoDockingController:
             valid_target.append(self.calculate_center_side_target('center_right'))
             # rospy.loginfo(f"right: {valid_target}")
 
-        for marker_type in ['left', 'right', 'center', 'center_left', 'center_right']:
-            rospy.loginfo(f"{marker_type} marker_time: {self.marker_time[marker_type]}")
+        # for marker_type in ['left', 'right', 'center', 'center_left', 'center_right']:
+        #     rospy.loginfo(f"{marker_type} marker_time: {self.marker_time[marker_type]}")
 
         if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
             self.state = "APPROACHING"
