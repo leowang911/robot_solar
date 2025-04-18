@@ -17,8 +17,24 @@ class IMUParser:
         self.device_addr = 0x50  # 设备地址 (示例中的50)
         self.rx_frame_length = 7  # 接收数据帧长度
         
-        # 初始化串口
-        self.ser = serial.Serial(self.port, self.baud, timeout=1)
+        try:
+            self.ser = serial.Serial(
+                port=self.port,
+                baudrate=self.baudrate,
+                bytesize=serial.EIGHTBITS,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_ONE,
+                timeout=0.1  # 设置适当的超时时间
+            )
+            rospy.loginfo(f"Connected to {self.port} at {self.baudrate} baud")
+        except serial.SerialException as e:
+            rospy.logerr(f"Serial port error: {e}")
+            rospy.signal_shutdown("Serial port init failed")
+
+        
+
+        # # 初始化串口
+        # self.ser = serial.Serial(self.port, self.baud, timeout=1)
         
         # 发布IMU数据
         self.imu_pub = rospy.Publisher('/inspvae_data', INSPVAE, queue_size=1)
