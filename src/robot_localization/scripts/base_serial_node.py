@@ -48,7 +48,7 @@ class BaseSerialNode:
 
         # 订阅控制指令
         rospy.Subscriber('/control_data', controlData, self.control_data_callback)
-        rospy.Subscriber('/inspvae',INSPVAE,self.inspvae_cb)
+        rospy.Subscriber('/inspvae_data',INSPVAE,self.inspvae_cb)
 
     def inspvae_cb(self, msg):
         # self.latitude = msg.latitude
