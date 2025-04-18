@@ -697,7 +697,7 @@ class ArucoDockingController:
                     return
                 if self.flag_count>1e8:
                     self.flag_count=0
-                if np.linalg.norm(target_vec) > self.stop_distance_threshold:
+                if np.linalg.norm(target_vec) > self.stop_distance_threshold and self.align_num==False:
 
 
                     #time.sleep(0.1)
@@ -708,19 +708,23 @@ class ArucoDockingController:
                     else:
                         self.target_distance = -np.linalg.norm(target_vec) 
                         self.target_yaw = 0                   
-
                     control.distance = int(self.target_distance*1000)
                     control.target_yaw = self.yaw_to_target_yaw_angle(self.target_yaw,self.current_yaw)
                     control.robot_state = 2
                     # rospy.loginfo(f"")
                     rospy.loginfo(f"未到达目标位置: {self.current_target['position']},{self.get_marker_yaw(self.current_target['center'])}")
-                    # else:
-                    #     # 直线移动阶段
-                    #     control.distance = int(distance*1000)
-                    #     control.target_yaw = self.yaw_to_target_yaw_angle(target_yaw)
+
                 else:
-                    # 到达目标位置
-                    time.sleep(0.1)
+                    control.robot_state = 1
+                    control.header.stamp = rospy.Time.now()
+                    control.header.seq = self.control_seq
+
+                    self.control_pub.publish(control)
+                    self.control_seq += 1
+                    self.align_num=True
+                    return
+                
+                if self.align_num==True:
                     self.state = "FINAL_DOCKING"
 
                     control.distance = 0
@@ -735,19 +739,41 @@ class ArucoDockingController:
                     if abs(self.get_marker_yaw(self.current_target['center'])) < 0.025:
                         rospy.logwarn(f"完成对正 {target_vec[0]} {target_vec[1]}")
                         if self.first_align==False:
-                            control.robot_state = 1
                             rospy.logwarn("robot start is 1")
                             self.first_align=True
-                        else:
-                            self.back=True
+                            control.robot_state = 1
+                            control.header.stamp = rospy.Time.now()
+
+                            self.control_pub.publish(control)
+                            self.control_seq += 1
+                            return
+
+                        
+                    if self.first_align==True:
+                            if np.linalg.norm(target_vec) <0.02:
+                                # self.robot_state=4
+                                control.robot_state = 4
+                                rospy.loginfo(f'start final docking')
+                                control.header.stamp = rospy.Time.now()
+
+                                self.control_pub.publish(control)
+                                self.control_seq += 1                                
+
+                                return 
+
                             control.distance = -200
                             control.target_yaw = self.yaw_to_target_yaw_angle(0,self.current_yaw)
                             control.robot_state = 2
-                            # control.robot_state = 1
+                            control.header.stamp = rospy.Time.now()
+
+                            self.control_pub.publish(control)
+                            self.control_seq += 1
                             self.first_align=False
-
+                            self.align_num=True
+                            self.align_threshold
                             rospy.logwarn("set back msg")
-
+                            time.sleep(1.5)
+                            return
                     # if self.state == "FINAL_APPROACH":
                     #     # if self.state_prev
                         
@@ -785,14 +811,7 @@ class ArucoDockingController:
         rospy.loginfo(f'state: {control.robot_state}')
      
         self.control_pub.publish(control)
-        
-        control.robot_state = 2
-        if self.back==True:
-            rospy.logwarn("start back move")
-            time.sleep(1.0)
-            self.back=False
-            self.first_align=False
-
+    
         self.control_seq += 1
 
 if __name__ == '__main__':
