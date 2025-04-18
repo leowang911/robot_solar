@@ -881,7 +881,7 @@ class ArucoDockingController:
                                 time.sleep(0.1)
                                 pass
                             #执行结束
-                            time.sleep(0.1)
+                            time.sleep(1.0)
                             #step2
                             self.complete_state = 0
                             d1,yaw1,yaw2=self.get_step2_robot_pose()
