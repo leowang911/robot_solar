@@ -855,6 +855,7 @@ class ArucoDockingController:
                             #step1 
                             #get current robot pose
                             time.sleep(0.1)
+                            self.complete_state = 0
                             d1,yaw1,yaw2=self.get_pre_robot_pose()
                             control.distance = int(d1*1000)
                             control.target_yaw = self.yaw_to_target_yaw_angle(yaw1,self.current_yaw)
