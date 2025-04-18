@@ -709,6 +709,7 @@ class ArucoDockingController:
         else: #gps距离小于2米,通过aruco数据导航
             rospy.loginfo(f'state {self.state}')
             if self.state == "SEARCH":
+                 rospy.loginfo(f'SEARCH******************* {self.state}')
                  control = self.search()
             if self.current_target:
             # 计算当前状态,行走到目标点前1m
@@ -756,6 +757,8 @@ class ArucoDockingController:
 
                         self.control_pub.publish(control)
                         control.robot_state = 2
+                        time.sleep(0.05)
+                        self.control_pub.publish(control)
 
                         self.control_seq += 1
                         self.align_num=True
