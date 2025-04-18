@@ -40,6 +40,7 @@ class ArucoDockingController:
         self.yaw2drone = 0.0
         self.depth_image = None
         self.back=False
+        self.first_align=False
         # TF配置
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
@@ -714,11 +715,10 @@ class ArucoDockingController:
 
                     if abs(self.get_marker_yaw(self.current_target['center'])) < 0.01:
                         rospy.logwarn("完成对正")
-
-
-                        if control.robot_state == 2 and self.back==False:
+                        if self.first_align==False:
                             control.robot_state = 1
                             rospy.logwarn("robot start is 1")
+                            self.first_align=True
                         else:
                             self.back=True
                             control.distance = -200
@@ -764,11 +764,13 @@ class ArucoDockingController:
         self.state_prev = self.state
 
         self.control_pub.publish(control)
+        
         control.robot_state = 2
         if self.back==True:
             rospy.logwarn("start back move")
             time.sleep(1.0)
             self.back=False
+            self.first_align=False
 
         self.control_seq += 1
 
