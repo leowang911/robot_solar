@@ -357,10 +357,6 @@
             <param name="corner_refinement"  value="$(arg corner_refinement)" />
         </node>
 
-
-
-
-        
         <!-- 发布base_link到其他坐标系的静态变换 -->
         <node pkg="tf2_ros" type="static_transform_publisher" 
             name="base_to_cam" 

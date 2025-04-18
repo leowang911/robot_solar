@@ -22,9 +22,9 @@ class ArucoDockingController:
         self.logprint=False
         # 坐标系参数
         self.marker_spacing = rospy.get_param('~marker_spacing', 1.0)  # 左右标记间距（米）
-        self.marker_side_spacing   = rospy.get_param('~marker_side_spacing', 0.8)  # 中间标记与侧标记间距（米）
+        self.marker_side_spacing   = rospy.get_param('~marker_side_spacing', 0.78)  # 中间标记与侧标记间距（米）
         self.stop_distance = rospy.get_param('~stop_distance', 1.0)  # 中间标记前停止距离
-        self.stop_distance_threshold = rospy.get_param('stop_distance_threshold', 0.1)  # 停止距离阈值
+        self.stop_distance_threshold = rospy.get_param('stop_distance_threshold', 0.2)  # 停止距离阈值
         self.target_distance = 1 # 目标距离（米）
         self.align_threshold = math.radians(1)  # 航向对准阈值
         self.current_yaw = 0 # 当前航向角
@@ -101,13 +101,9 @@ class ArucoDockingController:
         self.pose2_pub = rospy.Publisher("/marker_pose2", PoseStamped, queue_size=1)
         self.pose3_pub = rospy.Publisher("/marker_pose3", PoseStamped, queue_size=1)
         
-        
-
-
+    
         self.control_seq = 0
         
-       
-
         #rospy.Timer(rospy.Duration(0.01), self.control_loop)
         rospy.Timer(rospy.Duration(0.10), self.control_loop)
 
