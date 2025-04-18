@@ -41,6 +41,7 @@ class ArucoDockingController:
         self.depth_image = None
         self.back=False
         self.first_align=False
+        self.align_num=False
         # TF配置
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
@@ -769,8 +770,7 @@ class ArucoDockingController:
                             self.control_pub.publish(control)
                             self.control_seq += 1
                             self.first_align=False
-                            self.align_num=True
-                            self.align_threshold
+                            self.align_num=False
                             rospy.logwarn("set back msg")
                             time.sleep(1.5)
                             return
