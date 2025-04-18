@@ -776,10 +776,10 @@ class ArucoDockingController:
 
                     control.distance = 0
                     c_yaw=self.get_marker_yaw(self.current_target['center'])
-                    if c_yaw>0.1:
-                        c_yaw=0.1
-                    if c_yaw<-0.1:
-                        c_yaw=-0.1
+                    if c_yaw>0.05:
+                        c_yaw=0.05
+                    if c_yaw<-0.05:
+                        c_yaw=-0.05
                     control.target_yaw = self.yaw_to_target_yaw_angle(c_yaw,self.current_yaw)
                     control.robot_state = 2
                     rospy.loginfo(f"到达目标位置: {self.current_target['center']},{self.get_marker_yaw(self.current_target['center'])}")
