@@ -107,7 +107,7 @@ class ArucoDockingController:
         self.control_seq = 0
         
         #rospy.Timer(rospy.Duration(0.01), self.control_loop)
-        rospy.Timer(rospy.Duration(0.05), self.control_loop)
+        rospy.Timer(rospy.Duration(0.2), self.control_loop)
 
     def depth_cb(self, msg):
         data = np.frombuffer(msg.data, dtype=np.uint16 if msg.is_bigendian else '<u2')
