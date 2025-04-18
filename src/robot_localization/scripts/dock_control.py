@@ -744,7 +744,8 @@ class ArucoDockingController:
                             control.target_yaw = self.yaw_to_target_yaw_angle(0,self.current_yaw)
                             control.robot_state = 2
                             # control.robot_state = 1
-        
+                            self.first_align=False
+
                             rospy.logwarn("set back msg")
 
                     # if self.state == "FINAL_APPROACH":
