@@ -717,10 +717,10 @@ class ArucoDockingController:
 
                         self.control_pub.publish(control)
                         self.control_seq += 1
-                        time.sleep(1.0)
+                        time.sleep(2.0)
                         return 
                         
-                    if  np.linalg.norm(target_vec)<0.05:
+                    if  np.linalg.norm(target_vec)<0.1:
                         self.target_yaw=0
 
                     control.distance = int(self.target_distance*1000)
@@ -793,7 +793,7 @@ class ArucoDockingController:
                             self.first_align=False
                             self.align_num=False
                             rospy.logwarn("set back msg")
-                            time.sleep(2.5)
+                            time.sleep(4.0)
                             return
                     # if self.state == "FINAL_APPROACH":
                     #     # if self.state_prev
