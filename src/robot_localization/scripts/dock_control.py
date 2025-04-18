@@ -682,7 +682,7 @@ class ArucoDockingController:
             control.target_yaw = self.yaw_to_target_yaw_angle(self.yaw2drone, 0)
             control.robot_state = 2
         else: #gps距离小于2米,通过aruco数据导航
-            rospy.loginfo(f'state {self.stae}')
+            rospy.loginfo(f'state {self.state}')
             if self.current_target:
             # 计算当前状态,行走到目标点前1m
 
