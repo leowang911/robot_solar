@@ -44,7 +44,7 @@ class ArucoDockingController:
         # TF配置
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
-        self.flag = False
+        self.flag_count = 0
         # 新增数据有效期参数（单位：秒）
         self.data_expiry = 1  # 0.5秒未更新的数据视为失效
         self.marker_time = {'left': None, 'right': None, 'center': None, 'center_left': None, 'center_right': None}
@@ -689,19 +689,18 @@ class ArucoDockingController:
 
                 current_pos = np.array([0, 0])  # 基坐标系原点
                 target_vec = self.current_target['position'][:2] - current_pos
-                if self.flag == False and np.linalg.norm(target_vec)<0.5:
+                if self.flag %5==0 and np.linalg.norm(target_vec)<0.5:
                     control.header.stamp = rospy.Time.now()
                     control.header.seq = self.control_seq
                     self.control_pub.publish(control)
-                    self.flag = True
+                    self.flag_count+=1
                     return
-                elif np.linalg.norm(target_vec)<0.5:
-                    self.flag = False
-
+                if self.flag_count>1e8:
+                    self.flag_count=0
                 if np.linalg.norm(target_vec) > self.stop_distance_threshold:
 
 
-                    time.sleep(0.1)
+                    #time.sleep(0.1)
 
                     if target_vec[0]>0:
                         self.target_distance = np.linalg.norm(target_vec) 
