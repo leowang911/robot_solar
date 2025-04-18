@@ -363,11 +363,11 @@
             args="0.232 0 0.287 -0.5 0.5 -0.5 0.5 base_link camera_link  "/>
     </group>
 
-    <node pkg="robot_localization" type="base_serial_node.py" name="base_serial_node">
+    <!-- <node pkg="robot_localization" type="base_serial_node.py" name="base_serial_node">
         <param name="serial_port" value="/dev/baseSerial"/>
         <param name="baudrate" value="115200"/>
         <param name="serial_timeout" value="0.1"/>
-        </node>
+        </node> -->
 
     <node pkg="robot_localization" type="imu_inspvae.py" name="imu_node">
         <!-- <param name="serial_port" value="/dev/ttyUSB2"/> -->

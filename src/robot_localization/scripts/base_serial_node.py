@@ -81,6 +81,7 @@ class BaseSerialNode:
             'yaw': self.current_yaw,
             'robot_state': msg.robot_state
         }
+        rospy.loginfo(f'yaw: {self.current_yaw}')
 
     def parse_rx_frame(self, data):
         """解析接收数据帧"""
