@@ -763,7 +763,7 @@ class ArucoDockingController:
                                 control.robot_state = 4
                                 rospy.loginfo(f'start final docking')
                                 control.header.stamp = rospy.Time.now()
-
+                                self.stop_distance_threshold=0.1
                                 self.control_pub.publish(control)
                                 self.control_seq += 1                                
 
