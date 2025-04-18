@@ -660,16 +660,28 @@ class ArucoDockingController:
 
     def search(self):
         #找不到旋转180
-        control = controlData()
-        control.distance = -600 
-        # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-        # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-        control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, np.pi)
-        control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-        control.roller_speed = 0
-        control.robot_state = 2
-        self.control_pub.publish(control)
-        self.control_seq += 1
+        if self.distance2drone > 1.5:
+            control = controlData()
+            control.distance = -600 
+            # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, np.pi/10)
+            control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            control.roller_speed = 0
+            control.robot_state = 2
+            self.control_pub.publish(control)
+            self.control_seq += 1
+        else:
+            control = controlData()
+            control.distance = -200 
+            # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            control.roller_speed = 0
+            control.robot_state = 2
+            self.control_pub.publish(control)
+            self.control_seq += 1
         return control
 
     def control_loop(self, event):
