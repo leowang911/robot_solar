@@ -42,6 +42,25 @@ class IMUParser:
         # 定时发送查询指令
         self.timer = rospy.Timer(rospy.Duration(0.02), self.send_query_cmd)
 
+    def init_serial(self):
+        """初始化串口连接"""
+        try:
+            self.ser = serial.Serial(
+                port=self.port,
+                baudrate=self.baudrate,
+                bytesize=serial.EIGHTBITS,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_ONE,
+                timeout=0.1  # 设置适当的超时时间
+            )
+            rospy.loginfo(f"Connected to {self.port} at {self.baudrate} baud")
+        except serial.SerialException as e:
+            rospy.logerr(f"Serial port error: {e}")
+            rospy.signal_shutdown("Serial port init failed")
+
+
+
+
     def send_query_cmd(self, event):
         """发送查询指令: 50 03 00 3D 00 06 59 85"""
         # 50 03 00 3F 00 01 B9 87
