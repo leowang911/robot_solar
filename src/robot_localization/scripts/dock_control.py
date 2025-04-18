@@ -711,6 +711,7 @@ class ArucoDockingController:
             if self.state == "SEARCH":
                  rospy.loginfo(f'SEARCH******************* {self.state}')
                  control = self.search()
+                 return
             if self.current_target:
             # 计算当前状态,行走到目标点前1m
                 current_pos = np.array([0, 0])  # 基坐标系原点
