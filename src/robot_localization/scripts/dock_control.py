@@ -265,6 +265,15 @@ class ArucoDockingController:
             valid_target.append(self.calculate_center_side_target('center_right'))
             # rospy.loginfo(f"right: {valid_target}")
 
+        for marker_type in ['left', 'right', 'center', 'center_left', 'center_right']:
+            rospy.loginfo(f"{marker_type} marker_time: {self.marker_time[marker_type]}")
+
+        if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
+            self.state = "APPROACHING"
+        else:
+            self.state = "SEARCH"
+            self.current_target = None  # 清空目标
+
 
         if len(valid_target)>0:
             for target in valid_target:
@@ -294,15 +303,7 @@ class ArucoDockingController:
         # elif valid_right:
         #     self.state = "ESTIMATED_APPROACH"
         #     self.current_target = self.estimate_center('right')
-        for marker_type in ['left', 'right', 'center', 'center_left', 'center_right']:
-            rospy.loginfo(f"{marker_type} marker_time: {self.marker_time[marker_type]}")
-
-        if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
-            self.state = "APPROACHING"
-        else:
-            self.state = "SEARCH"
-            self.current_target = None  # 清空目标
-            
+        
 
         # rospy.loginfo(f"当前状态: {self.state}")
 
