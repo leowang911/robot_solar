@@ -282,10 +282,10 @@ class ArucoDockingController:
             return    
         
 
-        if valid_left:
-            self.current_target = self.estimate_center('left')
-        if valid_right:
-            self.current_target = self.estimate_center('right')
+        # if valid_left:
+        #     # self.current_target = self.estimate_center('left')
+        # if valid_right:
+            # self.current_target = self.estimate_center('right')
 
             
         # elif valid_left:
