@@ -759,6 +759,7 @@ class ArucoDockingController:
                  control = self.search()
                  return
             if self.current_target:
+                self.lock_current=True
             # 计算当前状态,行走到目标点前1m
                 if self.refine_align==False:
                     #粗定位
@@ -895,7 +896,7 @@ class ArucoDockingController:
 
 
                             return
-
+                self.lock_current=False
 
 
         # 查看所有变量
