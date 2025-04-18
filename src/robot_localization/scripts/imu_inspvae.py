@@ -30,9 +30,9 @@ class IMUParser:
         """发送查询指令: 50 03 00 3D 00 06 59 85"""
         # 50 03 00 3F 00 01 B9 87
         # cmd = bytes.fromhex(f"{self.device_addr:02X} 03 00 3D 00 06")
-        cmd = bytes.fromhex(f"{self.device_addr:02X} 03 00 3F 00 06 B9 87")
-        # crc = self.calculate_crc(cmd)
-        # full_cmd = cmd + crc
+        cmd = bytes.fromhex(f"{self.device_addr:02X} 03 00 3F 00 01 ")
+        crc = self.calculate_crc(cmd)
+        full_cmd = cmd + crc
         rospy.loginfo(f"Sending command: {cmd.hex()}")
         self.ser.write(cmd)
 
