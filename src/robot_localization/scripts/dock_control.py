@@ -718,6 +718,7 @@ class ArucoDockingController:
 
                         if control.robot_state == 2 and self.back==False:
                             control.robot_state = 1
+                            rospy.logwarn("robot start is 1")
                         else:
                             self.back=True
                             control.distance = -200
@@ -725,6 +726,7 @@ class ArucoDockingController:
                             control.robot_state = 2
                             # control.robot_state = 1
         
+                            rospy.logwarn("set back msg")
 
                     # if self.state == "FINAL_APPROACH":
                     #     # if self.state_prev
