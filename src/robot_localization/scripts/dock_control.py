@@ -297,7 +297,7 @@ class ArucoDockingController:
         # for marker_type in ['left', 'right', 'center', 'center_left', 'center_right']:
         #     rospy.loginfo(f"{marker_type} marker_time: {self.marker_time[marker_type]}")
 
-        if valid_center or valid_center_left or valid_center_right or valid_left or valid_right:
+        if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
             self.state = "APPROACHING"
         else:
             self.state = "SEARCH"
