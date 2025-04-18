@@ -660,7 +660,7 @@ class ArucoDockingController:
         # rospy.loginfo(f'gps distance:{self.distance2drone} yaw: {self.yaw2drone}' )
 
     def control_loop(self, event):
-        
+        self.update_state()
         """主控制循环"""
         control = controlData()
         control.distance = 0
