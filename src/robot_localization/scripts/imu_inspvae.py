@@ -116,6 +116,7 @@ class IMUParser:
                 # 2. 处理接收到的完整帧
                     if len(buffer) >= self.rx_frame_length:
                         # 查找帧头
+                        rospy.loginfo(f'buffer: {buffer.hex()}')
                         header_pos = buffer.find(b'\x50')
                         if header_pos >= 0 and len(buffer) >= header_pos + self.rx_frame_length:
                             # 提取完整帧
