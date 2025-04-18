@@ -716,13 +716,16 @@ class ArucoDockingController:
                     rospy.loginfo(f"未到达目标位置: {self.current_target['position']},{self.get_marker_yaw(self.current_target['center'])}")
 
                 else:
-                    control.robot_state = 1
-                    control.header.stamp = rospy.Time.now()
-                    control.header.seq = self.control_seq
+                    if self.align_num==False:
+                        control.robot_state = 1
+                        control.header.stamp = rospy.Time.now()
+                        control.header.seq = self.control_seq
 
-                    self.control_pub.publish(control)
-                    self.control_seq += 1
-                    self.align_num=True
+                        self.control_pub.publish(control)
+                        control.robot_state = 2
+
+                        self.control_seq += 1
+                        self.align_num=True
                     return
                 
                 if self.align_num==True:
@@ -746,6 +749,10 @@ class ArucoDockingController:
                             control.header.stamp = rospy.Time.now()
 
                             self.control_pub.publish(control)
+                                                
+                                                
+                            # control.robot_state = 2
+
                             self.control_seq += 1
                             return
 
