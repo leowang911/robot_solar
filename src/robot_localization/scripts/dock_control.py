@@ -210,7 +210,7 @@ class ArucoDockingController:
         """清除过期数据"""
         current_time = rospy.Time.now()
         for marker_type in ['left', 'right', 'center', 'center_left', 'center_right']:
-            # rospy.loginfo(f"{marker_type} current_time: {current_time} marker_time: {self.marker_time[marker_type]}")
+            rospy.loginfo(f"{marker_type} current_time: {current_time} marker_time: {self.marker_time[marker_type]}")
                 
             if self.marker_time[marker_type] and \
                (current_time - self.marker_time[marker_type]).to_sec() > self.data_expiry:
