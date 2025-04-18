@@ -760,11 +760,13 @@ class ArucoDockingController:
                  return
             if self.current_target:
                 self.lock_current=True
+                current_pos = np.array([0, 0])  # 基坐标系原点
+                target_vec = self.current_target['position'][:2] - current_pos
+
             # 计算当前状态,行走到目标点前1m
                 if self.refine_align==False:
                     #粗定位
-                    current_pos = np.array([0, 0])  # 基坐标系原点
-                    target_vec = self.current_target['position'][:2] - current_pos
+
 
                     if np.linalg.norm(target_vec) > self.stop_distance_threshold and self.align_num==False:
 
