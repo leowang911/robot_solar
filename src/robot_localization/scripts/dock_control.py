@@ -709,8 +709,8 @@ class ArucoDockingController:
                     rospy.loginfo(f"到达目标位置: {self.current_target['center']},{self.get_marker_yaw(self.current_target['center'])}")
                     rospy.loginfo(f"到达目标位置__yaw: {self.current_yaw}")
                      
-                    if self.state_prev == "FINAL_APPROACH":
-                        control.robot_state = 1
+                    # if self.state_prev == "FINAL_APPROACH":
+                    #     control.robot_state = 1
 
                     if abs(self.get_marker_yaw(self.current_target['center'])) < 0.01:
                         self.back=True
