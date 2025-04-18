@@ -217,7 +217,7 @@ class ArucoDockingController:
                 
                 self.markers[marker_type] = None
                 self.marker_time[marker_type] = None
-                rospy.logdebug(f"清除过期标记数据: {marker_type}")
+                rospy.loginfo(f"清除过期标记数据: {marker_type}")
 
     def update_state(self):
         """状态机更新（增加数据有效性检查）"""
@@ -769,7 +769,12 @@ class ArucoDockingController:
                     self.state = "FINAL_DOCKING"
 
                     control.distance = 0
-                    control.target_yaw = self.yaw_to_target_yaw_angle(self.get_marker_yaw(self.current_target['center']),self.current_yaw)
+                    c_yaw=self.get_marker_yaw(self.current_target['center'])
+                    if c_yaw>0.1:
+                        c_yaw=0.1
+                    if c_yaw<-0.1:
+                        c_yaw=-0.1
+                    control.target_yaw = self.yaw_to_target_yaw_angle(c_yaw,self.current_yaw)
                     control.robot_state = 2
                     rospy.loginfo(f"到达目标位置: {self.current_target['center']},{self.get_marker_yaw(self.current_target['center'])}")
                     rospy.loginfo(f"到达目标位置__yaw: {self.current_yaw}")
