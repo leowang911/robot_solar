@@ -726,7 +726,7 @@ class ArucoDockingController:
 
                         self.control_seq += 1
                         self.align_num=True
-                    return
+                        return
                 
                 if self.align_num==True:
                     self.state = "FINAL_DOCKING"
