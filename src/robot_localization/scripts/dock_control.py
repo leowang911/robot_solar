@@ -759,6 +759,7 @@ class ArucoDockingController:
         self.control_pub.publish(control)
         if self.back==True:
             self.back=False
+            rospy.logwarn("start back move")
             time.sleep(1.0)
         self.control_seq += 1
 
