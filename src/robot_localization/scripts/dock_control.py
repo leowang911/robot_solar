@@ -762,9 +762,9 @@ class ArucoDockingController:
                         control.header.seq = self.control_seq
 
                         self.control_pub.publish(control)
-                        control.robot_state = 2
                         time.sleep(0.05)
                         self.control_pub.publish(control)
+                        control.robot_state = 2
 
                         self.control_seq += 1
                         self.align_num=True
@@ -783,7 +783,7 @@ class ArucoDockingController:
                     control.robot_state = 2
                     rospy.loginfo(f"到达目标位置: {self.current_target['center']},{self.get_marker_yaw(self.current_target['center'])}")
                     rospy.loginfo(f"到达目标位置__yaw: {self.current_yaw}")
-                     
+
                     # if self.state_prev == "FINAL_APPROACH":
                     #     control.robot_state = 1
 
@@ -796,9 +796,10 @@ class ArucoDockingController:
                             control.header.stamp = rospy.Time.now()
 
                             self.control_pub.publish(control)
-                                                
-                                                
-                            # control.robot_state = 2
+                            time.sleep(0.05)
+                            self.control_pub.publish(control)
+  
+                            control.robot_state = 2
 
                             self.control_seq += 1
                             return
@@ -831,7 +832,15 @@ class ArucoDockingController:
                     # if self.state == "FINAL_APPROACH":
                     #     # if self.state_prev
                         
-                    
+                    control.header.stamp = rospy.Time.now()
+                    control.header.seq = self.control_seq
+                    self.state_prev = self.state
+                    rospy.loginfo(f'state: {control.robot_state}')
+                
+                    self.control_pub.publish(control)
+                
+                    self.control_seq += 1
+                    return
 
                     #     control.distance = 0
                     #     control.target_yaw = self.yaw_to_target_yaw_angle(self.current_target['yaw'],self.current_yaw)
