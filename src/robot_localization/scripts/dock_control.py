@@ -667,13 +667,6 @@ class ArucoDockingController:
         control.robot_state = 1
         # rospy.loginfo(f"当前状态: {self.state}")
 
-        if self.flag == False:
-            control.header.stamp = rospy.Time.now()
-            control.header.seq = self.control_seq
-            self.control_pub.publish(control)
-            self.flag = True
-        else:
-            self.flag = False
     
 
         #计算gps距离
@@ -686,11 +679,28 @@ class ArucoDockingController:
             control.target_yaw = self.yaw_to_target_yaw_angle(self.yaw2drone, 0)
             control.robot_state = 2
         else: #gps距离小于2米,通过aruco数据导航
+            
             if self.current_target:
             # 计算当前状态,行走到目标点前1m
+
+
+                
+
+
                 current_pos = np.array([0, 0])  # 基坐标系原点
                 target_vec = self.current_target['position'][:2] - current_pos
+                if self.flag == False and np.linalg.norm(target_vec)<0.5:
+                    control.header.stamp = rospy.Time.now()
+                    control.header.seq = self.control_seq
+                    self.control_pub.publish(control)
+                    self.flag = True
+                    return
+                elif np.linalg.norm(target_vec)<0.5:
+                    self.flag = False
+
                 if np.linalg.norm(target_vec) > self.stop_distance_threshold:
+
+
                     time.sleep(0.1)
 
                     if target_vec[0]>0:
