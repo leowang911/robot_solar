@@ -714,7 +714,7 @@ class ArucoDockingController:
                     #     control.robot_state = 1
 
                     if abs(self.get_marker_yaw(self.current_target['center'])) < 0.025:
-                        rospy.logwarn("完成对正")
+                        rospy.logwarn(f"完成对正 {self.current_target['position']}")
                         if self.first_align==False:
                             control.robot_state = 1
                             rospy.logwarn("robot start is 1")
