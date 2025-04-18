@@ -720,7 +720,7 @@ class ArucoDockingController:
                         time.sleep(1.0)
                         return 
                         
-                    if  np.linalg.norm(target_vec)<0.04:
+                    if  np.linalg.norm(target_vec)<0.05:
                         self.target_yaw=0
 
                     control.distance = int(self.target_distance*1000)
