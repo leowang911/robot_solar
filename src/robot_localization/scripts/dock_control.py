@@ -293,9 +293,9 @@ class ArucoDockingController:
             # elif valid_right:
             #     self.state = "ESTIMATED_APPROACH"
             #     self.current_target = self.estimate_center('right')
-            # else:
-            #     self.state = "SEARCH"
-            #     self.current_target = None  # 清空目标
+            if valid_center or valid_center_left or valid_center_right or valid_left or valid_right:
+                self.state = "SEARCH"
+                self.current_target = None  # 清空目标
 
         # rospy.loginfo(f"当前状态: {self.state}")
 
@@ -689,7 +689,7 @@ class ArucoDockingController:
 
                 current_pos = np.array([0, 0])  # 基坐标系原点
                 target_vec = self.current_target['position'][:2] - current_pos
-                if self.flag_count %10==0 and np.linalg.norm(target_vec)<0.3:
+                if self.flag_count %5==0 and np.linalg.norm(target_vec)<0.2:
                     control.header.stamp = rospy.Time.now()
                     control.header.seq = self.control_seq
                     self.control_pub.publish(control)
