@@ -689,7 +689,7 @@ class ArucoDockingController:
 
                 current_pos = np.array([0, 0])  # 基坐标系原点
                 target_vec = self.current_target['position'][:2] - current_pos
-                if self.flag %5==0 and np.linalg.norm(target_vec)<0.3:
+                if self.flag_count %10==0 and np.linalg.norm(target_vec)<0.3:
                     control.header.stamp = rospy.Time.now()
                     control.header.seq = self.control_seq
                     self.control_pub.publish(control)
