@@ -762,7 +762,7 @@ class ArucoDockingController:
         control.header.stamp = rospy.Time.now()
         control.header.seq = self.control_seq
         self.state_prev = self.state
-
+        rospy.loginfo(f'state: {control.robot_state}')
         self.control_pub.publish(control)
         
         control.robot_state = 2
