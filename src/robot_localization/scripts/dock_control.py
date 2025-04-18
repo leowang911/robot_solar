@@ -724,6 +724,7 @@ class ArucoDockingController:
                 if self.flag_count %5==0 and np.linalg.norm(target_vec)<0.2:
                     control.header.stamp = rospy.Time.now()
                     control.header.seq = self.control_seq
+                    control.robot_state = 1
                     self.control_pub.publish(control)
                     self.flag_count+=1
                     return
