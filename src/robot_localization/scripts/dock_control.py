@@ -680,7 +680,7 @@ class ArucoDockingController:
                 current_pos = np.array([0, 0])  # 基坐标系原点
                 target_vec = self.current_target['position'][:2] - current_pos
                 if np.linalg.norm(target_vec) > self.stop_distance_threshold:
-
+                    time.sleep(0.1)
 
                     if target_vec[0]>0:
                         self.target_distance = np.linalg.norm(target_vec) 
