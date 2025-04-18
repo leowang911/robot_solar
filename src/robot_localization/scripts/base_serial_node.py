@@ -3,7 +3,8 @@
 import rospy
 import serial
 import struct
-from robot_localization.msg import baseStatus  # 根据实际包名调整
+import math
+from robot_localization.msg import baseStatus,INSPVAE  # 根据实际包名调整
 from robot_control.msg import controlData  # 根据实际包名调整
 import numpy as np
 
@@ -47,6 +48,13 @@ class BaseSerialNode:
 
         # 订阅控制指令
         rospy.Subscriber('/control_data', controlData, self.control_data_callback)
+        rospy.Subscriber('/inspvae',INSPVAE,self.inspvae_cb)
+
+    def inspvae_cb(self, msg):
+        # self.latitude = msg.latitude
+        # self.longitude = msg.longitude
+        self.current_yaw = msg.yaw
+    
 
     def init_serial(self):
         """初始化串口连接"""
@@ -70,7 +78,7 @@ class BaseSerialNode:
             'distance': msg.distance,
             'target_yaw': msg.target_yaw,
             'roller_speed': msg.roller_speed,
-            'yaw': msg.yaw,
+            'yaw': self.current_yaw,
             'robot_state': msg.robot_state
         }
 
