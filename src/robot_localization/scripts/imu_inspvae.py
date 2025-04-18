@@ -20,13 +20,13 @@ class IMUParser:
         try:
             self.ser = serial.Serial(
                 port=self.port,
-                baudrate=self.baudrate,
+                baudrate=self.baud,
                 bytesize=serial.EIGHTBITS,
                 parity=serial.PARITY_NONE,
                 stopbits=serial.STOPBITS_ONE,
                 timeout=0.1  # 设置适当的超时时间
             )
-            rospy.loginfo(f"Connected to {self.port} at {self.baudrate} baud")
+            rospy.loginfo(f"Connected to {self.port} at {self.baud} baud")
         except serial.SerialException as e:
             rospy.logerr(f"Serial port error: {e}")
             rospy.signal_shutdown("Serial port init failed")
