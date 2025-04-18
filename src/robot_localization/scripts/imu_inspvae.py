@@ -110,7 +110,8 @@ class IMUParser:
         buffer = bytearray()
         while not rospy.is_shutdown():
             try:
-                if self.ser.in_waiting > 0:
+                if True:
+                # self.ser.in_waiting > 0:
                     buffer += self.ser.read(self.ser.in_waiting)
                     rospy.loginfo(f'buffer: {buffer.hex()}')
                 # 2. 处理接收到的完整帧
