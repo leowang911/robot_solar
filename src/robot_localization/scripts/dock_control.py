@@ -709,8 +709,20 @@ class ArucoDockingController:
                         self.target_distance = np.linalg.norm(target_vec) 
                         self.target_yaw = math.atan2(target_vec[1], target_vec[0])
                     else:
-                        self.target_distance = -np.linalg.norm(target_vec) 
-                        self.target_yaw = 0                   
+                        self.target_yaw = 0
+                        control.distance = -200
+                        control.target_yaw = self.yaw_to_target_yaw_angle(0,self.current_yaw)
+                        control.robot_state = 2
+                        control.header.stamp = rospy.Time.now()
+
+                        self.control_pub.publish(control)
+                        self.control_seq += 1
+                        time.sleep(1.0)
+                        return 
+                        
+                    if  np.linalg.norm(target_vec)<0.04:
+                        self.target_yaw=0
+
                     control.distance = int(self.target_distance*1000)
                     control.target_yaw = self.yaw_to_target_yaw_angle(self.target_yaw,self.current_yaw)
                     control.robot_state = 2
@@ -781,7 +793,7 @@ class ArucoDockingController:
                             self.first_align=False
                             self.align_num=False
                             rospy.logwarn("set back msg")
-                            time.sleep(1.5)
+                            time.sleep(2.5)
                             return
                     # if self.state == "FINAL_APPROACH":
                     #     # if self.state_prev
