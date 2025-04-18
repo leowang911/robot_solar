@@ -863,6 +863,7 @@ class ArucoDockingController:
                             control.robot_state = 2
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
+                            time.sleep(0.1)
                             while self.complete_state != 1:
                                 rospy.loginfo(f'等待回退结束 ')
                                 pass
@@ -872,6 +873,7 @@ class ArucoDockingController:
                             control.robot_state = 2
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
+                            time.sleep(0.1)
                             while self.complete_state != 1:
                                 rospy.loginfo(f'等待回正结束 ')
                                 pass
@@ -885,6 +887,7 @@ class ArucoDockingController:
                             control.robot_state = 2
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
+                            time.sleep(0.1)
                             while self.complete_state != 1:
                                 rospy.loginfo(f'等待前进结束 ')
                                 pass
@@ -894,6 +897,7 @@ class ArucoDockingController:
                             control.robot_state = 2
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
+                            time.sleep(0.1)
                             while self.complete_state != 1:
                                 rospy.loginfo(f'等待回正结束2 ')
                                 pass
