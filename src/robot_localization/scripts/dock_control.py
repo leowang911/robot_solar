@@ -856,7 +856,7 @@ class ArucoDockingController:
                             #get current robot pose
                             time.sleep(0.1)
                             d1,yaw1,yaw2=self.get_pre_robot_pose()
-                            control.distance = d1
+                            control.distance = int(d1*1000)
                             control.target_yaw = self.yaw_to_target_yaw_angle(yaw1,self.current_yaw)
                             control.robot_state = 2
                             control.header.stamp = rospy.Time.now()
@@ -877,7 +877,7 @@ class ArucoDockingController:
                             time.sleep(0.1)
                             #step2
                             d1,yaw1,yaw2=self.get_step2_robot_pose()
-                            control.distance = d1
+                            control.distance = int(d1*1000)
                             control.target_yaw = self.yaw_to_target_yaw_angle(yaw1,self.current_yaw)
                             control.robot_state = 2
                             control.header.stamp = rospy.Time.now()
