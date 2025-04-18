@@ -242,63 +242,63 @@ class ArucoDockingController:
         # if self.state == "FINAL_DOCKING":
         #     self.state = "FINAL_DOCKING"
         # else:
-        if True:
-            if self.markers['center'] is not None :
-                # self.state = "FINAL_APPROACH"
-                
-                self.valid_center_markers.append(self.markers['center'])
-                # if valid_center_left:
-                #     self.valid_center_markers.append(self.markers['center_left'])
-                # if valid_center_right:
-                #     self.valid_center_markers.append(self.markers['center_right'])
-                valid_target.append(self.calculate_center_target())
-                # rospy.loginfo(f"center: {valid_target}")
+
+        if self.markers['center'] is not None :
+            # self.state = "FINAL_APPROACH"
+            
+            self.valid_center_markers.append(self.markers['center'])
+            # if valid_center_left:
+            #     self.valid_center_markers.append(self.markers['center_left'])
+            # if valid_center_right:
+            #     self.valid_center_markers.append(self.markers['center_right'])
+            valid_target.append(self.calculate_center_target())
+            # rospy.loginfo(f"center: {valid_target}")
+
+    
+
+        if self.markers['center_left'] is not None:
+            valid_target.append(self.calculate_center_side_target('center_left'))
+            # rospy.loginfo(f"left: {valid_target}")
 
         
+        if self.markers['center_right'] is not None:
+            valid_target.append(self.calculate_center_side_target('center_right'))
+            # rospy.loginfo(f"right: {valid_target}")
 
-            if self.markers['center_left'] is not None:
-                valid_target.append(self.calculate_center_side_target('center_left'))
-                # rospy.loginfo(f"left: {valid_target}")
+
+        if len(valid_target)>0:
+            for target in valid_target:
+                # rospy.loginfo(f"target: {target}")
+                current_target['position']+= target['position']     
+                current_target['yaw']+= target['yaw']
+                current_target['center']+= target['center']  
+                    
+            current_target['position'] /= len(valid_target)
+            current_target['yaw'] /= len(valid_target)
+            current_target['center'] /= len(valid_target)  
+
+            self.current_target = current_target    
+                        
+            return    
+        
+
+        if valid_left:
+            self.current_target = self.estimate_center('left')
+        if valid_right:
+            self.current_target = self.estimate_center('right')
 
             
-            if self.markers['center_right'] is not None:
-                valid_target.append(self.calculate_center_side_target('center_right'))
-                # rospy.loginfo(f"right: {valid_target}")
-
-
-            if len(valid_target)>0:
-                for target in valid_target:
-                    # rospy.loginfo(f"target: {target}")
-                    current_target['position']+= target['position']     
-                    current_target['yaw']+= target['yaw']
-                    current_target['center']+= target['center']  
-                     
-                current_target['position'] /= len(valid_target)
-                current_target['yaw'] /= len(valid_target)
-                current_target['center'] /= len(valid_target)  
-
-                self.current_target = current_target    
-                            
-                return    
-            
-
-            if valid_left:
-                self.current_target = self.estimate_center('left')
-            if valid_right:
-                self.current_target = self.estimate_center('right')
-
-                
-            # elif valid_left:
-            #     self.state = "ESTIMATED_APPROACH"
-            #     self.current_target = self.estimate_center('left')
-            # elif valid_right:
-            #     self.state = "ESTIMATED_APPROACH"
-            #     self.current_target = self.estimate_center('right')
-            if valid_center or valid_center_left or valid_center_right or valid_left or valid_right:
-                self.state = "SEARCH"
-                self.current_target = None  # 清空目标
-            else:
-                self.state = "APPROACHING"
+        # elif valid_left:
+        #     self.state = "ESTIMATED_APPROACH"
+        #     self.current_target = self.estimate_center('left')
+        # elif valid_right:
+        #     self.state = "ESTIMATED_APPROACH"
+        #     self.current_target = self.estimate_center('right')
+        if valid_center or valid_center_left or valid_center_right or valid_left or valid_right:
+            self.state = "SEARCH"
+            self.current_target = None  # 清空目标
+        else:
+            self.state = "APPROACHING"
 
         # rospy.loginfo(f"当前状态: {self.state}")
 
@@ -541,7 +541,6 @@ class ArucoDockingController:
             'center': pos_center,
         }
 
-
     def calculate_midpoint(self):
         """计算左右标记中点"""
         left = self.markers['left']['position']
@@ -659,6 +658,20 @@ class ArucoDockingController:
         self.yaw2drone = math.atan2(easting_diff, northing_diff)
         # rospy.loginfo(f'gps distance:{self.distance2drone} yaw: {self.yaw2drone}' )
 
+    def search(self):
+        #找不到旋转180
+        control = controlData()
+        control.distance = -600 
+        # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+        # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+        control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, np.pi)
+        control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+        control.roller_speed = 0
+        control.robot_state = 2
+        self.control_pub.publish(control)
+        self.control_seq += 1
+        return control
+
     def control_loop(self, event):
         self.update_state()
         """主控制循环"""
@@ -683,13 +696,10 @@ class ArucoDockingController:
             control.robot_state = 2
         else: #gps距离小于2米,通过aruco数据导航
             rospy.loginfo(f'state {self.state}')
+            if self.state == "SEARCH":
+                 control = self.search()
             if self.current_target:
             # 计算当前状态,行走到目标点前1m
-
-
-                
-
-
                 current_pos = np.array([0, 0])  # 基坐标系原点
                 target_vec = self.current_target['position'][:2] - current_pos
                 if self.flag_count %5==0 and np.linalg.norm(target_vec)<0.2:
@@ -701,9 +711,6 @@ class ArucoDockingController:
                 if self.flag_count>1e8:
                     self.flag_count=0
                 if np.linalg.norm(target_vec) > self.stop_distance_threshold and self.align_num==False:
-
-
-                    #time.sleep(0.1)
 
                     if target_vec[0]>0:
                         self.target_distance = np.linalg.norm(target_vec) 
@@ -798,6 +805,7 @@ class ArucoDockingController:
                     # if self.state == "FINAL_APPROACH":
                     #     # if self.state_prev
                         
+                    
 
                     #     control.distance = 0
                     #     control.target_yaw = self.yaw_to_target_yaw_angle(self.current_target['yaw'],self.current_yaw)
@@ -807,6 +815,10 @@ class ArucoDockingController:
                     #     self.state = "FINAL_DOCKING"
                     #     control.robot_state = 1
 
+               
+
+
+            
             # else:
             #     control.distance = 0
             #     control.target_yaw = 0
