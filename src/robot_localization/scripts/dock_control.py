@@ -768,7 +768,7 @@ class ArucoDockingController:
                                 self.control_seq += 1                                
 
                                 return 
-
+                            self.stop_distance_threshold=0.02
                             control.distance = -200
                             control.target_yaw = self.yaw_to_target_yaw_angle(0,self.current_yaw)
                             control.robot_state = 2
