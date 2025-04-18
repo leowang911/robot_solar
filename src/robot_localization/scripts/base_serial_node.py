@@ -24,7 +24,7 @@ class BaseSerialNode:
         self.sensor_state = 0
         self.complete_state = 1
         self.complete_state_prev = 0
-
+        self.current_yaw = 0
         self.rc_state = 0
         self.rc_state_prev = 0
         self.yaw_prev = 0
