@@ -13,20 +13,20 @@ class IMUParser:
         
         # 参数配置
         self.port = rospy.get_param('~port', '/dev/ttyUSB2')
-        self.baud = rospy.get_param('~baud', 115200)
+        self.baudrate = rospy.get_param('~baud', 115200)
         self.device_addr = 0x50  # 设备地址 (示例中的50)
         self.rx_frame_length = 7  # 接收数据帧长度
         
         try:
             self.ser = serial.Serial(
                 port=self.port,
-                baudrate=self.baud,
+                baudrate=self.baudrate,
                 bytesize=serial.EIGHTBITS,
                 parity=serial.PARITY_NONE,
                 stopbits=serial.STOPBITS_ONE,
                 timeout=0.1  # 设置适当的超时时间
             )
-            rospy.loginfo(f"Connected to {self.port} at {self.baud} baud")
+            rospy.loginfo(f"Connected to {self.port} at {self.baudrate} baud")
         except serial.SerialException as e:
             rospy.logerr(f"Serial port error: {e}")
             rospy.signal_shutdown("Serial port init failed")
