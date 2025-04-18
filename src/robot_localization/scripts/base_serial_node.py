@@ -53,7 +53,7 @@ class BaseSerialNode:
     def inspvae_cb(self, msg):
         # self.latitude = msg.latitude
         # self.longitude = msg.longitude
-        self.current_yaw = msg.yaw
+        self.current_yaw = msg.yaw*100
     
 
     def init_serial(self):
