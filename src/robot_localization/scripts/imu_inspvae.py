@@ -108,11 +108,16 @@ class IMUParser:
     def run(self):
         """主循环读取数据"""
         buffer = bytearray()
+        count = 0
         while not rospy.is_shutdown():
             try:
                 if True:
                 # self.ser.in_waiting > 0:
                     buffer += self.ser.read(self.ser.in_waiting)
+                    if len(buffer) == 0:
+                        count+=1
+                    if count >=10:
+                        self.init_serial() 
                     rospy.loginfo(f'buffer: {buffer.hex()}')
                 # 2. 处理接收到的完整帧
                     if len(buffer) >= self.rx_frame_length:
