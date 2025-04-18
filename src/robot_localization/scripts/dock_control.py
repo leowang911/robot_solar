@@ -44,7 +44,7 @@ class ArucoDockingController:
         # TF配置
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
-
+        self.flag = False
         # 新增数据有效期参数（单位：秒）
         self.data_expiry = 1  # 0.5秒未更新的数据视为失效
         self.marker_time = {'left': None, 'right': None, 'center': None, 'center_left': None, 'center_right': None}
@@ -106,7 +106,7 @@ class ArucoDockingController:
         self.control_seq = 0
         
         #rospy.Timer(rospy.Duration(0.01), self.control_loop)
-        rospy.Timer(rospy.Duration(0.10), self.control_loop)
+        rospy.Timer(rospy.Duration(0.05), self.control_loop)
 
     def depth_cb(self, msg):
         data = np.frombuffer(msg.data, dtype=np.uint16 if msg.is_bigendian else '<u2')
@@ -657,6 +657,7 @@ class ArucoDockingController:
         # rospy.loginfo(f'gps distance:{self.distance2drone} yaw: {self.yaw2drone}' )
 
     def control_loop(self, event):
+        
         """主控制循环"""
         control = controlData()
         control.distance = 0
@@ -665,6 +666,15 @@ class ArucoDockingController:
         control.roller_speed = 0
         control.robot_state = 1
         # rospy.loginfo(f"当前状态: {self.state}")
+
+        if self.flag == False:
+            control.header.stamp = rospy.Time.now()
+            control.header.seq = self.control_seq
+            self.control_pub.publish(control)
+            self.flag = True
+        else:
+            self.flag = False
+    
 
         #计算gps距离
         gps_calculation = self.gps_calculation(self.latitude, self.longitude, self.latitude_drone, self.longitude_drone)
@@ -763,6 +773,7 @@ class ArucoDockingController:
         control.header.seq = self.control_seq
         self.state_prev = self.state
         rospy.loginfo(f'state: {control.robot_state}')
+     
         self.control_pub.publish(control)
         
         control.robot_state = 2
