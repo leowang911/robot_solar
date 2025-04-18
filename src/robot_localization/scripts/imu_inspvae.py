@@ -83,7 +83,7 @@ class IMUParser:
         # 计算角度 (小端模式)
         # roll = np.int32(((h_roll_h << 24) | (h_roll_l << 16) | (l_roll_h << 8) | l_roll_l)) / 1000.0
         # pitch = np.int32(((h_pitch_h << 24) | (h_pitch_l << 16) | (l_pitch_h << 8) | l_pitch_l)) / 1000.0
-        yaw = np.float16(( (yaw_h << 8) | yaw_l)) / 1000.0
+        yaw = np.int16(( (yaw_h << 8) | yaw_l)) / 32768*180
         
         # rospy.loginfo(f"Parsed angles: Roll={roll}, Pitch={pitch}, Yaw={yaw}")
         return {'roll': 0, 'pitch': 0, 'yaw': yaw}
