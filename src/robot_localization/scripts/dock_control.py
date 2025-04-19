@@ -910,33 +910,33 @@ class ArucoDockingController:
                                 control.robot_state = 2
 
                                 self.control_seq += 1
-                                return
-                        
-                        control.distance = 0
-                        c_yaw=self.get_marker_yaw(self.current_target['center'])
-                        # if c_yaw>0.2:
-                        #     c_yaw=0.2
-                        # if c_yaw<-0.2:
-                        #     c_yaw=-0.2
-                        control.target_yaw = self.yaw_to_target_yaw_angle(c_yaw,self.current_yaw)
-                        control.robot_state = 2
+                            #return
+                        else:
+                            control.distance = 0
+                            c_yaw=self.get_marker_yaw(self.current_target['center'])
+                            # if c_yaw>0.2:
+                            #     c_yaw=0.2
+                            # if c_yaw<-0.2:
+                            #     c_yaw=-0.2
+                            control.target_yaw = self.yaw_to_target_yaw_angle(c_yaw,self.current_yaw)
+                            control.robot_state = 2
 
-                        rospy.loginfo(f"taget_yal:{ control.target_yaw}, ￥￥￥￥￥￥curent_yaw: {self.current_yaw}")
+                            rospy.loginfo(f"taget_yal:{ control.target_yaw}, ￥￥￥￥￥￥curent_yaw: {self.current_yaw}")
 
-                        # 发布控制指令
-                        control.header.stamp = rospy.Time.now()
-                        control.header.seq = self.control_seq
-                        self.state_prev = self.state
-                        rospy.loginfo(f'state: {control.robot_state}')
-                        if self.complete_state==1:
-                            control.robot_state = 1
+                            # 发布控制指令
+                            control.header.stamp = rospy.Time.now()
+                            control.header.seq = self.control_seq
+                            self.state_prev = self.state
+                            rospy.loginfo(f'state: {control.robot_state}')
+                            if self.complete_state==1:
+                                control.robot_state = 1
+                                self.control_pub.publish(control)
+                                control.robot_state = 2 
+                                time.sleep(0.01)
                             self.control_pub.publish(control)
-                            control.robot_state = 2 
-                            time.sleep(0.01)
-                        self.control_pub.publish(control)
-                    
-                        self.control_seq += 1
-                        self.refine_align=False
+                        
+                            self.control_seq += 1
+                            self.refine_align=False
 
                             
                 if self.refine_align==True:
