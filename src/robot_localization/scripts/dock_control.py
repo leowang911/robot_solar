@@ -735,6 +735,17 @@ class ArucoDockingController:
         #     theta1=-theta1
         theta1 = math.atan2(-prepoint[1], -prepoint[0])
         return distance,theta1,theta2
+    def direct_back(self):
+
+        distance=-0.3
+        # theta1=math.atan(abs(prepoint[1]/prepoint[0]))
+
+        # if prepoint[1]>0:
+        #     theta1=-theta1
+        theta1 = theta2=   0
+        return distance,theta1,theta2
+
+
     def get_step2_robot_pose(self,):
         
         v1=self.current_target['position'][:2]
@@ -906,7 +917,8 @@ class ArucoDockingController:
                             time.sleep(0.1)
                             self.complete_state = 0
                             self.lock_refine=True
-                            d1,yaw1,yaw2=self.get_pre_robot_pose()
+                            #d1,yaw1,yaw2=self.get_pre_robot_pose()
+                            d1,yaw1,yaw2=self.direct_back()
                             rospy.loginfo(f'robot pose1: {d1} {yaw1} {yaw2}')
                             control.distance = int(d1*1000)
                             control.target_yaw = self.yaw_to_target_yaw_angle(yaw1,self.current_yaw)
