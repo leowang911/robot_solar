@@ -884,11 +884,13 @@ class ArucoDockingController:
 
                             if np.linalg.norm(target_vec) <0.04:
                                 control.robot_state = 4
-                                rospy.loginfo(f'start final docking')
+                                rospy.loginfo(f'GOOD *****************************************************start final docking')
+
                                 control.header.stamp = rospy.Time.now()
                                 self.stop_distance_threshold=0.1
                                 self.control_pub.publish(control)
-                                self.control_seq += 1                                
+                                self.control_seq += 1 
+                                time.sleep(1000)                               
                                 return 
                             
 
