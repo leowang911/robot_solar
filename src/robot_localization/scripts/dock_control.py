@@ -790,7 +790,7 @@ class ArucoDockingController:
                 self.lock_current=True
                 current_pos = np.array([0, 0])  # 基坐标系原点
                 target_vec = self.current_target['position'][:2] - current_pos
-
+                rospy.loginfo(f'target_vec is %%%%%%%%%%% {target_vec}')
             # 计算当前状态,行走到目标点前1m
                 if self.refine_align==False:
                     #粗定位
@@ -911,8 +911,9 @@ class ArucoDockingController:
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
                             time.sleep(0.1)
+                            rospy.loginfo(f'等待回退结束 ')
                             while self.complete_state != 1:
-                                rospy.loginfo(f'等待回退结束 ')
+                                
                                 control.distance = 0
                                 control.target_yaw = self.yaw_to_target_yaw_angle(yaw1,self.current_yaw)
                                 control.robot_state = 2
@@ -921,6 +922,7 @@ class ArucoDockingController:
 
                                 # time.sleep(0.1)
                                 pass
+                            rospy.loginfo(f'成功回退！！ ')
                             #执行结束
                             control.distance = 0
                             control.target_yaw = 0                            
@@ -935,10 +937,12 @@ class ArucoDockingController:
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
                             time.sleep(0.1)
+                            rospy.loginfo(f'等待回正结束 ')     
                             while self.complete_state != 1:
-                                rospy.loginfo(f'等待回正结束 ')
+                                
                                 time.sleep(0.1)
                                 pass
+                            rospy.loginfo(f'step1 成功回正！ ')
                             #执行结束
                             time.sleep(2.0)
                             #step2
@@ -957,10 +961,11 @@ class ArucoDockingController:
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
                             time.sleep(0.1)
+                            rospy.loginfo(f'等待前进结束 ')
                             while self.complete_state != 1:
-                                rospy.loginfo(f'等待前进结束 ')
                                 time.sleep(0.1)
                                 pass
+                            rospy.loginfo(f'step2 成功前进！！ ')
                             #执行结束
                             control.distance = 0
                             control.target_yaw = 0                            
@@ -975,9 +980,12 @@ class ArucoDockingController:
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
                             time.sleep(0.1)
+                            rospy.loginfo(f'step2 等待回正结束')
                             while self.complete_state != 1:
-                                rospy.loginfo(f'等待回正结束2 ')
+                               
                                 pass
+                            rospy.loginfo(f'step2 成功回正！！')
+
                             time.sleep(0.5)
                             #执行结束
 
