@@ -759,7 +759,7 @@ class ArucoDockingController:
         return distance,theta1,theta2
     def direct_back(self):
 
-        distance=-0.15
+        distance=-0.25
         # theta1=math.atan(abs(prepoint[1]/prepoint[0]))
 
         # if prepoint[1]>0:
