@@ -67,7 +67,7 @@ class ArucoDockingController:
 
 
         # 状态变量
-        self.state = "SEARCH"
+        self.state = "INIT"
         self.state_prev = "SEARCH"
         self.estimated_center = None
         self.current_target = {
@@ -474,8 +474,8 @@ class ArucoDockingController:
     def get_rot(self,pixel):
         u=int(pixel.x)
         v=int(pixel.y)
-        u_ax=np.arange(u-10 ,u+10)
-        v_ax=np.arange(v-10,v+10)
+        u_ax=np.arange(u-20 ,u+20)
+        v_ax=np.arange(v-20,v+20)
         if self.depth_image is not None:
             pt=[]
             for i in u_ax:
