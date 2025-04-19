@@ -854,7 +854,8 @@ class ArucoDockingController:
 
                             #step1 
                             #get current robot pose
-                            control.target_yaw = self.yaw_to_target_yaw_angle(yaw1,self.current_yaw)
+                            control.distance = 0
+                            control.target_yaw = 0                            
                             control.robot_state = 1
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
@@ -873,7 +874,8 @@ class ArucoDockingController:
                                 time.sleep(0.1)
                                 pass
                             #执行结束
-                            control.target_yaw = self.yaw_to_target_yaw_angle(yaw1,self.current_yaw)
+                            control.distance = 0
+                            control.target_yaw = 0                            
                             control.robot_state = 1
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
@@ -892,7 +894,8 @@ class ArucoDockingController:
                             #执行结束
                             time.sleep(1.0)
                             #step2
-                            control.target_yaw = self.yaw_to_target_yaw_angle(yaw1,self.current_yaw)
+                            control.distance = 0
+                            control.target_yaw = 0                            
                             control.robot_state = 1
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
@@ -911,7 +914,8 @@ class ArucoDockingController:
                                 time.sleep(0.1)
                                 pass
                             #执行结束
-                            control.target_yaw = self.yaw_to_target_yaw_angle(yaw1,self.current_yaw)
+                            control.distance = 0
+                            control.target_yaw = 0                            
                             control.robot_state = 1
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
