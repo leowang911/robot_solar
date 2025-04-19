@@ -52,6 +52,7 @@ class ArucoDockingController:
         self.marker_time = {'left': None, 'right': None, 'center': None, 'center_left': None, 'center_right': None}
         self.valid_center_markers = []
         self.center_side_offset = [ 0.37608,-0.01905,-0.42418]
+        self.complete_state = 0
         
 
          # 存储检测数据（基坐标系）
