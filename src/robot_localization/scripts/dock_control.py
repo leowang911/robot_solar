@@ -491,14 +491,14 @@ class ArucoDockingController:
                     a,b,c,d,centp=self.fit_plane_to_points(point.T)
                     pose_q= self.get_pose(a,b,c)
                 else:
-                    centp=np.array([0,0,0.0])
+                    centp=np.array([0,0,1.0])
                     pose_q= self.get_pose(0,0,-1)    
             except Exception as e:  
                 #rospy.logwarn(f"点云拟合失败: {str(e)}")
-                centp=np.array([0,0,0.0])
+                centp=np.array([0,0,1.0])
                 pose_q= self.get_pose(0,0,-1)       
         else:
-            centp=np.array([0,0,0.3])
+            centp=np.array([0,0,1])
             pose_q= self.get_pose(0,0,-1)
         pose= PoseStamped()
         pose.header.frame_id = "camera_link"
