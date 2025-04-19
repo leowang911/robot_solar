@@ -257,18 +257,25 @@ class ArucoDockingController:
             #     self.valid_center_markers.append(self.markers['center_left'])
             # if valid_center_right:
             #     self.valid_center_markers.append(self.markers['center_right'])
-            valid_target.append(self.calculate_center_target())
+            ct1=self.calculate_center_target()
+            if ct1 is not None:
+                valid_target.append(ct1)
             #rospy.loginfo(f"center: {valid_target}")
 
     
 
         if self.markers['center_left'] is not None:
-            valid_target.append(self.calculate_center_side_target('center_left'))
+            left_target = self.calculate_center_side_target('center_left')  
+            if left_target is not None: 
+                valid_target.append(left_target)
             # rospy.loginfo(f"left: {valid_target}")
 
         
         if self.markers['center_right'] is not None:
-            valid_target.append(self.calculate_center_side_target('center_right'))
+            right_target = self.calculate_center_side_target('center_right')    
+            if right_target is not None:    
+                valid_target.append(right_target)   
+            #valid_target.append(self.calculate_center_side_target('center_right'))
             # rospy.loginfo(f"right: {valid_target}")
 
         # for marker_type in ['left', 'right', 'center', 'center_left', 'center_right']:
@@ -337,6 +344,8 @@ class ArucoDockingController:
         # rot = marker['orientation']
         
         pose_stamped=self.get_rot(self.markers[side])
+        if pose_stamped is None:
+            return None
         pose = pose_stamped.pose
         if side == 'center_left':
             self.pose2_pub.publish(pose_stamped)
@@ -492,14 +501,18 @@ class ArucoDockingController:
                     pose_q= self.get_pose(a,b,c)
                 else:
                     centp=np.array([0,0,1.0])
-                    pose_q= self.get_pose(0,0,-1)    
+                    pose_q= self.get_pose(0,0,-1)   
+                    return None
+ 
             except Exception as e:  
-                #rospy.logwarn(f"点云拟合失败: {str(e)}")
-                centp=np.array([0,0,1.0])
-                pose_q= self.get_pose(0,0,-1)       
+                rospy.logwarn(f"点云拟合失败: {str(e)}")
+                return None
+                # centp=np.array([0,0,1.0])
+                # pose_q= self.get_pose(0,0,-1)       
         else:
             centp=np.array([0,0,1])
             pose_q= self.get_pose(0,0,-1)
+            return None
         pose= PoseStamped()
         pose.header.frame_id = "camera_link"
         pose.header.stamp = rospy.Time.now()
@@ -530,6 +543,8 @@ class ArucoDockingController:
         #pos = self.markers['center']['position']
         #rot = self.markers['orientation']
         pose_stamped=self.get_rot(self.markers['center'])
+        if pose_stamped is None:    
+            return None 
         pose = pose_stamped.pose
         self.pose1_pub.publish(pose_stamped)
         pos=np.array([pose.position.x,pose.position.y,pose.position.z])
