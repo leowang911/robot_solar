@@ -832,6 +832,8 @@ class ArucoDockingController:
                 current_pos = np.array([0, 0])  # 基坐标系原点
                 target_vec = self.current_target['position'][:2] - current_pos
                 rospy.loginfo(f'target_vec is %%%%%%%%%%% {target_vec}')
+                
+
             # 计算当前状态,行走到目标点前1m
                 if self.refine_align==False:
                     #粗定位
@@ -849,14 +851,14 @@ class ArucoDockingController:
                             control.target_yaw = self.yaw_to_target_yaw_angle(0,self.current_yaw)
                             control.robot_state = 2
                             control.header.stamp = rospy.Time.now()
-                            if self.complete_state==1:
-                                control.robot_state = 1
-                                self.control_pub.publish(control)
-                                control.robot_state = 2 
-                                time.sleep(0.01)
+                            control.robot_state = 1
+                            self.control_pub.publish(control)
+                            time.sleep(0.05)
+                            control.header.stamp = rospy.Time.now()
+                            control.robot_state = 2 
                             self.control_pub.publish(control)
                             self.control_seq += 1
-                            time.sleep(2.0)
+                            time.sleep(1.0)
                             return 
                             
                         if  np.linalg.norm(target_vec)<0.1:
