@@ -494,7 +494,7 @@ class ArucoDockingController:
                     centp=np.array([0,0,0.3])
                     pose_q= self.get_pose(0,0,-1)    
             except Exception as e:  
-                rospy.logwarn(f"点云拟合失败: {str(e)}")
+                #rospy.logwarn(f"点云拟合失败: {str(e)}")
                 centp=np.array([0,0,0.3])
                 pose_q= self.get_pose(0,0,-1)       
         else:
