@@ -49,7 +49,7 @@ class ArucoDockingController:
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
         self.flag_count = 0
         # 新增数据有效期参数（单位：秒）
-        self.data_expiry = 5  # 0.5秒未更新的数据视为失效
+        self.data_expiry = 0.5  # 0.5秒未更新的数据视为失效
         self.marker_time = {'left': None, 'right': None, 'center': None, 'center_left': None, 'center_right': None}
         self.valid_center_markers = []
         self.center_side_offset = [ 0.37608,-0.01905,-0.42418]
