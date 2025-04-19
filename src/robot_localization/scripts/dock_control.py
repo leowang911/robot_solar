@@ -559,7 +559,7 @@ class ArucoDockingController:
         #     # pos = self.markers['center']['position']
         #     # rot = self.markers['center']['orientation']
         # R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
-        pos =  R@[-0.05,0 ,0] + pos
+        pos =  R@[0.03,0 ,0] + pos
 
         #     self.pos_target = [0,0,0]
 
@@ -943,7 +943,7 @@ class ArucoDockingController:
                                 self.refine_align=False 
                                 return 
 
-                            if np.linalg.norm(target_vec) <0.08 and abs(target_vec[1])<0.02:
+                            if np.linalg.norm(target_vec) <0.10 and abs(target_vec[1])<0.02:
                                 control.robot_state = 4
                                 rospy.loginfo(f'GOOD *****************************************************start final docking')
 
@@ -1056,7 +1056,7 @@ class ArucoDockingController:
                             control.robot_state = 2
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
-                            time.sleep(0.1)
+                            time.sleep(0.5)
                             rospy.loginfo(f'step2 等待回正结束')
                             while self.complete_state != 1:
                                
