@@ -954,7 +954,7 @@ class ArucoDockingController:
                             control.robot_state = 2
 
                             rospy.loginfo(f"taget_yal:{ control.target_yaw}, ￥￥￥￥￥￥curent_yaw: {self.current_yaw}")
-
+                            time.sleep(0.1)
                             # 发布控制指令
                             control.header.stamp = rospy.Time.now()
                             control.header.seq = self.control_seq
