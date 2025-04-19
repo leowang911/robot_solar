@@ -828,7 +828,7 @@ class ArucoDockingController:
         axis=v1-v2
         axis/=np.linalg.norm(axis)
         axis=-axis
-        prepoint=v1
+        prepoint=v1-np.array([-0.3,0])
 
         costh=np.dot(prepoint,axis)/np.linalg.norm(prepoint)
         theta2=math.acos(costh)
@@ -1131,6 +1131,7 @@ class ArucoDockingController:
                             self.lock_refine=True
                             #d1,yaw1,yaw2=self.get_pre_robot_pose()
                             d1,yaw1,yaw2=self.direct_back()
+                            sdd1,sdy1,sdy2=self.get_step00_robot_pose()
                             rospy.loginfo(f'robot pose1: {d1} {yaw1} {yaw2}')
                             control.distance = int(d1*1000)
                             control.target_yaw = self.yaw_to_target_yaw_angle(yaw1,self.current_yaw)
@@ -1188,7 +1189,8 @@ class ArucoDockingController:
 
                             #self.complete_state = 0
                             self.lock_refine=True
-                            d1,yaw1,yaw2=self.get_step2_robot_pose()
+                            #d1,yaw1,yaw2=self.get_step2_robot_pose()
+                            d1,yaw1,yaw2=sdd1,sdy1,sdy2
                             rospy.loginfo(f'robot pose22: {d1} {yaw1} {yaw2}')
                             control.distance = int(d1*1000)
                             control.target_yaw = self.yaw_to_target_yaw_angle(yaw1,self.current_yaw)
