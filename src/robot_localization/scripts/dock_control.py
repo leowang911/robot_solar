@@ -23,7 +23,7 @@ class ArucoDockingController:
         # 坐标系参数
         self.marker_spacing = rospy.get_param('~marker_spacing', 1.0)  # 左右标记间距（米）
         self.marker_side_spacing   = rospy.get_param('~marker_side_spacing', 0.78)  # 中间标记与侧标记间距（米）
-        self.stop_distance = rospy.get_param('~stop_distance', 0.95)  # 中间标记前停止距离
+        self.stop_distance = rospy.get_param('~stop_distance', 1.1)  # 中间标记前停止距离
         self.stop_distance_threshold = rospy.get_param('stop_distance_threshold', 0.1)  # 停止距离阈值
         self.target_distance = 1 # 目标距离（米）
         self.align_threshold = math.radians(1)  # 航向对准阈值
