@@ -249,7 +249,7 @@ class ArucoDockingController:
         #     self.state = "FINAL_DOCKING"
         # else:
 
-        if self.markers['center'] is not None :
+        if self.markers['center'] is not None and self.refine_align==False:
             # self.state = "FINAL_APPROACH"
             
             self.valid_center_markers.append(self.markers['center'])
