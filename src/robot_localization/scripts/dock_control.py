@@ -702,7 +702,7 @@ class ArucoDockingController:
         prepoint=v1+axis*0.4
         costh=np.dot(prepoint,axis)/np.linalg.norm(prepoint)
         theta2=math.acos(costh)
-        axis=-axis
+        #axis=-axis
         if (prepoint[0]*axis[1]-prepoint[1]*axis[0])<0:
             theta2=-theta2
         distance=-np.linalg.norm(prepoint)
@@ -901,7 +901,7 @@ class ArucoDockingController:
                             time.sleep(0.1)
                             self.complete_state = 0
                             control.distance = 0
-                            control.target_yaw = self.yaw_to_target_yaw_angle(-yaw2,self.current_yaw)                            
+                            control.target_yaw = self.yaw_to_target_yaw_angle(yaw2,self.current_yaw)                            
                             control.robot_state = 2
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
