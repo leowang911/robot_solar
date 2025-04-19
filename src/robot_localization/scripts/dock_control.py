@@ -938,7 +938,7 @@ class ArucoDockingController:
                                 time.sleep(0.1)
                                 pass
                             #执行结束
-                            time.sleep(1.0)
+                            time.sleep(2.0)
                             #step2
                             control.distance = 0
                             control.target_yaw = 0                            
@@ -976,6 +976,7 @@ class ArucoDockingController:
                             while self.complete_state != 1:
                                 rospy.loginfo(f'等待回正结束2 ')
                                 pass
+                            time.sleep(0.5)
                             #执行结束
 
 
