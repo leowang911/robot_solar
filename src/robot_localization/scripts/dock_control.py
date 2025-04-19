@@ -791,6 +791,22 @@ class ArucoDockingController:
             # rospy.loginfo(f"gps_distance: {self.distance2drone}")
             control.target_yaw = self.yaw_to_target_yaw_angle(self.yaw2drone, 0)
             control.robot_state = 2
+
+            # 发布控制指令
+            control.header.stamp = rospy.Time.now()
+            control.header.seq = self.control_seq
+            self.state_prev = self.state
+            rospy.loginfo(f'state: {control.robot_state}')
+            if self.complete_state==1:
+                control.robot_state = 1
+                self.control_pub.publish(control)
+                control.robot_state = 2 
+                time.sleep(0.01)
+            self.control_pub.publish(control)
+        
+            self.control_seq += 1
+
+
         else: #gps距离小于2米,通过aruco数据导航
 
             rospy.loginfo(f'state {self.state}')
@@ -837,6 +853,19 @@ class ArucoDockingController:
                         control.target_yaw = self.yaw_to_target_yaw_angle(self.target_yaw,self.current_yaw)
                         control.robot_state = 2
 
+                        # 发布控制指令
+                        control.header.stamp = rospy.Time.now()
+                        control.header.seq = self.control_seq
+                        self.state_prev = self.state
+                        rospy.loginfo(f'state: {control.robot_state}')
+                        if self.complete_state==1:
+                            control.robot_state = 1
+                            self.control_pub.publish(control)
+                            control.robot_state = 2 
+                            time.sleep(0.01)
+                        self.control_pub.publish(control)
+                    
+                        self.control_seq += 1
                         # rospy.loginfo(f"")
                         rospy.loginfo(f"未到达目标位置: {self.current_target['position']},{self.get_marker_yaw(self.current_target['position'])}")
                         rospy.loginfo(f"complete_state: {self.complete_state}")
@@ -887,6 +916,19 @@ class ArucoDockingController:
 
                         rospy.loginfo(f"taget_yal:{ control.target_yaw}, ￥￥￥￥￥￥curent_yaw: {self.current_yaw}")
 
+                        # 发布控制指令
+                        control.header.stamp = rospy.Time.now()
+                        control.header.seq = self.control_seq
+                        self.state_prev = self.state
+                        rospy.loginfo(f'state: {control.robot_state}')
+                        if self.complete_state==1:
+                            control.robot_state = 1
+                            self.control_pub.publish(control)
+                            control.robot_state = 2 
+                            time.sleep(0.01)
+                        self.control_pub.publish(control)
+                    
+                        self.control_seq += 1
                             
                 if self.refine_align==True:
                             #精确对齐
@@ -1031,19 +1073,6 @@ class ArucoDockingController:
             # rospy.loginfo(f"无人机与基坐标系距离: {self.distance2drone}")  
             # rospy.loginfo(f"无人机航向角: {self.yaw2drone}")
 
-        # 发布控制指令
-        control.header.stamp = rospy.Time.now()
-        control.header.seq = self.control_seq
-        self.state_prev = self.state
-        rospy.loginfo(f'state: {control.robot_state}')
-        if self.complete_state==1:
-            control.robot_state = 1
-            self.control_pub.publish(control)
-            control.robot_state = 2 
-            time.sleep(0.01)
-        self.control_pub.publish(control)
-    
-        self.control_seq += 1
 
 if __name__ == '__main__':
     rospy.init_node('aruco_docking_controller')
