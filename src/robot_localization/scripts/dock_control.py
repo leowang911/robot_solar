@@ -794,6 +794,7 @@ class ArucoDockingController:
                         control.robot_state = 2
                         # rospy.loginfo(f"")
                         rospy.loginfo(f"未到达目标位置: {self.current_target['position']},{self.get_marker_yaw(self.current_target['position'])}")
+                        rospy.loginfo(f"complete_state: {self.complete_state}")
                         
                     else:
                         if self.align_num==False:
