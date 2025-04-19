@@ -783,6 +783,9 @@ class ArucoDockingController:
                             control.header.stamp = rospy.Time.now()
                             if self.complete_state==1:
                                 control.robot_state = 1
+                                self.control_pub.publish(control)
+                                control.robot_state = 2 
+                                time.sleep(0.01)
                             self.control_pub.publish(control)
                             self.control_seq += 1
                             time.sleep(2.0)
@@ -973,6 +976,9 @@ class ArucoDockingController:
         rospy.loginfo(f'state: {control.robot_state}')
         if self.complete_state==1:
             control.robot_state = 1
+            self.control_pub.publish(control)
+            control.robot_state = 2 
+            time.sleep(0.01)
         self.control_pub.publish(control)
     
         self.control_seq += 1
