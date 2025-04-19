@@ -941,7 +941,7 @@ class ArucoDockingController:
                             time.sleep(0.1)
                             self.complete_state = 0
                             control.distance = 0
-                            control.target_yaw = self.yaw_to_target_yaw_angle(-yaw2,self.current_yaw)                            
+                            control.target_yaw = self.yaw_to_target_yaw_angle(yaw2,self.current_yaw)                            
                             control.robot_state = 2
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
