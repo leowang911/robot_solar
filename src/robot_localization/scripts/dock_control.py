@@ -780,7 +780,8 @@ class ArucoDockingController:
                             control.target_yaw = self.yaw_to_target_yaw_angle(0,self.current_yaw)
                             control.robot_state = 2
                             control.header.stamp = rospy.Time.now()
-
+                            if self.complete_state==1:
+                                control.robot_state = 1
                             self.control_pub.publish(control)
                             self.control_seq += 1
                             time.sleep(2.0)
@@ -792,6 +793,7 @@ class ArucoDockingController:
                         control.distance = int(self.target_distance*1000)
                         control.target_yaw = self.yaw_to_target_yaw_angle(self.target_yaw,self.current_yaw)
                         control.robot_state = 2
+
                         # rospy.loginfo(f"")
                         rospy.loginfo(f"未到达目标位置: {self.current_target['position']},{self.get_marker_yaw(self.current_target['position'])}")
                         rospy.loginfo(f"complete_state: {self.complete_state}")
@@ -839,6 +841,7 @@ class ArucoDockingController:
                         #     c_yaw=-0.2
                         control.target_yaw = self.yaw_to_target_yaw_angle(c_yaw,self.current_yaw)
                         control.robot_state = 2
+
                         rospy.loginfo(f"taget_yal:{ control.target_yaw}, ￥￥￥￥￥￥curent_yaw: {self.current_yaw}")
 
                             
@@ -964,7 +967,8 @@ class ArucoDockingController:
         control.header.seq = self.control_seq
         self.state_prev = self.state
         rospy.loginfo(f'state: {control.robot_state}')
-     
+        if self.complete_state==1:
+            control.robot_state = 1
         self.control_pub.publish(control)
     
         self.control_seq += 1
