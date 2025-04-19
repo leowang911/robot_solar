@@ -721,7 +721,7 @@ class ArucoDockingController:
         v2=self.current_target['center'][:2]
         axis=v1-v2
         axis/=np.linalg.norm(axis)
-        prepoint=v1+axis*0.2
+        prepoint=v1+axis*0.3
         costh=np.dot(prepoint,axis)/np.linalg.norm(prepoint)
         theta2=math.acos(costh)
         #axis=-axis
