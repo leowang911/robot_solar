@@ -347,7 +347,7 @@ class ArucoDockingController:
         R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
         sign = 1 if side == 'center_right' else -1
         # 计算中间位置 * sign
-        offset = self.marker_side_spacing/2 *sign  #+0.05
+        offset = self.marker_side_spacing/2 *sign  +0.03
         self.pos_target = R@np.array([-offset,0, self.stop_distance]) + pos
         pos_center = R@np.array([-offset,0, 0]) + pos
         # rospy.loginfo(f"pos: {pos}")
@@ -873,7 +873,7 @@ class ArucoDockingController:
                                 self.refine_align=False 
                                 return 
 
-                            if np.linalg.norm(target_vec) <0.02:
+                            if np.linalg.norm(target_vec) <0.04:
                                 control.robot_state = 4
                                 rospy.loginfo(f'start final docking')
                                 control.header.stamp = rospy.Time.now()
