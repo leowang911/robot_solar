@@ -483,10 +483,10 @@ class ArucoDockingController:
                     if self.depth_image[j,i] is not None:
                         if abs(self.depth_image[j,i])<2000.0:
                             pt.append([i,j,self.depth_image[j,i]/1000.0])
-            pt=np.array(pt).T
-            fx,fy,cx,cy=[612.3629150390625, 637.8858032226562, 612.5785522460938, 362.7610168457031]
-            point=self.pixel_to_point(pt, fx,fy,cx,cy)
-            if point.shape[1]>20:
+            if len(pt)>10:
+                pt=np.array(pt).T
+                fx,fy,cx,cy=[612.3629150390625, 637.8858032226562, 612.5785522460938, 362.7610168457031]
+                point=self.pixel_to_point(pt, fx,fy,cx,cy)
                 a,b,c,d,centp=self.fit_plane_to_points(point.T)
                 pose_q= self.get_pose(a,b,c)
             else:
