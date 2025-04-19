@@ -892,7 +892,7 @@ class ArucoDockingController:
                             self.align_num=True
                             return
                     
-                    if self.align_num==True:
+                if self.align_num==True:
                         self.state = "FINAL_DOCKING"
                         rospy.loginfo(f"到达目标位置: {self.current_target['center']},{self.get_marker_yaw(self.current_target['center'])}")
                         rospy.loginfo(f"到达目标位置__yaw: {self.current_yaw}")
@@ -936,6 +936,8 @@ class ArucoDockingController:
                         self.control_pub.publish(control)
                     
                         self.control_seq += 1
+                        self.refine_align=False
+
                             
                 if self.refine_align==True:
                             #精确对齐
@@ -1062,6 +1064,14 @@ class ArucoDockingController:
                                
                                 pass
                             rospy.loginfo(f'step2 成功回正！！')
+
+
+                            #对齐
+                    
+
+
+
+
                             self.lock_refine=False
                             time.sleep(0.5)
                             #执行结束
