@@ -846,10 +846,10 @@ class ArucoDockingController:
                             self.target_distance = np.linalg.norm(target_vec) 
                             self.target_distance=np.clip(self.target_distance,0,0.3)
                             self.target_yaw = math.atan2(target_vec[1], target_vec[0])
-                            self.target_yaw =np.clip(self.target_yaw,-0.1,0.1)
+                            self.target_yaw =np.clip(self.target_yaw,-0.2,0.2)
                         else:
                             self.target_yaw = 0
-                            control.distance = -200
+                            control.distance = -100
                             control.target_yaw = self.yaw_to_target_yaw_angle(0,self.current_yaw)
                             control.robot_state = 2
                             control.header.stamp = rospy.Time.now()
