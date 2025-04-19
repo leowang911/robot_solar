@@ -847,6 +847,9 @@ class ArucoDockingController:
                             
                 if self.refine_align==True:
                             #精确对齐
+                            if np.linalg.norm(target_vec) >0.8:
+                                self.refine_align=False 
+                                return 
 
                             if np.linalg.norm(target_vec) <0.02:
                                 control.robot_state = 4
