@@ -767,7 +767,8 @@ class ArucoDockingController:
             # 计算当前状态,行走到目标点前1m
                 if self.refine_align==False:
                     #粗定位
-
+                    if np.linalg.norm(target_vec) >0.3:
+                        self.align_num=False
 
                     if np.linalg.norm(target_vec) > self.stop_distance_threshold and self.align_num==False:
 
