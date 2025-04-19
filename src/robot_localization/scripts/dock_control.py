@@ -483,8 +483,8 @@ class ArucoDockingController:
     def get_rot(self,pixel):
         u=int(pixel.x)
         v=int(pixel.y)
-        u_ax=np.arange(u-18,u+18)
-        v_ax=np.arange(v-18,v+18)
+        u_ax=np.arange(u-10,u+10)
+        v_ax=np.arange(v-10,v+10)
         if self.depth_image is not None:
             pt=[]
             for i in u_ax:
