@@ -53,7 +53,7 @@ class ArucoDockingController:
         self.valid_center_markers = []
         self.center_side_offset = [ 0.37608,-0.01905,-0.42418]
         self.complete_state = 0
-        
+        self.first_look_flag = False
 
          # 存储检测数据（基坐标系）
         self.markers = {
@@ -96,7 +96,9 @@ class ArucoDockingController:
         rospy.Subscriber("/camera/aruco_102/pixel", PointStamped, self.center_cb)
         rospy.Subscriber("/camera/aruco_103/pixel", PointStamped, self.center_left_cb)
         rospy.Subscriber("/camera/aruco_104/pixel", PointStamped, self.center_right_cb)
+
         rospy.Subscriber("/camera/depth/image_raw", Image, self.depth_cb)
+        
         # rospy.Subscriber("/virtual_marker_102/pose", PoseStamped, self.center_cb)
         # rospy.Subscriber("/virtual_markers", PoseArray, self.markers_cb)
         
@@ -273,8 +275,22 @@ class ArucoDockingController:
 
         if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
             self.state = "APPROACHING"
+            if self.first_look_flag == False:
+                self.first_look_flag = True
+                control = controlData()
+                control.distance = 0 
+                # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                control.roller_speed = 0
+                control.robot_state = 1
+                self.control_pub.publish(control)
+                time.sleep(0.1)
+                    
         else:
             self.state = "SEARCH"
+            self.first_look_flag = False
             if self.lock_current==False:
                 self.current_target = None  # 清空目标
 
@@ -755,6 +771,7 @@ class ArucoDockingController:
             control.target_yaw = self.yaw_to_target_yaw_angle(self.yaw2drone, 0)
             control.robot_state = 2
         else: #gps距离小于2米,通过aruco数据导航
+
             rospy.loginfo(f'state {self.state}')
             if self.state == "SEARCH":
                  rospy.loginfo(f'SEARCH******************* {self.state}')
