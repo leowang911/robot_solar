@@ -249,7 +249,7 @@ class ArucoDockingController:
         #     self.state = "FINAL_DOCKING"
         # else:
 
-        if self.markers['center'] is not None:
+        if self.markers['center'] is not None and self.refine_align==False: 
             # self.state = "FINAL_APPROACH"
             
             self.valid_center_markers.append(self.markers['center'])
@@ -759,7 +759,7 @@ class ArucoDockingController:
         return distance,theta1,theta2
     def direct_back(self):
 
-        distance=-0.2
+        distance=-0.15
         # theta1=math.atan(abs(prepoint[1]/prepoint[0]))
 
         # if prepoint[1]>0:
