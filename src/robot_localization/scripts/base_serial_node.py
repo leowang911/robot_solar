@@ -136,8 +136,8 @@ class BaseSerialNode:
 
         rospy.loginfo(f"tx_distance: {tx_distance}, tx_target_yaw: {tx_target_yaw}, tx_roller_speed: {tx_roller_speed}, tx_yaw: {tx_yaw}, state: {state}")
 
-        # if state == 0x02 and self.complete_state_prev ==0 and self.complete_state == 1:
-        #     state = 0x01
+        if state == 0x02 and self.complete_state_prev ==0 and self.complete_state == 1:
+            state = 0x01
 
         
  
