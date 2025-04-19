@@ -838,6 +838,7 @@ class ArucoDockingController:
                             c_yaw=-0.05
                         control.target_yaw = self.yaw_to_target_yaw_angle(c_yaw,self.current_yaw)
                         control.robot_state = 2
+                        rospy.loginfo(f"taget_yal:{ control.target_yaw}, ￥￥￥￥￥￥curent_yaw: {self.current_yaw}")
 
                             
                 if self.refine_align==True:
