@@ -43,6 +43,7 @@ class ArucoDockingController:
         self.refine_align=False
         self.align_num=False
         self.lock_current=False
+        self.lock_refine=False
         # TF配置
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
@@ -896,6 +897,7 @@ class ArucoDockingController:
 
                             #step1 
                             #get current robot pose
+
                             control.distance = 0
                             control.target_yaw = 0                            
                             control.robot_state = 1
@@ -903,6 +905,7 @@ class ArucoDockingController:
                             self.control_pub.publish(control)
                             time.sleep(0.1)
                             self.complete_state = 0
+                            self.lock_refine=True
                             d1,yaw1,yaw2=self.get_pre_robot_pose()
                             rospy.loginfo(f'robot pose1: {d1} {yaw1} {yaw2}')
                             control.distance = int(d1*1000)
@@ -943,6 +946,7 @@ class ArucoDockingController:
                                 time.sleep(0.1)
                                 pass
                             rospy.loginfo(f'step1 成功回正！ ')
+                            self.lock_refine=False
                             #执行结束
                             time.sleep(2.0)
                             #step2
@@ -953,6 +957,7 @@ class ArucoDockingController:
                             self.control_pub.publish(control)
                             time.sleep(0.1)
                             self.complete_state = 0
+                            self.lock_refine=True
                             d1,yaw1,yaw2=self.get_step2_robot_pose()
                             rospy.loginfo(f'robot pose22: {d1} {yaw1} {yaw2}')
                             control.distance = int(d1*1000)
@@ -985,7 +990,7 @@ class ArucoDockingController:
                                
                                 pass
                             rospy.loginfo(f'step2 成功回正！！')
-
+                            self.lock_refine=False
                             time.sleep(0.5)
                             #执行结束
 
