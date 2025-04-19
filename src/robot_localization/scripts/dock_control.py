@@ -571,7 +571,7 @@ class ArucoDockingController:
         return {
             'position': self.pos_target,
             'yaw': self.get_marker_yaw(self.pos_target),
-            'center': pos_center,
+            'center': pos,
         }
 
     def calculate_midpoint(self):
