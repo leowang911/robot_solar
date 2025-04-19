@@ -745,7 +745,7 @@ class ArucoDockingController:
 
         costh=np.dot(prepoint,axis)/np.linalg.norm(prepoint)
         theta2=math.acos(costh)
-        if (prepoint[0]*axis[1]-prepoint[1]*axis[0])>0:
+        if (prepoint[0]*axis[1]-prepoint[1]*axis[0])<0:
             theta2=-theta2
         distance=np.linalg.norm(prepoint)
         # theta1=math.atan(abs(prepoint[1]/prepoint[0]))
