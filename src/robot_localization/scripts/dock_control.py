@@ -693,6 +693,9 @@ class ArucoDockingController:
             control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, np.pi/10)
             control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
             control.roller_speed = 0
+            control.robot_state = 1
+            self.control_pub.publish(control)
+            time.sleep(0.1)
             control.robot_state = 2
             self.control_pub.publish(control)
             self.control_seq += 1
