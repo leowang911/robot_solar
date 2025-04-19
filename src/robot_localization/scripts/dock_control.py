@@ -49,7 +49,7 @@ class ArucoDockingController:
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
         self.flag_count = 0
         # 新增数据有效期参数（单位：秒）
-        self.data_expiry = 0.2  # 0.5秒未更新的数据视为失效
+        self.data_expiry = 0.4  # 0.5秒未更新的数据视为失效
         self.marker_time = {'left': None, 'right': None, 'center': None, 'center_left': None, 'center_right': None}
         self.valid_center_markers = []
         self.center_side_offset = [ 0.37608,-0.01905,-0.42418]
@@ -230,6 +230,7 @@ class ArucoDockingController:
         self.check_data_expiry()  # 先执行数据清理
         self.valid_center_markers = []
         valid_target = []
+        left_right=[]
         current_target = {
             'position': np.array([0.0, 0.0, 0.0]),
             'yaw': 0.0,
@@ -262,12 +263,13 @@ class ArucoDockingController:
                 valid_target.append(ct1)
             #rospy.loginfo(f"center: {valid_target}")
 
-    
+
 
         if self.markers['center_left'] is not None:
             left_target = self.calculate_center_side_target('center_left')  
             if left_target is not None: 
                 valid_target.append(left_target)
+                left_right.append(left_target)
             # rospy.loginfo(f"left: {valid_target}")
 
         
@@ -275,6 +277,7 @@ class ArucoDockingController:
             right_target = self.calculate_center_side_target('center_right')    
             if right_target is not None:    
                 valid_target.append(right_target)   
+                left_right.append(right_target)
             #valid_target.append(self.calculate_center_side_target('center_right'))
             # rospy.loginfo(f"right: {valid_target}")
 
@@ -301,7 +304,17 @@ class ArucoDockingController:
             self.first_look_flag = False
             if self.lock_current==False:
                 self.current_target = None  # 清空目标
-
+        # if len(left_right)==2:
+        #     # rospy.loginfo(f"left_right: {left_right}")
+        #     left_target = left_right[0]
+        #     right_target = left_right[1]
+        #     # rospy.loginfo(f"left_target: {left_target} right_target: {right_target}")
+        #     # 计算中间目标点
+        #     current_target['position'] = (left_target['position'] + right_target['position']) / 2
+        #     current_target['yaw'] = (left_target['yaw'] + right_target['yaw']) / 2
+        #     current_target['center'] = (left_target['center'] + right_target['center']) / 2
+        #     self.current_target = current_target
+        #     return
 
         if len(valid_target)>0:
             for target in valid_target:
