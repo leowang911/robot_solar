@@ -559,7 +559,7 @@ class ArucoDockingController:
         #     # pos = self.markers['center']['position']
         #     # rot = self.markers['center']['orientation']
         # R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
-        pos =  R@[0.03,0 ,0] + pos
+        pos =  R@[-0.03,0 ,0] + pos
 
         #     self.pos_target = [0,0,0]
 
