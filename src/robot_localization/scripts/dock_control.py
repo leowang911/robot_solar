@@ -1016,7 +1016,11 @@ class ArucoDockingController:
                             control.robot_state = 1
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
-                            time.sleep(0.1)
+                            time.sleep(0.05)
+                            control.header.stamp = rospy.Time.now()
+                            self.control_pub.publish(control)
+
+
                             #self.complete_state = 0
                             self.lock_refine=True
                             d1,yaw1,yaw2=self.get_step2_robot_pose()
@@ -1038,6 +1042,12 @@ class ArucoDockingController:
                             control.robot_state = 1
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
+
+                            time.sleep(0.05)
+                            control.header.stamp = rospy.Time.now()
+                            self.control_pub.publish(control)
+
+
                             time.sleep(0.1)
                             #self.complete_state = 0
                             control.distance = 0
