@@ -289,7 +289,7 @@
          <node pkg="aruco_ros" type="single" name="aruco_100">
             <remap from="/camera_info" to="/camera/color/camera_info" />
             <remap from="/image" to="/camera/color/image_raw" />
-            <remap from="/depth" to="/orbbec/depth/image_raw"/>
+            <remap from="/depth" to="/camera/depth/image_raw"/>
             <param name="use_depth" value="True"/>
             <param name="image_is_rectified" value="True"/>
             <param name="marker_size"        value="$(arg markerSize1)"/>
@@ -303,7 +303,7 @@
         <node pkg="aruco_ros" type="single" name="aruco_101">
             <remap from="/camera_info" to="/camera/color/camera_info" />
             <remap from="/image" to="/camera/color/image_raw" />
-            <remap from="/depth" to="/orbbec/depth/image_raw"/>
+            <remap from="/depth" to="/camera/depth/image_raw"/>
             <param name="use_depth" value="False"/>
             <param name="image_is_rectified" value="True"/>
             <param name="marker_size"        value="$(arg markerSize2)"/>
@@ -317,7 +317,7 @@
         <node pkg="aruco_ros" type="single" name="aruco_102">
             <remap from="/camera_info" to="/camera/color/camera_info" />
             <remap from="/image" to="/camera/color/image_raw" />
-            <remap from="/depth" to="/orbbec/depth/image_raw"/>
+            <remap from="/depth" to="/camera/depth/image_raw"/>
             <param name="use_depth" value="True"/>
             <param name="image_is_rectified" value="True"/>
             <param name="marker_size"        value="$(arg markerSize3)"/>
@@ -331,7 +331,7 @@
         <node pkg="aruco_ros" type="single" name="aruco_103">
             <remap from="/camera_info" to="/camera/color/camera_info" />
             <remap from="/image" to="/camera/color/image_raw" />
-            <remap from="/depth" to="/orbbec/depth/image_raw"/>
+            <remap from="/depth" to="/camera/depth/image_raw"/>
             <param name="use_depth" value="False"/>
             <param name="image_is_rectified" value="True"/>
             <param name="marker_size"        value="$(arg markerSize4)"/>
@@ -346,7 +346,7 @@
     <node pkg="aruco_ros" type="single" name="aruco_104">
             <remap from="/camera_info" to="/camera/color/camera_info" />
             <remap from="/image" to="/camera/color/image_raw" />
-            <remap from="/depth" to="/orbbec/depth/image_raw"/>
+            <remap from="/depth" to="/camera/depth/image_raw"/>
             <param name="use_depth" value="False"/>
             <param name="image_is_rectified" value="True"/>
             <param name="marker_size"        value="$(arg markerSize5)"/>
