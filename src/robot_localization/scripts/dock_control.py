@@ -258,7 +258,7 @@ class ArucoDockingController:
             # if valid_center_right:
             #     self.valid_center_markers.append(self.markers['center_right'])
             valid_target.append(self.calculate_center_target())
-            rospy.loginfo(f"center: {valid_target}")
+            #rospy.loginfo(f"center: {valid_target}")
 
     
 
