@@ -777,7 +777,7 @@ class ArucoDockingController:
         control.target_yaw = 0
         control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
         control.roller_speed = 0
-        control.robot_state = 1
+        #control.robot_state = 1
         # rospy.loginfo(f"当前状态: {self.state}")
 
     
@@ -936,7 +936,7 @@ class ArucoDockingController:
                                 self.refine_align=False 
                                 return 
 
-                            if np.linalg.norm(target_vec) <0.04 and abs(target_vec[1])<0.02:
+                            if np.linalg.norm(target_vec) <0.08 and abs(target_vec[1])<0.02:
                                 control.robot_state = 4
                                 rospy.loginfo(f'GOOD *****************************************************start final docking')
 
@@ -971,11 +971,6 @@ class ArucoDockingController:
                             rospy.loginfo(f'等待回退结束 ')
                             while self.complete_state != 1:
                                 
-                                control.distance = 0
-                                control.target_yaw = self.yaw_to_target_yaw_angle(yaw1,self.current_yaw)
-                                control.robot_state = 2
-                                control.header.stamp = rospy.Time.now()
-                                self.control_pub.publish(control)
 
                                 # time.sleep(0.1)
                                 pass
@@ -1048,7 +1043,6 @@ class ArucoDockingController:
                             self.control_pub.publish(control)
 
 
-                            time.sleep(0.1)
                             #self.complete_state = 0
                             control.distance = 0
                             control.target_yaw = self.yaw_to_target_yaw_angle(yaw2,self.current_yaw)                            
@@ -1070,18 +1064,6 @@ class ArucoDockingController:
                 self.lock_current=False
 
 
-        # 查看所有变量
-        # if self.info:
-            # rospy.loginfo(f"当前状态: {self.pos_target}")
-            # rospy.loginfo(f"当前航向角: {self.current_yaw}")
-            # rospy.loginfo(f"目标航向角: {self.target_yaw}")
-            # rospy.loginfo(f"目标距离: {self.target_distance}")
-            # rospy.loginfo(f"当前速度: {self.speed}")
-            # rospy.loginfo(f"无人机坐标: {self.latitude_drone}, {self.longitude_drone}")
-            # rospy.loginfo(f"基坐标系坐标: {self.latitude}, {self.longitude}")
-            # rospy.loginfo(f"无人机航向角: {self.yaw_drone}")
-            # rospy.loginfo(f"无人机与基坐标系距离: {self.distance2drone}")  
-            # rospy.loginfo(f"无人机航向角: {self.yaw2drone}")
 
 
 if __name__ == '__main__':
