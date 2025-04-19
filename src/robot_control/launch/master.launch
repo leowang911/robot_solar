@@ -318,7 +318,7 @@
             <remap from="/camera_info" to="/camera/color/camera_info" />
             <remap from="/image" to="/camera/color/image_raw" />
             <remap from="/depth" to="/orbbec/depth/image_raw"/>
-            <param name="use_depth" value="False"/>
+            <param name="use_depth" value="True"/>
             <param name="image_is_rectified" value="True"/>
             <param name="marker_size"        value="$(arg markerSize3)"/>
             <param name="marker_id"          value="$(arg markerId3)"/>
