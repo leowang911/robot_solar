@@ -357,7 +357,7 @@ class ArucoDockingController:
         R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
         sign = 1 if side == 'center_right' else -1
         # 计算中间位置 * sign
-        offset = self.marker_side_spacing/2 *sign  -0.05
+        offset = self.marker_side_spacing/2 *sign  +0.08
         self.pos_target = R@np.array([-offset,0, self.stop_distance]) + pos
         pos_center = R@np.array([-offset,0, 0]) + pos
         # rospy.loginfo(f"pos: {pos}")
