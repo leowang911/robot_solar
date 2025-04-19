@@ -1049,8 +1049,7 @@ class ArucoDockingController:
                                     self.control_pub.publish(control)
                                 
                                     self.control_seq += 1
-                                    self.refine_align=False
-
+                                    time.sleep(0.5)
                                     return
 
 
