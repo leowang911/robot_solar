@@ -844,9 +844,7 @@ class ArucoDockingController:
 
                         if target_vec[0]>0:
                             self.target_distance = np.linalg.norm(target_vec) 
-                            self.target_distance=np.clip(self.target_distance,0,0.3)
                             self.target_yaw = math.atan2(target_vec[1], target_vec[0])
-                            self.target_yaw =np.clip(self.target_yaw,-0.1,0.1)
                         else:
                             self.target_yaw = 0
                             control.distance = -200
@@ -865,7 +863,6 @@ class ArucoDockingController:
                             
                         if  np.linalg.norm(target_vec)<0.1:
                             self.target_yaw=0
-                        
 
                         control.distance = int(self.target_distance*1000)
                         control.target_yaw = self.yaw_to_target_yaw_angle(self.target_yaw,self.current_yaw)
@@ -878,10 +875,8 @@ class ArucoDockingController:
                         rospy.loginfo(f'state: {control.robot_state}')
                         if self.complete_state==1:
                             control.robot_state = 1
-                            control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
                             control.robot_state = 2 
-                            control.header.stamp = rospy.Time.now()
                             time.sleep(0.01)
                         self.control_pub.publish(control)
                     
@@ -898,7 +893,6 @@ class ArucoDockingController:
 
                             self.control_pub.publish(control)
                             time.sleep(0.05)
-                            control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
                             control.robot_state = 2
 
@@ -919,7 +913,6 @@ class ArucoDockingController:
 
                                 self.control_pub.publish(control)
                                 time.sleep(0.05)
-                                control.header.stamp = rospy.Time.now()
                                 self.control_pub.publish(control)
     
                                 control.robot_state = 2
@@ -945,11 +938,9 @@ class ArucoDockingController:
                             rospy.loginfo(f'state: {control.robot_state}')
                             if self.complete_state==1:
                                 control.robot_state = 1
-                                control.header.stamp = rospy.Time.now()
                                 self.control_pub.publish(control)
                                 control.robot_state = 2 
                                 time.sleep(0.01)
-                                control.header.stamp = rospy.Time.now() 
                             self.control_pub.publish(control)
                         
                             self.control_seq += 1
