@@ -695,7 +695,7 @@ class ArucoDockingController:
             control.roller_speed = 0
             control.robot_state = 1
             self.control_pub.publish(control)
-            time.sleep(0.1)
+            time.sleep(0.5)
             control.robot_state = 2
             self.control_pub.publish(control)
             self.control_seq += 1
