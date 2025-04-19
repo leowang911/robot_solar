@@ -933,13 +933,15 @@ class ArucoDockingController:
                                 control.header.stamp = rospy.Time.now()
 
                                 self.control_pub.publish(control)
-                                time.sleep(0.05)
+                                time.sleep(0.1)
                                 control.header.stamp = rospy.Time.now()
                                 self.control_pub.publish(control)
-    
+                                time.sleep(0.5)
+
                                 control.robot_state = 2
 
                                 self.control_seq += 1
+
                             #return
                         else:
                             control.distance = 0
@@ -1096,7 +1098,7 @@ class ArucoDockingController:
                                
                                 pass
                             rospy.loginfo(f'step2 成功回正！！')
-
+                            time.sleep(1.0 ) 
 
                             #对齐
                     
@@ -1105,7 +1107,7 @@ class ArucoDockingController:
 
 
                             self.lock_refine=False
-                            time.sleep(0.5)
+                            #time.sleep(0.5)
                             #执行结束
 
 
