@@ -271,8 +271,8 @@ class ArucoDockingController:
             valid_target.append(self.calculate_center_side_target('center_right'))
             # rospy.loginfo(f"right: {valid_target}")
 
-        for marker_type in ['left', 'right', 'center', 'center_left', 'center_right']:
-            rospy.loginfo(f"{marker_type} marker_time: {self.marker_time[marker_type]}")
+        # for marker_type in ['left', 'right', 'center', 'center_left', 'center_right']:
+        #     rospy.loginfo(f"{marker_type} marker_time: {self.marker_time[marker_type]}")
 
         if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
             self.state = "APPROACHING"
@@ -474,8 +474,8 @@ class ArucoDockingController:
     def get_rot(self,pixel):
         u=int(pixel.x)
         v=int(pixel.y)
-        u_ax=np.arange(u-20 ,u+20)
-        v_ax=np.arange(v-20,v+20)
+        u_ax=np.arange(u-18 ,u+18)
+        v_ax=np.arange(v-18,v+18)
         if self.depth_image is not None:
             pt=[]
             for i in u_ax:
@@ -777,7 +777,13 @@ class ArucoDockingController:
 
 
     def control_loop(self, event):
-        self.update_state()
+        if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
+            self.state = "APPROACHING"
+            pass
+        else:
+            self.update_state()
+        
+        
         """主控制循环"""
         control = controlData()
         control.distance = 0
