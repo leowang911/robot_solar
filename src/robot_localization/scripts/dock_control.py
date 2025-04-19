@@ -1051,7 +1051,7 @@ class ArucoDockingController:
                                     self.control_seq += 1
                                     self.refine_align=False
 
-                            
+                                    return
 
 
                                 control.robot_state = 4
