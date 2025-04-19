@@ -979,7 +979,7 @@ class ArucoDockingController:
                                 self.refine_align=False 
                                 return 
 
-                            if np.linalg.norm(target_vec) <0.15 and abs(target_vec[1])<0.02:
+                            if np.linalg.norm(target_vec) <0.15 and abs(target_vec[1])<0.03:
                                 control.robot_state = 4
                                 rospy.loginfo(f'GOOD *****************************************************start final docking')
 
