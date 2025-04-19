@@ -51,6 +51,7 @@ class ArucoDockingController:
         self.data_expiry = 2  # 0.5秒未更新的数据视为失效
         self.marker_time = {'left': None, 'right': None, 'center': None, 'center_left': None, 'center_right': None}
         self.valid_center_markers = []
+        self.center_side_offset = [ 0.37608,-0.01905,-0.42418]
         
 
          # 存储检测数据（基坐标系）
@@ -528,7 +529,7 @@ class ArucoDockingController:
         # if abs(marker_distance - self.stop_distance) > self.stop_distance_threshold:
 
         R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
-        self.pos_target = R@[0, 0, self.stop_distance] + pos
+        self.pos_target = R@[-self.center_side_offset[1],0 , self.stop_distance] + pos
 
         # else:
         #     # pos = self.markers['center']['position']
@@ -871,6 +872,12 @@ class ArucoDockingController:
                             time.sleep(0.1)
                             while self.complete_state != 1:
                                 rospy.loginfo(f'等待回退结束 ')
+                                control.distance = 0
+                                control.target_yaw = self.yaw_to_target_yaw_angle(yaw1,self.current_yaw)
+                                control.robot_state = 2
+                                control.header.stamp = rospy.Time.now()
+                                self.control_pub.publish(control)
+
                                 # time.sleep(0.1)
                                 pass
                             #执行结束
@@ -889,7 +896,7 @@ class ArucoDockingController:
                             time.sleep(0.1)
                             while self.complete_state != 1:
                                 rospy.loginfo(f'等待回正结束 ')
-                                # time.sleep(0.1)
+                                time.sleep(0.1)
                                 pass
                             #执行结束
                             time.sleep(1.0)
@@ -911,7 +918,7 @@ class ArucoDockingController:
                             time.sleep(0.1)
                             while self.complete_state != 1:
                                 rospy.loginfo(f'等待前进结束 ')
-                                # time.sleep(0.1)
+                                time.sleep(0.1)
                                 pass
                             #执行结束
                             control.distance = 0

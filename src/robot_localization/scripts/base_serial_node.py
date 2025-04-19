@@ -123,10 +123,10 @@ class BaseSerialNode:
         if self.complete_state == 1 or state == 0x01:
             self.last_tx_data_prev = data
 
-        if state == 0x02 and self.complete_state_prev == 0 and self.complete_state ==1:
-            self.last_tx_data_prev = data
-            # rospy.loginfo("robot_state: 0x02, complete_state_prev: 0, complete_state: 1")
-            state = 0x01
+        # if state == 0x02 and self.complete_state_prev == 0 and self.complete_state ==1:
+        #     self.last_tx_data_prev = data
+        #     # rospy.loginfo("robot_state: 0x02, complete_state_prev: 0, complete_state: 1")
+        #     state = 0x01
  
         tx_distance = int(self.last_tx_data_prev.get('distance', 0.0))
         tx_target_yaw = np.int16(self.last_tx_data_prev.get('target_yaw', 0.0))
