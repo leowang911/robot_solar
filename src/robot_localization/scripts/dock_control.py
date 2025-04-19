@@ -879,7 +879,7 @@ class ArucoDockingController:
                             
                 if self.refine_align==True:
                             #精确对齐
-                            if np.linalg.norm(target_vec) >0.8:
+                            if np.linalg.norm(target_vec) >1.2:
                                 self.refine_align=False 
                                 return 
 
