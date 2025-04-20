@@ -131,8 +131,8 @@ class BaseSerialNode:
         tx_distance = int(self.last_tx_data_prev.get('distance', 0.0))
         tx_target_yaw = np.int16(self.last_tx_data_prev.get('target_yaw', 0.0))
         tx_roller_speed = np.uint16(self.last_tx_data_prev.get('roller_speed', 0.0))
-        # tx_yaw = np.uint16(data.get('yaw', 0.0))
-        tx_yaw = np.int16(self.current_yaw)
+        tx_yaw = np.uint16(data.get('yaw', 0.0))
+        # tx_yaw = np.int16(self.current_yaw)
 
         rospy.loginfo(f"tx_distance: {tx_distance}, tx_target_yaw: {tx_target_yaw}, tx_roller_speed: {tx_roller_speed}, tx_yaw: {tx_yaw}, state: {state}")
 
@@ -148,7 +148,7 @@ class BaseSerialNode:
 
         frame = struct.pack('<BiHHHB',
                             0x55,
-                            tx_distance,
+                            tx_distance,    
                             tx_target_yaw & 0xFFFF,
                             tx_roller_speed & 0xFFFF,
                             tx_yaw & 0xFFFF,
@@ -157,7 +157,7 @@ class BaseSerialNode:
         # 计算校验和
         checksum = sum(frame[:12]) & 0xFF
         final_frame = frame + bytes([checksum])
-        rospy.loginfo(f"Creating frame: {final_frame.hex()}")
+        # rospy.loginfo(f"Creating frame: {final_frame.hex()}")
         self.complete_state_prev = self.complete_state
         self.rc_state_prev  = self.rc_state
         return final_frame
