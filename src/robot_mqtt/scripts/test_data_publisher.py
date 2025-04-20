@@ -77,7 +77,18 @@ class TestDataPublisher:
         self.control_data_msg.roller_speed = 0
         self.control_data_msg.target_yaw = 0 # 目标航向角
         self.control_data_msg.yaw = 0   # 偏航角
-        self.control_data_msg.robot_state = 2
+        self.control_data_msg.robot_state = 7
+
+            # MANUAL = 0, // 准备
+            # IDLE,          // 空闲
+            # AUTORUNING,    // 自动运行
+            # UNLOADING,     // 出仓
+            # LOADING,       // 入仓
+            # ENERGENCUSTOP, // 急停
+            # INIT,          // 重置
+            # AUTOCORNER,    // 自动寻角
+            # AUTOWASHING,   //  自动清洗    
+    
 
         # 初始化INSPVAE消息
         self.inspvae_msg = INSPVAE()
