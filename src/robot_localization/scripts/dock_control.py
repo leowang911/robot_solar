@@ -31,9 +31,9 @@ class ArucoDockingController:
         self.target_yaw = 0# 目标航向角
         self.latitude = 30.32098151262
         self.longitude = 120.07004749195
-        self.latitude_drone = 30.32095307446
+        self.latitude_drone = 30.320956544779
         # self.longitude_drone = -74.123339
-        self.longitude_drone = 120.07103865755
+        self.longitude_drone = 120.0709522841
         self.yaw_drone = 0.0
         self.speed = 0.0
         self.distance2drone = 0.0
@@ -189,8 +189,8 @@ class ArucoDockingController:
     def drone_gps_cb(self, msg):
         """处理无人机GPS数据"""
         # 处理GPS数据
-        self.latitude_drone = msg.latitude
-        self.longitude_drone = msg.longitude
+        # self.latitude_drone = msg.latitude
+        # self.longitude_drone = msg.longitude
         self.yaw_drone = msg.yaw
 
     def inspvae_cb(self, msg):
