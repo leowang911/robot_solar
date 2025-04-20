@@ -189,8 +189,8 @@ class ArucoDockingController:
     def drone_gps_cb(self, msg):
         """处理无人机GPS数据"""
         # 处理GPS数据
-        self.latitude_drone = msg.latitude
-        self.longitude_drone = msg.longitude
+        # self.latitude_drone = msg.latitude
+        # self.longitude_drone = msg.longitude
         self.yaw_drone = msg.yaw
 
     def inspvae_cb(self, msg):
