@@ -81,7 +81,7 @@ class ArucoDockingController:
         self.in_dock_flag = False
         self.corner_finding_flag = True
         self.auto_cleaning_flag = True
-        self.auto_dock_flag = False
+        self.docking_flag = False
 
 
         #  # 新增滤波参数
