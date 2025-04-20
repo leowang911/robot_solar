@@ -194,7 +194,7 @@ class BaseSerialNode:
 
                         # 解析数据
                         parsed = self.parse_rx_frame(frame)
-                        # rospy.loginfo(f"Received frame: {frame.hex()}")
+                        rospy.loginfo(f"Received frame: {frame.hex()}")
                         if parsed:
                             self.publish_wheel_status(parsed)
 
