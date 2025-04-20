@@ -973,6 +973,7 @@ class ArucoDockingController:
                 self.update_state()
             control = controlData()
             """主控制循环"""
+            rospy.loginfo(f"main loop **********************************************************************")
             if self.count == 0:
                 control.distance = 0
                 control.target_yaw = 0
