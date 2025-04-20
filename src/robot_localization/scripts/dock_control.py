@@ -31,9 +31,9 @@ class ArucoDockingController:
         self.target_yaw = 0# 目标航向角
         self.latitude = 30.32098151262
         self.longitude = 120.07004749195
-        self.latitude_drone = 30.32096872986
+        self.latitude_drone = 30.32098151262
         # self.longitude_drone = -74.123339
-        self.longitude_drone = 120.07101253362  
+        self.longitude_drone = 120.07004749195 
         self.yaw_drone = 0.0
         self.speed = 0.0
         self.distance2drone = 0.0
@@ -189,14 +189,14 @@ class ArucoDockingController:
 
     def drone_gps_cb(self, msg):
         """处理无人机GPS数据"""
-        # 处理GPS数据
-        self.latitude_drone = msg.latitude
-        self.longitude_drone = msg.longitude
+        # # 处理GPS数据
+        # self.latitude_drone = msg.latitude
+        # self.longitude_drone = msg.longitude
         self.yaw_drone = msg.yaw
 
     def inspvae_cb(self, msg):
-        self.latitude = msg.latitude
-        self.longitude = msg.longitude
+        # self.latitude = msg.latitude
+        # self.longitude = msg.longitude
         self.current_yaw = math.radians(msg.yaw)
 
     def left_cb(self, msg): self.process_marker(msg, 'left')
@@ -937,33 +937,33 @@ class ArucoDockingController:
         #     self.count = 0
         #     return
         
-        if self.auto_cleaning_flag == False:
-            # if self.count == 0:
-            #     control.distance = 0
-            #     control.target_yaw = 0
-            #     control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            #     control.roller_speed = 0
-            #     control.robot_state = 1
-            #     control.header.stamp = rospy.Time.now()
-            #     control.header.seq = self.control_seq
-            #     self.control_pub.publish(control)
-            #     time.sleep(0.01)
-            #     self.count = 1
+        # if self.auto_cleaning_flag == False:
+        #     # if self.count == 0:
+        #     #     control.distance = 0
+        #     #     control.target_yaw = 0
+        #     #     control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+        #     #     control.roller_speed = 0
+        #     #     control.robot_state = 1
+        #     #     control.header.stamp = rospy.Time.now()
+        #     #     control.header.seq = self.control_seq
+        #     #     self.control_pub.publish(control)
+        #     #     time.sleep(0.01)
+        #     #     self.count = 1
             
             
-            control = controlData()
-            control.distance = 0
-            control.target_yaw = 0
-            control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            control.roller_speed = 0
-            control.robot_state = 1
-            self.control_pub.publish(control)
-            time.sleep(0.01)
-            while self.complete_state !=1:
-                pass
-            self.auto_cleaning_flag = True
-            self.count = 0
-            return
+        #     control = controlData()
+        #     control.distance = 0
+        #     control.target_yaw = 0
+        #     control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+        #     control.roller_speed = 0
+        #     control.robot_state = 1
+        #     self.control_pub.publish(control)
+        #     time.sleep(0.01)
+        #     while self.complete_state !=1:
+        #         pass
+        #     self.auto_cleaning_flag = True
+        #     self.count = 0
+        #     return
 
         if self.docking_flag ==False:
             if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
@@ -973,7 +973,7 @@ class ArucoDockingController:
                 self.update_state()
             control = controlData()
             """主控制循环"""
-            rospy.loginfo(f"main loop **********************************************************************")
+            # rospy.loginfo(f"main loop **********************************************************************")
             if self.count == 0:
                 control.distance = 0
                 control.target_yaw = 0
