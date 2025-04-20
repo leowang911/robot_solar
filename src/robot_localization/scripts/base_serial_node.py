@@ -91,8 +91,8 @@ class BaseSerialNode:
                 return None
             
             # 解析各字段（大端序）
-            self.speed = struct.unpack('>h', bytes(data[1:3]))[0]
-            self.distance = struct.unpack('>i', bytes(data[3:7]))[0]
+            self.speed = struct.unpack('>h', data[1:3])[0]
+            self.distance = struct.unpack('>i', data[3:7])[0]
             self.sensor_state = data[7]
             self.complete_state = data[9]     ####初始设置为1
             self.rc_state = data[10]
