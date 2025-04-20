@@ -771,7 +771,7 @@ class ArucoDockingController:
         utm2 = utm.fromLatLong(lat2, lon2)
         
         easting_diff = utm2.easting - utm1.easting
-        northing_diff = (utm2.northing-9) - utm1.northing
+        northing_diff = utm2.northing - utm1.northing
         rospy.loginfo(f"easting_diff: {easting_diff} northing_diff: {northing_diff} gps distance:{self.distance2drone} yaw: {self.yaw2drone}")
         # 航向角（北向为0，北偏东为正0-360）
         # 计算无人机相对于基坐标系的坐标
