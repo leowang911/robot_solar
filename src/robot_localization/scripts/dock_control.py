@@ -884,58 +884,58 @@ class ArucoDockingController:
 
     def control_loop(self, event):
         
-        if self.out_dock_flag == False:
-            if self.count == 0:
-                control.distance = 0
-                control.target_yaw = 0
-                control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                control.roller_speed = 0
-                control.robot_state = 1
-                control.header.stamp = rospy.Time.now()
-                control.header.seq = self.control_seq
-                self.control_pub.publish(control)
-                time.sleep(0.01)
-                self.count = 1
-            control = controlData()
-            control.distance = 0
-            control.target_yaw = 0
-            control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            control.roller_speed = 0
-            control.robot_state = 1
-            self.control_pub.publish(control)
-            time.sleep(0.01)
-            while self.complete_state !=1:
-                pass
-            self.out_dock_flag = True
-            count = 0
-            return
+        # if self.out_dock_flag == False:
+        #     if self.count == 0:
+        #         control.distance = 0
+        #         control.target_yaw = 0
+        #         control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+        #         control.roller_speed = 0
+        #         control.robot_state = 1
+        #         control.header.stamp = rospy.Time.now()
+        #         control.header.seq = self.control_seq
+        #         self.control_pub.publish(control)
+        #         time.sleep(0.01)
+        #         self.count = 1
+        #     control = controlData()
+        #     control.distance = 0
+        #     control.target_yaw = 0
+        #     control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+        #     control.roller_speed = 0
+        #     control.robot_state = 1
+        #     self.control_pub.publish(control)
+        #     time.sleep(0.01)
+        #     while self.complete_state !=1:
+        #         pass
+        #     self.out_dock_flag = True
+        #     count = 0
+        #     return
         
-        if self.corner_finding_flag == False:
-            if self.count == 0:
-                control.distance = 0
-                control.target_yaw = 0
-                control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                control.roller_speed = 0
-                control.robot_state = 1
-                control.header.stamp = rospy.Time.now()
-                control.header.seq = self.control_seq
-                self.control_pub.publish(control)
-                time.sleep(0.01)
-                self.count = 1
+        # if self.corner_finding_flag == False:
+        #     if self.count == 0:
+        #         control.distance = 0
+        #         control.target_yaw = 0
+        #         control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+        #         control.roller_speed = 0
+        #         control.robot_state = 1
+        #         control.header.stamp = rospy.Time.now()
+        #         control.header.seq = self.control_seq
+        #         self.control_pub.publish(control)
+        #         time.sleep(0.01)
+        #         self.count = 1
 
-            control = controlData()
-            control.distance = 0
-            control.target_yaw = 0
-            control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            control.roller_speed = 0
-            control.robot_state = 1
-            self.control_pub.publish(control)
-            time.sleep(0.01)
-            while self.complete_state !=1:
-                pass
-            self.corner_finding_flag = True
-            self.count = 0
-            return
+        #     control = controlData()
+        #     control.distance = 0
+        #     control.target_yaw = 0
+        #     control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+        #     control.roller_speed = 0
+        #     control.robot_state = 1
+        #     self.control_pub.publish(control)
+        #     time.sleep(0.01)
+        #     while self.complete_state !=1:
+        #         pass
+        #     self.corner_finding_flag = True
+        #     self.count = 0
+        #     return
         
         if self.auto_cleaning_flag == False:
             if self.count == 0:
@@ -1221,7 +1221,7 @@ class ArucoDockingController:
                                     self.control_seq += 1 
                                     self.docking_flag = True
                                     # time.sleep(1000)       
-                                    self.count = 0                        
+                                    # self.count = 0                        
                                     return 
                                 
 
