@@ -729,7 +729,7 @@ class ArucoDockingController:
         """将航向角转换为控制角度"""
         # rospy.loginfo(f"current_yaw: {self.current_yaw}")
         # imu ccw and cw !!!!!! 记得根据实际情况修改 九洲需要加-
-        angle= (math.degrees(yaw)*100) + math.degrees(current_yaw)*100
+        angle= -(math.degrees(yaw)*100) + math.degrees(current_yaw)*100
         #计算gps距离
         # rospy.loginfo(f"angle: {angle}")
         if angle > 36000:
