@@ -12,6 +12,9 @@ class TestDataPublisher:
     def __init__(self):
         rospy.init_node('test_data_publisher', anonymous=True)
 
+
+        self.yaw = 0
+
         # 创建所有发布者
         # rospy.Subscriber('cmd_vel', Twist, self.cmd_vel_callback)
         # rospy.Subscriber('robot_state', UInt8, self.state_callback)
