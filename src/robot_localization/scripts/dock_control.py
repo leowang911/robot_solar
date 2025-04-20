@@ -775,7 +775,7 @@ class ArucoDockingController:
         # 计算无人机相对于基坐标系的坐标
         self.distance2drone = math.sqrt(easting_diff**2 + northing_diff**2)
         self.yaw2drone = math.atan2(easting_diff, northing_diff)
-        # rospy.loginfo(f'gps distance:{self.distance2drone} yaw: {self.yaw2drone}' )
+        rospy.loginfo(f'gps distance:{self.distance2drone} yaw: {self.yaw2drone}' )
 
     def search(self):
         #找不到旋转180
