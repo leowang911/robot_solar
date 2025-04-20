@@ -375,7 +375,7 @@
         <param name="serial_timeout" value="0.1"/>
         </node> -->
 
-    <node pkg="robot_localization" type="modbus_gps_node.py" name="imu_node">
+    <node pkg="robot_localization" type="modbus_gps_node.py" name="drone_gps_node">
         <param name="serial_port" value="/dev/imu485"/>
         <param name="baudrate" value="9600"/>
         <param name="serial_timeout" value="0.1"/>
