@@ -55,6 +55,7 @@ class ArucoDockingController:
         self.center_side_offset = [ 0.37608,-0.01905,-0.42418]
         self.complete_state = 0
         self.first_look_flag = False
+        self.count = 0
 
         # 存储检测数据（基坐标系）
         self.markers = {
@@ -884,6 +885,17 @@ class ArucoDockingController:
     def control_loop(self, event):
         
         if self.out_dock_flag == False:
+            if self.count == 0:
+                control.distance = 0
+                control.target_yaw = 0
+                control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                control.roller_speed = 0
+                control.robot_state = 1
+                control.header.stamp = rospy.Time.now()
+                control.header.seq = self.control_seq
+                self.control_pub.publish(control)
+                time.sleep(0.01)
+                self.count = 1
             control = controlData()
             control.distance = 0
             control.target_yaw = 0
@@ -895,9 +907,22 @@ class ArucoDockingController:
             while self.complete_state !=1:
                 pass
             self.out_dock_flag = True
+            count = 0
             return
         
         if self.corner_finding_flag == False:
+            if self.count == 0:
+                control.distance = 0
+                control.target_yaw = 0
+                control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                control.roller_speed = 0
+                control.robot_state = 1
+                control.header.stamp = rospy.Time.now()
+                control.header.seq = self.control_seq
+                self.control_pub.publish(control)
+                time.sleep(0.01)
+                self.count = 1
+
             control = controlData()
             control.distance = 0
             control.target_yaw = 0
@@ -909,9 +934,23 @@ class ArucoDockingController:
             while self.complete_state !=1:
                 pass
             self.corner_finding_flag = True
+            self.count = 0
             return
         
         if self.auto_cleaning_flag == False:
+            if self.count == 0:
+                control.distance = 0
+                control.target_yaw = 0
+                control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                control.roller_speed = 0
+                control.robot_state = 1
+                control.header.stamp = rospy.Time.now()
+                control.header.seq = self.control_seq
+                self.control_pub.publish(control)
+                time.sleep(0.01)
+                self.count = 1
+            
+            
             control = controlData()
             control.distance = 0
             control.target_yaw = 0
@@ -923,6 +962,7 @@ class ArucoDockingController:
             while self.complete_state !=1:
                 pass
             self.auto_cleaning_flag = True
+            self.count = 0
             return
 
         if self.docking_flag ==False:
@@ -931,9 +971,21 @@ class ArucoDockingController:
                 pass
             else:
                 self.update_state()
-            
-            """主控制循环"""
             control = controlData()
+            """主控制循环"""
+            if self.count == 0:
+                control.distance = 0
+                control.target_yaw = 0
+                control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                control.roller_speed = 0
+                control.robot_state = 1
+                control.header.stamp = rospy.Time.now()
+                control.header.seq = self.control_seq
+                self.control_pub.publish(control)
+                time.sleep(0.01)
+                self.count = 1
+                
+            
             control.distance = 0
             control.target_yaw = 0
             control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
@@ -1167,7 +1219,8 @@ class ArucoDockingController:
                                     self.control_pub.publish(control)
                                     self.control_seq += 1 
                                     self.docking_flag = True
-                                    # time.sleep(1000)                               
+                                    # time.sleep(1000)       
+                                    self.count = 0                        
                                     return 
                                 
 
