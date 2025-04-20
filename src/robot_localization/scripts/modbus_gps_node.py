@@ -14,7 +14,7 @@ class ModbusGPSNode:
         rospy.init_node('modbus_gps_node')
         
         # 参数配置
-        self.port = rospy.get_param('~port', '/dev/ttyUSB1')
+        self.port = rospy.get_param('~port', '/dev/imu485')
         self.baudrate = rospy.get_param('~baudrate', 9600)
         self.slave_id = rospy.get_param('~slave_id', 0x50)
         self.polling_rate = rospy.get_param('~polling_rate', 100.0)
