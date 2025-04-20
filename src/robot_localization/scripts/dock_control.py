@@ -31,9 +31,9 @@ class ArucoDockingController:
         self.target_yaw = 0# 目标航向角
         self.latitude = 30.32098151262
         self.longitude = 120.07004749195
-        self.latitude_drone = 30.32098151262
+        self.latitude_drone = 30.32095307446
         # self.longitude_drone = -74.123339
-        self.longitude_drone = 120.07004749195
+        self.longitude_drone = 120.07103865755
         self.yaw_drone = 0.0
         self.speed = 0.0
         self.distance2drone = 0.0
@@ -200,8 +200,6 @@ class ArucoDockingController:
     def center_cb(self, msg): self.process_marker(msg, 'center')
     def center_left_cb(self, msg): self.process_marker(msg, 'center_left')
     def center_right_cb(self, msg): self.process_marker(msg, 'center_right')
-
-
 
     def process_marker(self, msg, marker_type):
         """处理ArUco检测数据（增加时间戳）"""
@@ -727,7 +725,7 @@ class ArucoDockingController:
         """将航向角转换为控制角度"""
         # rospy.loginfo(f"current_yaw: {self.current_yaw}")
         # imu ccw and cw !!!!!! 记得根据实际情况修改 九洲需要加-
-        angle= (math.degrees(yaw)*100) + math.degrees(current_yaw)*100
+        angle= -(math.degrees(yaw)*100) + math.degrees(current_yaw)*100
         #计算gps距离
         # rospy.loginfo(f"angle: {angle}")
         if angle > 36000:
