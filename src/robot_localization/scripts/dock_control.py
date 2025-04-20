@@ -974,17 +974,17 @@ class ArucoDockingController:
             control = controlData()
             """主控制循环"""
             # rospy.loginfo(f"main loop **********************************************************************")
-            if self.count == 0:
-                control.distance = 0
-                control.target_yaw = 0
-                control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                control.roller_speed = 0
-                control.robot_state = 1
-                control.header.stamp = rospy.Time.now()
-                control.header.seq = self.control_seq
-                self.control_pub.publish(control)
-                time.sleep(0.01)
-                self.count = 1
+            # if self.count == 0:
+            #     control.distance = 0
+            #     control.target_yaw = 0
+            #     control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            #     control.roller_speed = 0
+            #     control.robot_state = 1
+            #     control.header.stamp = rospy.Time.now()
+            #     control.header.seq = self.control_seq
+            #     self.control_pub.publish(control)
+            #     time.sleep(0.01)
+            #     self.count = 1
                 
             
             control.distance = 0
