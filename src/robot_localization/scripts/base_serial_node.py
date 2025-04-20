@@ -51,8 +51,8 @@ class BaseSerialNode:
         rospy.Subscriber('/inspvae_data',INSPVAE,self.inspvae_cb)
 
     def inspvae_cb(self, msg):
-        # self.latitude = msg.latitude
-        # self.longitude = msg.longitude
+        self.latitude = msg.latitude
+        self.longitude = msg.longitude
         self.current_yaw = msg.yaw*100
     
 
