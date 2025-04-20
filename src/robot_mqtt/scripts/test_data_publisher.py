@@ -15,6 +15,7 @@ class TestDataPublisher:
         # 创建所有发布者
         # rospy.Subscriber('cmd_vel', Twist, self.cmd_vel_callback)
         # rospy.Subscriber('robot_state', UInt8, self.state_callback)
+        rospy.Subscriber('/inspvae_data', INSPVAE, self.inspvae_callback)
         self.imu_pub = rospy.Publisher('/imu/data', Imu, queue_size=10)
         self.gps_pub = rospy.Publisher('/gps/fix', NavSatFix, queue_size=10)
         self.task_pub = rospy.Publisher('/task/start', Bool, queue_size=10)
@@ -27,6 +28,9 @@ class TestDataPublisher:
         # 初始化默认消息
         self.init_messages()
         rospy.loginfo("Published zero test data")
+
+    def inspvae_callback(self, msg):
+        self.yaw = msg.yaw*100
 
     def init_messages(self):
         # 初始化IMU消息
@@ -76,7 +80,7 @@ class TestDataPublisher:
         self.control_data_msg.distance = 100 # 距离
         self.control_data_msg.roller_speed = 0
         self.control_data_msg.target_yaw = 0 # 目标航向角
-        self.control_data_msg.yaw = 0   # 偏航角
+        self.control_data_msg.yaw = self.yaw   # 偏航角
         self.control_data_msg.robot_state = 7
 
             # MANUAL = 0, // 准备
