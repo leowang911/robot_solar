@@ -76,6 +76,13 @@ class ArucoDockingController:
             'center': np.array([0.0, 0.0, 0.0]),
         }
 
+        self.control_seq = 0
+        self.out_dock_flag = True
+        self.in_dock_flag = False
+        self.corner_finding_flag = True
+        self.auto_cleaning_flag = True
+        self.auto_dock_flag = False
+
 
         #  # 新增滤波参数
         # self.filter_enabled = True          # 滤波开关
@@ -110,11 +117,7 @@ class ArucoDockingController:
         self.pose3_pub = rospy.Publisher("/marker_pose3", PoseStamped, queue_size=1)
         
     
-        self.control_seq = 0
-        self.out_dock_flag = False
-        self.in_dock_flag = False
-        self.corner_finding_flag = False
-        self.auto_cleaning_flag = False
+        
         
         #rospy.Timer(rospy.Duration(0.01), self.control_loop)
         rospy.Timer(rospy.Duration(0.1), self.control_loop)
