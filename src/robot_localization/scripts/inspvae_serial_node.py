@@ -52,7 +52,7 @@ def inspvae_serial_node():
     rospy.init_node('inspvae_serial_node')
     
     # Get parameters
-    port = rospy.get_param('~port', '/dev/ttyUSB0')
+    port = rospy.get_param('~port', '/dev/ttyUSB1')
     baudrate = rospy.get_param('~baudrate', 460800)
     topic_name = rospy.get_param('~topic', 'inspvae_data')
     
