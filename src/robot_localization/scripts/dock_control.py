@@ -115,10 +115,11 @@ class ArucoDockingController:
         self.pose1_pub = rospy.Publisher("/marker_pose1", PoseStamped, queue_size=1)
         self.pose2_pub = rospy.Publisher("/marker_pose2", PoseStamped, queue_size=1)
         self.pose3_pub = rospy.Publisher("/marker_pose3", PoseStamped, queue_size=1)
+        # self.status_pub = rospy.Publisher("/robot_status", Int16, queue_size=1)
+
         
         #rospy.Timer(rospy.Duration(0.01), self.control_loop)
         rospy.Timer(rospy.Duration(0.1), self.control_loop)
-
     def depth_cb(self, msg):
         data = np.frombuffer(msg.data, dtype=np.uint16 if msg.is_bigendian else '<u2')
         self.depth_image = data.reshape(msg.height, msg.width)
@@ -901,10 +902,15 @@ class ArucoDockingController:
                 control.robot_state = 3
                 self.control_pub.publish(control)
                 time.sleep(0.01)
-                while self.complete_state !=1:
+                time_current = rospy.Time.now()
+                while self.complete_state !=1 and (rospy.Time.now()-time_current).to_sec()<10*60:
                     pass
-                self.out_dock_flag = True
-                count = 0
+                if self.complete_state == 1:
+                    self.out_dock_flag = True
+                else:
+                    self.error = 1
+                    count = 0
+                
                 return
             
             if self.corner_finding_flag == False:
@@ -928,10 +934,15 @@ class ArucoDockingController:
                 control.robot_state = 7
                 self.control_pub.publish(control)
                 time.sleep(0.01)
-                while self.complete_state !=1:
+                time_current = rospy.Time.now()
+                while self.complete_state !=1 and (rospy.Time.now()-time_current).to_sec()<10*60:
                     pass
-                self.corner_finding_flag = True
-                self.count = 0
+                if self.complete_state == 1:
+                    self.corner_finding_flag = True
+                    self.count  = 0
+                else:
+                    self.error = 1
+                
                 return
             
             if self.auto_cleaning_flag == False:
@@ -955,10 +966,15 @@ class ArucoDockingController:
                 control.robot_state = 8
                 self.control_pub.publish(control)
                 time.sleep(0.01)
-                while self.complete_state !=1:
+                time_current = rospy.Time.now()
+                while self.complete_state !=1 and (rospy.Time.now()-time_current).to_sec()<10*60:
                     pass
-                self.auto_cleaning_flag = True
-                self.count = 0
+                if self.complete_state == 1:
+                    self.auto_cleaning_flag = True
+                    self.count  = 0
+                else:
+                    self.error = 1
+
                 return
 
             if self.docking_flag ==False:
@@ -1353,9 +1369,14 @@ class ArucoDockingController:
                 control.robot_state = 4
                 self.control_pub.publish(control)
                 time.sleep(0.01)
-                while self.complete_state !=1:
+                time_current = rospy.Time.now()
+                while self.complete_state !=1 and (rospy.Time.now()-time_current).to_sec()<10*60:
                     pass
-                self.in_dock_flag = True
+                if self.complete_state == 1:
+                    self.in_dock_flag = True
+                    self.count  = 0
+                else:
+                    self.error = 1
                 return
 
 
