@@ -1,4 +1,5 @@
-SUBSYSTEM=="tty", ATTRS{idVendor}=="067b", ATTRS{idProduct}=="23a3", ATTRS{serial}=="ETANb144J07", SYMLINK+="rtkSerial", MODE="0666"
-KERNEL=="ttyUSB*", KERNELS=="1-1.1", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="baseSerial", MODE="0777"
-KERNEL=="ttyUSB*", KERNELS=="1-1.4", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="imu485", MODE="0777"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="067b", ATTRS{idProduct}=="23a3", ATTRS{serial}=="ETANb144J07", SYMLINK+="rtkSerial", MODE="0777"
+KERNEL=="ttyUSB*", KERNELS=="1-1.3.1", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="imu485", MODE="0777"
+KERNEL=="ttyUSB*", KERNELS=="1-1.4", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="baseSerial", MODE="0777"
+KERNEL=="ttyUSB*", KERNELS=="1-1.1", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="remote485", MODE="0777"
 
