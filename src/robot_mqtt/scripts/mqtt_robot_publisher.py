@@ -13,10 +13,10 @@ class MQTTRobotBridge:
         rospy.init_node('mqtt_robot_bridge', anonymous=True)
         
         # 初始化MQTT参数
-        # self.mqtt_broker = rospy.get_param('~mqtt_broker', '36.7.136.5')
-        # self.mqtt_port = rospy.get_param('~mqtt_port', 13234)
-        self.mqtt_broker = rospy.get_param('~mqtt_broker', 'broker.emqx.io')
-        self.mqtt_port = rospy.get_param('~mqtt_port', 1882)
+        self.mqtt_broker = rospy.get_param('~mqtt_broker', '36.7.136.5')
+        self.mqtt_port = rospy.get_param('~mqtt_port', 13234)
+        # self.mqtt_broker = rospy.get_param('~mqtt_broker', 'broker.emqx.io')
+        # self.mqtt_port = rospy.get_param('~mqtt_port', 1882)
         self.pub_topic = rospy.get_param('~pub_topic', 'robot/status')
         self.sub_topic = rospy.get_param('~sub_topic', 'robot/commands')
         
