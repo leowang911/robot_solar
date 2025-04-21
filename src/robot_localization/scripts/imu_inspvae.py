@@ -12,7 +12,7 @@ class IMUParser:
         rospy.init_node('imu_parser_node')
         
         # 参数配置
-        self.port = rospy.get_param('~port', '/dev/imu485')
+        self.port = rospy.get_param('~port', '/dev/ttyUSB3')
         self.baudrate = rospy.get_param('~baud', 115200)
         self.device_addr = 0x50
         self.rx_frame_length = 7
