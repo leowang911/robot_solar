@@ -104,7 +104,6 @@ class ArucoDockingController:
         rospy.Subscriber("/camera/aruco_102/pixel", PointStamped, self.center_cb)
         rospy.Subscriber("/camera/aruco_103/pixel", PointStamped, self.center_left_cb)
         rospy.Subscriber("/camera/aruco_104/pixel", PointStamped, self.center_right_cb)
-
         rospy.Subscriber("/camera/depth/image_raw", Image, self.depth_cb)
         
         # rospy.Subscriber("/virtual_marker_102/pose", PoseStamped, self.center_cb)
@@ -882,6 +881,7 @@ class ArucoDockingController:
     def control_loop(self, event):
         """主控制循环"""     
         if self.rc_control == 2:  
+            
             if self.out_dock_flag == False:
                 if self.count == 0:
                     control.distance = 0
@@ -892,6 +892,8 @@ class ArucoDockingController:
                     control.header.stamp = rospy.Time.now()
                     control.header.seq = self.control_seq
                     self.control_pub.publish(control)
+                    self.latitude_drone = self.latitude
+                    self.longitude_drone = self.longitude
                     time.sleep(0.01)
                     self.count = 1
                 control = controlData()
@@ -907,9 +909,10 @@ class ArucoDockingController:
                     pass
                 if self.complete_state == 1:
                     self.out_dock_flag = True
+                    self.count = 0
                 else:
                     self.error = 1
-                    count = 0
+                    
                 
                 return
             

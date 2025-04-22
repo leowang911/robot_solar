@@ -34,7 +34,8 @@ class MQTTRobotBridge:
             "angular_velocity": {"x": 0.0, "y": 0.0, "z": 0.0},
             "task_started": 0,
             "route_id": "unknown",
-            "battery_voltage": 0.0
+            "battery_voltage": 0,
+            "error": 0
         }
 
     def init_ros(self):
@@ -120,7 +121,8 @@ class MQTTRobotBridge:
         self.sensor_state = msg.sensor_state
         self.complete_state = msg.complete_state
         self.rc_control = msg.rc_state
-        # self.battery = msg.battery # 电池电量(todo)
+        self.robot_data['battery_voltage'] = msg.voltage # 电池电量(todo)
+        self.robot_data['error']= msg.error
 
     def task_callback(self, msg):
         self.robot_data["task_started"] = msg.data

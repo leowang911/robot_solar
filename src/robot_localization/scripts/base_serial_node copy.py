@@ -15,7 +15,7 @@ class BaseSerialNode:
         # 参数配置
         self.port = rospy.get_param('~port', '/dev/ttyUSB2')
         self.baudrate = rospy.get_param('~baudrate', 115200)
-        self.rx_frame_length = 14       # 接收帧长度
+        self.rx_frame_length = 13       # 接收帧长度
         self.tx_frame_length = 13       # 发送帧长度
 
         # 状态变量
@@ -86,7 +86,7 @@ class BaseSerialNode:
     def parse_rx_frame(self, data):
         """解析接收数据帧"""
         try:
-            if data[0] != 0xAA or len(data) != self.rx_frame_length or data[13] != sum(data[:13]) & 0xFF:
+            if data[0] != 0xAA or len(data) != self.rx_frame_length or data[12] != sum(data[:12]) & 0xFF:
                 rospy.logwarn("Invalid frame or checksum error")
                 return None
             
@@ -96,16 +96,13 @@ class BaseSerialNode:
             self.sensor_state = data[7]
             self.complete_state = data[9]     ####初始设置为1
             self.rc_state = data[10]
-            self.battery_voltage = data[11]
-            self.error = data[12]
+
             return {
                 'speed': self.speed,
                 'distance': self.distance,
                 'sensor_state': self.sensor_state,
                 'complete_state': self.complete_state,
-                'rc_state': self.rc_state,
-                'battery_voltage': self.battery_voltage,
-                'error': self.error
+                'rc_state': self.rc_state
             }
 
         except Exception as e:
@@ -175,8 +172,6 @@ class BaseSerialNode:
         msg.sensor_state = data['sensor_state']
         msg.complete_state = data['complete_state']
         msg.rc_state = data['rc_state']
-        msg.battery_voltage = data['battery_voltage']
-        msg.error = data['error']
         self.wheel_pub.publish(msg)
 
     def run(self):
