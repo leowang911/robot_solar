@@ -21,7 +21,7 @@ class TestDataPublisher:
         rospy.Subscriber('/inspvae_data', INSPVAE, self.inspvae_callback)
         self.imu_pub = rospy.Publisher('/imu/data', Imu, queue_size=10)
         self.gps_pub = rospy.Publisher('/gps/fix', NavSatFix, queue_size=10)
-        self.task_pub = rospy.Publisher('/task/start', Bool, queue_size=10)
+        # self.task_pub = rospy.Publisher('/task/start', Bool, queue_size=10)
         self.route_pub = rospy.Publisher('/mission/route_id', String, queue_size=10)
         self.battery_pub = rospy.Publisher('/battery/voltage', Float32, queue_size=10)
         self.cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
