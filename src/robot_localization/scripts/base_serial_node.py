@@ -115,6 +115,21 @@ class BaseSerialNode:
         except Exception as e:
             rospy.logerr(f"Parse error: {e}")
             return None
+        
+    def yaw_to_target_yaw_angle(self, yaw, current_yaw):
+        """将航向角转换为控制角度"""
+        # rospy.loginfo(f"current_yaw: {self.current_yaw}")
+        # imu ccw and cw !!!!!! 记得根据实际情况修改 九洲需要加-
+        angle= self.angle_dir*(math.degrees(yaw)*100) + math.degrees(current_yaw)*100
+        #计算gps距离
+        # rospy.loginfo(f"angle: {angle}")
+        if angle > 36000:
+            angle -= 36000
+        if angle < 0:
+            angle += 36000
+        # rospy.loginfo(f"angle: {angle}")
+        return np.uint16(angle)
+
 
     def create_tx_frame(self, data):
         """创建发送数据帧"""
@@ -139,7 +154,7 @@ class BaseSerialNode:
         tx_target_yaw = np.int16(self.last_tx_data_prev.get('target_yaw', 0.0))
         tx_roller_speed = np.uint16(self.last_tx_data_prev.get('roller_speed', 0.0))
         # tx_yaw = np.uint16(data.get('yaw', 0.0))
-        tx_yaw = np.int16(self.current_yaw)
+        tx_yaw = self.yaw_to_target_yaw_angle(self.current_yaw,0)
 
         rospy.loginfo(f"tx_distance: {tx_distance}, tx_target_yaw: {tx_target_yaw}, tx_roller_speed: {tx_roller_speed}, tx_yaw: {tx_yaw}, state: {state}")
 
