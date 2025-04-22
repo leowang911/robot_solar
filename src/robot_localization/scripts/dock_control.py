@@ -81,8 +81,8 @@ class ArucoDockingController:
         }
 
         self.control_seq = 0
-        self.out_dock_flag = True
-        self.in_dock_flag = True
+        self.out_dock_flag = False
+        self.in_dock_flag = False
         self.corner_finding_flag = False
         self.auto_cleaning_flag = False
         self.docking_flag = False
@@ -885,18 +885,18 @@ class ArucoDockingController:
         if self.rc_control == 1:
             if self.in_dock_flag == False:
             
-                if self.count == 0:
-                    control = controlData()
-                    control.distance = 0
-                    control.target_yaw = 0
-                    control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                    control.roller_speed = 0
-                    control.robot_state = 1
-                    control.header.stamp = rospy.Time.now()
-                    control.header.seq = self.control_seq
-                    self.control_pub.publish(control)
-                    time.sleep(0.01)
-                    self.count = 1
+                # if self.count == 0:
+                control = controlData()
+                control.distance = 0
+                control.target_yaw = 0
+                control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                control.roller_speed = 0
+                control.robot_state = 1
+                control.header.stamp = rospy.Time.now()
+                control.header.seq = self.control_seq
+                self.control_pub.publish(control)
+                time.sleep(0.1)
+                    # self.count = 1
                 
                 control = controlData()
                 control.distance = 0
@@ -905,7 +905,7 @@ class ArucoDockingController:
                 control.roller_speed = 0
                 control.robot_state = 4
                 self.control_pub.publish(control)
-                time.sleep(0.01)
+                time.sleep(0.1)
                 time_current = rospy.Time.now()
                 while self.complete_state !=1 and (rospy.Time.now()-time_current).to_sec()<10*60:
                     pass
@@ -921,7 +921,6 @@ class ArucoDockingController:
                     control.header.stamp = rospy.Time.now()
                     control.header.seq = self.control_seqself.control_pub.publish(control)
                     self.control_pub.publish(control)
-
                 else:
                     self.error = 1
                     control = controlData()
@@ -950,7 +949,7 @@ class ArucoDockingController:
                 self.control_pub.publish(control)
                 self.latitude_drone = self.latitude
                 self.longitude_drone = self.longitude
-                time.sleep(0.01)
+                time.sleep(0.1)
                     # self.count = 1
                 control = controlData()
                 control.distance = 0
