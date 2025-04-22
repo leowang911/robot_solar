@@ -156,7 +156,7 @@ class BaseSerialNode:
         # tx_yaw = np.uint16(data.get('yaw', 0.0))
         tx_yaw = self.yaw_to_target_yaw_angle(self.current_yaw,0)
         #self.yaw_to_target_yaw_angle(self.current_yaw,0)
-        rospy.logwarn(f"tx_yaw: {tx_yaw}")
+        # rospy.logwarn(f"tx_yaw: {tx_yaw}")
         rospy.loginfo(f"tx_distance: {tx_distance}, tx_target_yaw: {tx_target_yaw}, tx_roller_speed: {tx_roller_speed}, tx_yaw: {tx_yaw}, state: {state}")
 
         # if state == 0x02 and self.complete_state_prev ==0 and self.complete_state == 1:

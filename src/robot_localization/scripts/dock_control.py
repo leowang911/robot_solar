@@ -1000,6 +1000,7 @@ class ArucoDockingController:
                 if self.complete_state == 1:
                     self.corner_finding_flag = True
                     self.count  = 0
+                    rospy.logwarn("corner_finding_flag")
                 else:
                     self.error = 1
                 
