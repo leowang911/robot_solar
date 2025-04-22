@@ -30,13 +30,16 @@ class BaseSerialNode:
         self.yaw_prev = 0
         self.distance_prev = 0
         self.robot_state_prev = 1
+        self.voltage = 0
         self.last_tx_data = None
         self.last_tx_data_prev = {
             'distance': 0,
             'target_yaw': 0,
             'roller_speed': 0,
             'yaw':0,
-            'robot_state': 1
+            'robot_state': 1,
+            'voltage': 0,
+            'error': 0
         }
 
         # 初始化串口
@@ -96,7 +99,7 @@ class BaseSerialNode:
             self.sensor_state = data[7]
             self.complete_state = data[9]     ####初始设置为1
             self.rc_state = data[10]
-            self.battery_voltage = data[11]
+            self.voltage = data[11]
             self.error = data[12]
             return {
                 'speed': self.speed,
@@ -104,7 +107,7 @@ class BaseSerialNode:
                 'sensor_state': self.sensor_state,
                 'complete_state': self.complete_state,
                 'rc_state': self.rc_state,
-                'battery_voltage': self.battery_voltage,
+                'voltage': self.voltage,
                 'error': self.error
             }
 
@@ -175,7 +178,7 @@ class BaseSerialNode:
         msg.sensor_state = data['sensor_state']
         msg.complete_state = data['complete_state']
         msg.rc_state = data['rc_state']
-        msg.battery_voltage = data['battery_voltage']
+        msg.voltage = data['voltage']
         msg.error = data['error']
         self.wheel_pub.publish(msg)
 
