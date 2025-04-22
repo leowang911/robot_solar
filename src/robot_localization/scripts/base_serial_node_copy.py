@@ -15,6 +15,7 @@ class BaseSerialNode:
         # 参数配置
         self.port = rospy.get_param('~port', '/dev/baseSerial')
         self.baudrate = rospy.get_param('~baudrate', 115200)
+        self.angledir = rospy.get_param('~angle_dir', 1)  # 角度方向
         self.rx_frame_length = 13       # 接收帧长度
         self.tx_frame_length = 13       # 发送帧长度
 
@@ -43,6 +44,7 @@ class BaseSerialNode:
         self.ser = None
         self.init_serial()
 
+
         # 发布接收数据
         self.wheel_pub = rospy.Publisher('base_status', baseStatus, queue_size=10)
 
@@ -53,7 +55,7 @@ class BaseSerialNode:
     def inspvae_cb(self, msg):
         self.latitude = msg.latitude
         self.longitude = msg.longitude
-        self.current_yaw = msg.yaw*100
+        self.current_yaw = self.angledir*msg.yaw*100
     
 
     def init_serial(self):
