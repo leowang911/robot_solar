@@ -84,7 +84,7 @@ class TestDataPublisher:
         self.control_data_msg.roller_speed = 0
         self.control_data_msg.target_yaw = 0 # 目标航向角
         self.control_data_msg.yaw = int(self.yaw)   # 偏航角
-        self.control_data_msg.robot_state = 3
+        self.control_data_msg.robot_state = self.robot_state
 
             # MANUAL = 0, // 准备
             # IDLE,          // 空闲
