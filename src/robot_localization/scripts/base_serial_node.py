@@ -15,7 +15,7 @@ class BaseSerialNode:
         # 参数配置
         self.port = rospy.get_param('~port', '/dev/baseSerial')
         self.baudrate = rospy.get_param('~baudrate', 115200)
-        self.angle_dir = rospy.get_param('~angle_dir', 1)
+        self.angle_dir = rospy.get_param('~angle_dir', -1)
         self.rx_frame_length = 14       # 接收帧长度
         self.tx_frame_length = 13       # 发送帧长度
 
