@@ -1008,6 +1008,7 @@ class ArucoDockingController:
             
             if self.auto_cleaning_flag == False:
                 if self.count == 0:
+                    control = controlData()
                     control.distance = 0
                     control.target_yaw = 0
                     control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
@@ -1048,6 +1049,7 @@ class ArucoDockingController:
                 """主控制循环"""
                 rospy.loginfo(f"main loop *******")
                 if self.count == 0:
+                    control = controlData()
                     control.distance = 0
                     control.target_yaw = 0
                     control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
