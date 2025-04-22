@@ -884,6 +884,7 @@ class ArucoDockingController:
             
             if self.out_dock_flag == False:
                 if self.count == 0:
+                    control = controlData()
                     control.distance = 0
                     control.target_yaw = 0
                     control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
@@ -918,6 +919,7 @@ class ArucoDockingController:
             
             if self.corner_finding_flag == False:
                 if self.count == 0:
+                    control = controlData()
                     control.distance = 0
                     control.target_yaw = 0
                     control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
