@@ -152,7 +152,7 @@ class TestDataPublisher:
             # 发布所有消息
             self.imu_pub.publish(self.imu_msg)
             self.gps_pub.publish(self.gps_msg)
-            self.task_pub.publish(self.task_msg)
+            # self.task_pub.publish(self.task_msg)
             self.route_pub.publish(self.route_msg)
             self.battery_pub.publish(self.battery_msg)
             self.cmd_vel_pub.publish(self.cmd_vel_msg)
