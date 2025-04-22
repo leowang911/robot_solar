@@ -177,7 +177,7 @@ class TestDataPublisher:
             self.cmd_vel_pub.publish(self.cmd_vel_msg)
             self.robot_state_pub.publish(self.robot_state_msg)
             self.control_data_pub.publish(self.control_data_msg)
-            self.inspvae_pub.publish(self.inspvae_msg)
+            # self.inspvae_pub.publish(self.inspvae_msg)
             # 
             rate.sleep()
 
