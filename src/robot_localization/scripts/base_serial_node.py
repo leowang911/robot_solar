@@ -57,7 +57,7 @@ class BaseSerialNode:
     def inspvae_cb(self, msg):
         self.latitude = msg.latitude
         self.longitude = msg.longitude
-        self.current_yaw = self.angle_dir*msg.yaw*100
+        self.current_yaw = msg.yaw*100
     
 
     def init_serial(self):
@@ -85,7 +85,7 @@ class BaseSerialNode:
             'yaw': self.current_yaw,
             'robot_state': msg.robot_state
         }
-        # rospy.loginfo(f'yaw: {self.current_yaw}')
+        rospy.logwarning(f'yaw: {self.current_yaw}')
 
     def parse_rx_frame(self, data):
         """解析接收数据帧"""
@@ -155,7 +155,7 @@ class BaseSerialNode:
         tx_roller_speed = np.uint16(self.last_tx_data_prev.get('roller_speed', 0.0))
         # tx_yaw = np.uint16(data.get('yaw', 0.0))
         tx_yaw = self.yaw_to_target_yaw_angle(self.current_yaw,0)
-
+        rospy.logwarn(f"tx_yaw: {tx_yaw}")
         rospy.loginfo(f"tx_distance: {tx_distance}, tx_target_yaw: {tx_target_yaw}, tx_roller_speed: {tx_roller_speed}, tx_yaw: {tx_yaw}, state: {state}")
 
         # if state == 0x02 and self.complete_state_prev ==0 and self.complete_state == 1:
