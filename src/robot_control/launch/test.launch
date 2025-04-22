@@ -399,7 +399,7 @@
         <param name="mqtt_port" value="13234"/> -->
 
     <node pkg="robot_mqtt" type="test_data_publisher.py" name="mqtt_pub_node">
-        <param name="robot_state" value="8"/>
+        <param name="robot_state" value="4"/>
         </node>
 
 </launch>
