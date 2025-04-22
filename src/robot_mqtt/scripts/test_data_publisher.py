@@ -12,7 +12,7 @@ from robot_localization.msg import baseStatus, INSPVAE, GPSData  # 根据实际�
 class TestDataPublisher:
     def __init__(self):
         rospy.init_node('test_data_publisher', anonymous=True)
-        self.robot_state = rospy.get_param('~robot_state', '0')
+        self.robot_state = rospy.get_param('~robot_state', 8)
         self.angle_dir = rospy.get_param('~angle_dir', -1)  # 角度方向
         self.yaw = 0
 
