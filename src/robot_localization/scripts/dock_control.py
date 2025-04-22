@@ -936,7 +936,7 @@ class ArucoDockingController:
                     self.control_pub.publish(control)
 
 
-            if self.docking_flag ==False:
+            if self.docking_flag ==False and False: #todo
                 if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
                     self.state = "APPROACHING"
                     pass
