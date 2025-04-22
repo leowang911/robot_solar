@@ -1323,6 +1323,8 @@ class ArucoDockingController:
 
 
         if self.rc_control == 2:  
+
+            self.in_dock_flag = False
             
             if self.out_dock_flag == False:
                 # if self.count == 0:
