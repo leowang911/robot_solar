@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-import rospy
+import rospy, numpy as np
+import math
 from sensor_msgs.msg import Imu, NavSatFix
 from std_msgs.msg import Bool, String, Float32, Int8
 from geometry_msgs.msg import Twist
@@ -12,7 +13,7 @@ class TestDataPublisher:
     def __init__(self):
         rospy.init_node('test_data_publisher', anonymous=True)
         self.robot_state = rospy.get_param('~robot_state', '0')
-
+        self.angle_dir = rospy.get_param('~angle_dir', -1)  # 角度方向
         self.yaw = 0
 
         # 创建所有发布者
@@ -32,8 +33,26 @@ class TestDataPublisher:
         self.init_messages()
         rospy.loginfo("Published zero test data")
 
+    def yaw_to_target_yaw_angle(self, yaw, current_yaw):
+        """将航向角转换为控制角度"""
+        # rospy.loginfo(f"current_yaw: {self.current_yaw}")
+        # imu ccw and cw !!!!!! 记得根据实际情况修改 九洲需要加-
+        angle= self.angle_dir*(math.degrees(yaw)*100) + math.degrees(current_yaw)*100
+        #计算gps距离
+        # rospy.loginfo(f"angle: {angle}")
+        if angle > 36000:
+            angle -= 36000
+        if angle < 0:
+            angle += 36000
+        # rospy.loginfo(f"angle: {angle}")
+        return np.uint16(angle)
+
     def inspvae_callback(self, msg):
-        self.yaw = msg.yaw*100
+        self.latitude = msg.latitude
+        self.longitude = msg.longitude
+        self.yaw = self.yaw_to_target_yaw_angle(self.angle_dir*msg.yaw*100,0)
+
+   
 
     def init_messages(self):
         # 初始化IMU消息
