@@ -11,8 +11,8 @@ from robot_localization.msg import baseStatus, INSPVAE, GPSData  # 根据实际�
 class TestDataPublisher:
     def __init__(self):
         rospy.init_node('test_data_publisher', anonymous=True)
-
-
+        self.robot_state = rospy.get_param('~robot_state', '0')
+        
         self.yaw = 0
 
         # 创建所有发布者
@@ -84,7 +84,7 @@ class TestDataPublisher:
         self.control_data_msg.roller_speed = 0
         self.control_data_msg.target_yaw = 0 # 目标航向角
         self.control_data_msg.yaw = int(self.yaw)   # 偏航角
-        self.control_data_msg.robot_state = 8
+        self.control_data_msg.robot_state = self.robot_state
 
             # MANUAL = 0, // 准备
             # IDLE,          // 空闲

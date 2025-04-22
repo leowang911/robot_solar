@@ -381,24 +381,25 @@
         <param name="serial_timeout" value="0.1"/>
         </node> -->
 
-    <node pkg="robot_localization" type="inspvae_serial_node.py" name="imu_node">
+    <!-- <node pkg="robot_localization" type="inspvae_serial_node.py" name="imu_node">
         <param name="serial_port" value="/dev/rtkSerial"/>
         <param name="baudrate" value="460800"/>
         <param name="serial_timeout" value="0.1"/>
-        </node>
+        </node> -->
 
     <node pkg="robot_localization" type="dock_control.py" name="dock_control_node">
         </node>
 
     <!-- <node pkg="rviz_sim" type="virtual_actuator.py" name="virtual_actuator"> 
      </node> -->
-
+<!-- 
 
     <node pkg="robot_mqtt" type="mqtt_robot_publisher.py" name="mqtt_sub_node">
         <param name="mqtt_broker" value="36.7.136.5"/>
-        <param name="mqtt_port" value="13234"/>
+        <param name="mqtt_port" value="13234"/> -->
 
-    <!-- <node pkg="robot_mqtt" type="test_data_publisher.py" name="mqtt_pub_node"> -->
+    <node pkg="robot_mqtt" type="test_data_publisher.py" name="mqtt_pub_node">
+        <param name="robot_state" value="8"/>
         </node>
 
 </launch>
