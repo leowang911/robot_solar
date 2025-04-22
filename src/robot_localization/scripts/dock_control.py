@@ -883,6 +883,9 @@ class ArucoDockingController:
         """主控制循环""" 
         
         if self.rc_control == 1:
+            self.out_dock_flag = False
+            self.corner_finding_flag = False
+            self.auto_cleaning_flag = False
             if self.in_dock_flag == False:
             
                 # if self.count == 0:
