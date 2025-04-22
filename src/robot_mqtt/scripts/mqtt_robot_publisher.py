@@ -32,6 +32,7 @@ class MQTTRobotBridge:
             "acceleration": {"x": 0.0, "y": 0.0, "z": 0.0},
             "gps": {"latitude": 0.0, "longitude": 0.0},
             "angular_velocity": {"x": 0.0, "y": 0.0, "z": 0.0},
+            "pose": {"roll": 0.0, "pitch": 0.0, "yaw": 0.0},
             "task_started": 0,
             "route_id": "unknown",
             "battery_voltage": 0,
@@ -45,7 +46,6 @@ class MQTTRobotBridge:
         rospy.Subscriber("/gps/raw", GPSData, self.drone_gps_cb)
         rospy.Subscriber('/base_', Bool, self.task_callback)
         # rospy.Subscriber('/mission/route_id', String, self.route_callback)
-        rospy.Subscriber('/battery/voltage', Float32, self.battery_callback)
         rospy.Subscriber("/base_status", baseStatus, self.base_cb)
         
         # 发布者（用于接收的MQTT消息）
@@ -99,11 +99,17 @@ class MQTTRobotBridge:
             "latitude": msg.latitude,
             "longitude": msg.longitude
         }
-        self.robot_data["acceleration"] = {
-            "x": msg.linear_acceleration.x,
-            "y": msg.linear_acceleration.y,
-            "z": msg.linear_acceleration.z
+        self.robot_data["pose"] = {
+            "roll": msg.roll,
+            "pitch": msg.pitch,
+            "yaw": msg.yaw
         }
+        
+        # self.robot_data["acceleration"] = {
+        #     "x": msg.linear_acceleration.x,
+        #     "y": msg.linear_acceleration.y,
+        #     "z": msg.linear_acceleration.z
+        # }
 
     def drone_gps_cb(self, msg):
         """处理无人机GPS数据"""
@@ -130,8 +136,8 @@ class MQTTRobotBridge:
     def route_callback(self, msg):
         self.robot_data["route_id"] = msg.data
 
-    def battery_callback(self, msg):
-        self.robot_data["battery_voltage"] = msg.data
+    # def battery_callback(self, msg):
+    #     self.robot_data["battery_voltage"] = msg.data
 
     def publish_robot_status(self):
         """发布机器人状态到MQTT"""
