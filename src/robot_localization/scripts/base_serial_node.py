@@ -57,7 +57,7 @@ class BaseSerialNode:
     def inspvae_cb(self, msg):
         self.latitude = msg.latitude
         self.longitude = msg.longitude
-        self.current_yaw = msg.yaw*100
+        self.current_yaw = math.radians(msg.yaw)
     
 
     def init_serial(self):
@@ -82,7 +82,7 @@ class BaseSerialNode:
             'distance': msg.distance,
             'target_yaw': msg.target_yaw,
             'roller_speed': msg.roller_speed,
-            'yaw': self.current_yaw,
+            'yaw': self.yaw_to_target_yaw_angle(self.current_yaw, 0),
             'robot_state': msg.robot_state
         }
         # rospy.logwarning(f'yaw: {self.current_yaw}')
@@ -154,8 +154,8 @@ class BaseSerialNode:
         tx_target_yaw = np.int16(self.last_tx_data_prev.get('target_yaw', 0.0))
         tx_roller_speed = np.uint16(self.last_tx_data_prev.get('roller_speed', 0.0))
         # tx_yaw = np.uint16(data.get('yaw', 0.0))
-        tx_yaw = np.int16(self.yaw_to_target_yaw_angle(0,self.current_yaw,))
-        # self.yaw_to_target_yaw_angle(self.current_yaw,0)
+        tx_yaw = self.yaw_to_target_yaw_angle(0,self.current_yaw)
+        #self.yaw_to_target_yaw_angle(self.current_yaw,0)
         rospy.logwarn(f"tx_yaw: {tx_yaw}")
         rospy.loginfo(f"tx_distance: {tx_distance}, tx_target_yaw: {tx_target_yaw}, tx_roller_speed: {tx_roller_speed}, tx_yaw: {tx_yaw}, state: {state}")
 
