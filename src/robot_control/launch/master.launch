@@ -395,6 +395,9 @@
 
 
     <node pkg="robot_mqtt" type="mqtt_robot_publisher.py" name="mqtt_sub_node">
+        <param name="mqtt_broker" value="36.7.136.5"/>
+        <param name="mqtt_port" value="13234"/>
+
         </node>
 
 </launch>
