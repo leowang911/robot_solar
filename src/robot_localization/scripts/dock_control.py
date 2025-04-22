@@ -910,7 +910,7 @@ class ArucoDockingController:
                 while self.complete_state !=1 and (rospy.Time.now()-time_current).to_sec()<10*60:
                     pass
                 if self.complete_state == 1:
-                    self.auto_cleaning_flag = True
+                    self.in_dock_flag = True
                     self.count  = 0
                     control = controlData()
                     control.distance = 0
@@ -919,7 +919,7 @@ class ArucoDockingController:
                     control.roller_speed = 0
                     control.robot_state = 1
                     control.header.stamp = rospy.Time.now()
-                    control.header.seq = self.control_seqself.control_pub.publish(control)
+                    control.header.seq = self.control_seq
                     self.control_pub.publish(control)
                 else:
                     self.error = 1
@@ -930,7 +930,7 @@ class ArucoDockingController:
                     control.roller_speed = 0
                     control.robot_state = 1
                     control.header.stamp = rospy.Time.now()
-                    control.header.seq = self.control_seqself.control_pub.publish(control)
+                    control.header.seq = self.control_seq
                     self.control_pub.publish(control)
 
 
