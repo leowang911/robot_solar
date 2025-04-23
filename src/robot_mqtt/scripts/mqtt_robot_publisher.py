@@ -70,7 +70,6 @@ class MQTTRobotBridge:
             "speed": 0.5,
             "battery_voltage": 0,  # 电量
         
-            
             # // 任务状态码（0:未开始，1:进行中）
             "task_status": 0,
             
