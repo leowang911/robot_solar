@@ -22,13 +22,7 @@ class MQTTRobotBridge:
         self.pub_topic = rospy.get_param('~pub_topic', 'robot/status')
         self.sub_topic = rospy.get_param('~sub_topic', 'robot/commands')
         
-        # 初始化ROS发布者和订阅者
-        self.init_ros()
         
-        # 初始化MQTT客户端
-        self.mqtt_client = mqtt.Client(client_id="robot_bridge",
-                                        callback_api_version=mqtt.CallbackAPIVersion.VERSION2 )
-        self.setup_mqtt()
         
         # 存储机器人状态数据
         self.robot_data = {
@@ -78,6 +72,20 @@ class MQTTRobotBridge:
             "error": 0
             #bitmask
             }
+        
+        # 初始化ROS发布者和订阅者
+        self.init_ros()
+        
+        # 初始化MQTT客户端
+        self.mqtt_client = mqtt.Client(client_id="robot_bridge",
+                                        callback_api_version=mqtt.CallbackAPIVersion.VERSION2 )
+        self.setup_mqtt()# 初始化ROS发布者和订阅者
+        self.init_ros()
+        
+        # 初始化MQTT客户端
+        self.mqtt_client = mqtt.Client(client_id="robot_bridge",
+                                        callback_api_version=mqtt.CallbackAPIVersion.VERSION2 )
+        self.setup_mqtt()
         
         
         
