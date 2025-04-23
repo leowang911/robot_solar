@@ -913,6 +913,7 @@ class ArucoDockingController:
                 while self.complete_state !=1:
                 # and (rospy.Time.now()-time_current).to_sec()<10*60:
                     if self.rc_control == 0:
+                        rospy.logwarn("rc_control == 0")
                         return
                     pass
                 if self.complete_state == 1:
@@ -920,6 +921,7 @@ class ArucoDockingController:
                     self.count  = 0
                     while self.rc_control !=2:
                         if self.rc_control == 0:
+                            rospy.logwarn("rc_control == 0")
                             return
                         control = controlData()
                         control.distance = 0
@@ -1360,6 +1362,7 @@ class ArucoDockingController:
                 while self.complete_state !=1: 
                 # and (rospy.Time.now()-time_current).to_sec()<10*60:
                     if self.rc_control == 0:
+                        rospy.logwarn("rc_control == 0")
                         return
                     pass
                 if self.complete_state == 1:
@@ -1396,6 +1399,7 @@ class ArucoDockingController:
                 while self.complete_state !=2:
                     # and (rospy.Time.now()-time_current).to_sec()<10*60:
                     if self.rc_control == 0:
+                        rospy.logwarn("rc_control == 0")
                         return
                     pass
                 if self.complete_state == 1:
@@ -1437,6 +1441,7 @@ class ArucoDockingController:
                     self.count  = 0
                     while self.rc_control != 1:
                         if self.rc_control == 0:
+                            rospy.logwarn("rc_control == 0")
                             return
                         control = controlData()
                         control.distance = 0
