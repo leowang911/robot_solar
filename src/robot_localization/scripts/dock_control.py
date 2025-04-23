@@ -912,14 +912,14 @@ class ArucoDockingController:
                 time_current = rospy.Time.now()
                 while self.complete_state !=1:
                 # and (rospy.Time.now()-time_current).to_sec()<10*60:
-                    # if self.rc_control == 2:
-                    #     return
+                    if self.rc_control == 0:
+                        return
                     pass
                 if self.complete_state == 1:
                     self.in_dock_flag = True
                     self.count  = 0
                     while self.rc_control !=2:
-                        if self.rc_control == 1:
+                        if self.rc_control == 0:
                             return
                         control = controlData()
                         control.distance = 0
@@ -1358,8 +1358,8 @@ class ArucoDockingController:
                 time.sleep(0.1)
                 time_current = rospy.Time.now()
                 while self.complete_state !=1 and (rospy.Time.now()-time_current).to_sec()<10*60:
-                    # if self.rc_control == 1:
-                    #     return
+                    if self.rc_control == 0:
+                        return
                     pass
                 if self.complete_state == 1:
                     self.out_dock_flag = True
@@ -1394,8 +1394,8 @@ class ArucoDockingController:
                 time_current = rospy.Time.now()
                 while self.complete_state !=1:
                     # and (rospy.Time.now()-time_current).to_sec()<10*60:
-                    # if self.rc_control == 1:
-                    #     return
+                    if self.rc_control == 0:
+                        return
                     pass
                 if self.complete_state == 1:
                     self.corner_finding_flag = True
@@ -1435,6 +1435,8 @@ class ArucoDockingController:
                     self.auto_cleaning_flag = True
                     self.count  = 0
                     while self.rc_control != 1:
+                        if self.rc_control == 0:
+                            return
                         control = controlData()
                         control.distance = 0
                         control.target_yaw = 0
