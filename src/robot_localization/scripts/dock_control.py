@@ -1357,7 +1357,8 @@ class ArucoDockingController:
                 self.control_pub.publish(control)
                 time.sleep(0.1)
                 time_current = rospy.Time.now()
-                while self.complete_state !=1 and (rospy.Time.now()-time_current).to_sec()<10*60:
+                while self.complete_state !=1: 
+                # and (rospy.Time.now()-time_current).to_sec()<10*60:
                     if self.rc_control == 0:
                         return
                     pass
@@ -1392,7 +1393,7 @@ class ArucoDockingController:
                 self.control_pub.publish(control)
                 time.sleep(0.1)
                 time_current = rospy.Time.now()
-                while self.complete_state !=1:
+                while self.complete_state !=2:
                     # and (rospy.Time.now()-time_current).to_sec()<10*60:
                     if self.rc_control == 0:
                         return
