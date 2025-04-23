@@ -910,12 +910,17 @@ class ArucoDockingController:
                 self.control_pub.publish(control)
                 time.sleep(0.1)
                 time_current = rospy.Time.now()
-                while self.complete_state !=1 and (rospy.Time.now()-time_current).to_sec()<10*60:
+                while self.complete_state !=1:
+                # and (rospy.Time.now()-time_current).to_sec()<10*60:
+                    if self.rc_control == 2:
+                        return
                     pass
                 if self.complete_state == 1:
                     self.in_dock_flag = True
                     self.count  = 0
                     while self.rc_control !=2:
+                        if self.rc_control == 1:
+                            return
                         control = controlData()
                         control.distance = 0
                         control.target_yaw = 0
@@ -1324,7 +1329,6 @@ class ArucoDockingController:
                         self.lock_current=False
 
 
-
         if self.rc_control == 2:  
 
             self.in_dock_flag = False
@@ -1354,6 +1358,8 @@ class ArucoDockingController:
                 time.sleep(0.1)
                 time_current = rospy.Time.now()
                 while self.complete_state !=1 and (rospy.Time.now()-time_current).to_sec()<10*60:
+                    if self.rc_control == 1:
+                        return
                     pass
                 if self.complete_state == 1:
                     self.out_dock_flag = True
@@ -1361,7 +1367,6 @@ class ArucoDockingController:
                 else:
                     self.error = 1
                     
-                
                 return
             
             if self.corner_finding_flag == False:
@@ -1387,7 +1392,10 @@ class ArucoDockingController:
                 self.control_pub.publish(control)
                 time.sleep(0.1)
                 time_current = rospy.Time.now()
-                while self.complete_state !=1 and (rospy.Time.now()-time_current).to_sec()<10*60:
+                while self.complete_state !=1:
+                    # and (rospy.Time.now()-time_current).to_sec()<10*60:
+                    if self.rc_control == 1:
+                        return
                     pass
                 if self.complete_state == 1:
                     self.corner_finding_flag = True
