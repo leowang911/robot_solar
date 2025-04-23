@@ -1402,7 +1402,7 @@ class ArucoDockingController:
                         rospy.logwarn("rc_control == 0")
                         return
                     pass
-                if self.complete_state == 1:
+                if self.complete_state == 2:
                     self.corner_finding_flag = True
                     self.count  = 0
                     rospy.logwarn("corner_finding_flag")
