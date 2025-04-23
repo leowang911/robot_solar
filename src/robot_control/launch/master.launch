@@ -396,13 +396,13 @@
      </node> -->
 
 
-    <node pkg="robot_mqtt" type="mqtt_robot_publisher.py" name="mqtt_sub_node">
+    <!-- <node pkg="robot_mqtt" type="mqtt_robot_publisher.py" name="mqtt_sub_node">
         <!-- <param name="mqtt_broker" value="36.7.136.5"/>
         <param name="mqtt_port" value="13234"/> -->
         <param name="mqtt_broker" value="broker.emqx.io"/>
         <param name="mqtt_port" value="1883"/>
 
-        </node>
+        </node> -->
 
     <!-- <node pkg="robot_mqtt" type="test_data_publisher.py" name="mqtt_pub_node">
         </node> -->
