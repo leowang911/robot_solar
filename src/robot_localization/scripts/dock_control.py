@@ -6,7 +6,8 @@ import tf2_ros
 import numpy as np
 from tf2_geometry_msgs import do_transform_pose
 from tf.transformations import euler_from_quaternion
-import tf.transformations
+import tf.transformations 
+from std_srvs.srv import Trigger, TriggerResponse
 from geographic_msgs.msg import GeoPoint
 from geodesy import utm
 from geometry_msgs.msg import PoseStamped, Twist, PoseArray,PointStamped,Quaternion
@@ -87,6 +88,12 @@ class ArucoDockingController:
         self.auto_cleaning_flag = False
         self.docking_flag = False
 
+        service = rospy.Service(
+        '/emergency_stop',  # 服务名称（必须与客户端一致）
+        Trigger,             # 服务类型
+        self.handle_emergency_stop # 处理函数
+        )
+
         #  # 新增滤波参数
         # self.filter_enabled = True          # 滤波开关
         # self.filter_time_constant = 0.2     # 低通滤波时间常数（秒）
@@ -120,6 +127,8 @@ class ArucoDockingController:
         
         #rospy.Timer(rospy.Duration(0.01), self.control_loop)
         rospy.Timer(rospy.Duration(0.1), self.control_loop)
+
+#------------------------------------CALLBACK---------------------------------------------------------------------------------------------------
     def depth_cb(self, msg):
         data = np.frombuffer(msg.data, dtype=np.uint16 if msg.is_bigendian else '<u2')
         self.depth_image = data.reshape(msg.height, msg.width)
@@ -197,9 +206,13 @@ class ArucoDockingController:
         self.current_yaw = math.radians(msg.yaw)
 
     def left_cb(self, msg): self.process_marker(msg, 'left')
+
     def right_cb(self, msg): self.process_marker(msg, 'right')
+
     def center_cb(self, msg): self.process_marker(msg, 'center')
+
     def center_left_cb(self, msg): self.process_marker(msg, 'center_left')
+
     def center_right_cb(self, msg): self.process_marker(msg, 'center_right')
 
     def process_marker(self, msg, marker_type):
@@ -211,19 +224,6 @@ class ArucoDockingController:
         # self.markers_pixel[marker_type] = msg.pose.pixel
         # 记录更新时间
         self.update_state()
-
-    def check_data_expiry(self):
-        """清除过期数据"""
-        current_time = rospy.Time.now()
-        for marker_type in ['left', 'right', 'center', 'center_left', 'center_right']:
-            # rospy.loginfo(f"{marker_type} current_time: {current_time} marker_time: {self.marker_time[marker_type]}")
-                
-            if self.marker_time[marker_type] and \
-               (current_time - self.marker_time[marker_type]).to_sec() > self.data_expiry:
-                
-                self.markers[marker_type] = None
-                self.marker_time[marker_type] = None
-                # rospy.loginfo(f"清除过期标记数据: {marker_type}")
 
     def update_state(self):
         """状态机更新（增加数据有效性检查）"""
@@ -357,6 +357,22 @@ class ArucoDockingController:
 
         # rospy.loginfo(f"当前状态: {self.state}")
 
+    def check_data_expiry(self):
+        """清除过期数据"""
+        current_time = rospy.Time.now()
+        for marker_type in ['left', 'right', 'center', 'center_left', 'center_right']:
+            # rospy.loginfo(f"{marker_type} current_time: {current_time} marker_time: {self.marker_time[marker_type]}")
+                
+            if self.marker_time[marker_type] and \
+               (current_time - self.marker_time[marker_type]).to_sec() > self.data_expiry:
+                
+                self.markers[marker_type] = None
+                self.marker_time[marker_type] = None
+                # rospy.loginfo(f"清除过期标记数据: {marker_type}")
+
+
+#------------------------------------CALCULATION---------------------------------------------------------------------------------------------------
+
     def calculate_center_side_target(self, side):
         """计算中间标记前的目标点（基于单侧标记）"""
         marker = self.markers[side]
@@ -389,6 +405,7 @@ class ArucoDockingController:
             'center': pos_center,
             # 'yaw': np.arctan2(marker['position'][1], marker['position'][0]) + np.pi/2
         }
+
     def fit_plane_to_points(self,points):
         """
         用NumPy拟合点云所在平面
@@ -482,6 +499,7 @@ class ArucoDockingController:
         quaternion_msg.z = q[2]
         quaternion_msg.w = q[3]
         return quaternion_msg
+
     def get_pose(self, a, b, c):
         yaxis=np.array([0,-1.0,0.0])
         zaxis=np.array([a,b,c])
@@ -500,6 +518,7 @@ class ArucoDockingController:
         xaxis=np.cross(yaxis,zaxis)
         qua=self.axes_to_quaternion(xaxis, yaxis, zaxis)
         return qua
+
     def get_rot(self,pixel):
         u=int(pixel.x)
         v=int(pixel.y)
@@ -548,6 +567,7 @@ class ArucoDockingController:
             )
         transformed = do_transform_pose(pose, transform)
         return transformed
+
     def get_rot_uv(self,pixel):
         u=int(pixel.x)
         v=int(pixel.y)
@@ -825,6 +845,7 @@ class ArucoDockingController:
         #     theta1=-theta1
         theta1 = math.atan2(-prepoint[1], -prepoint[0])
         return distance,theta1,theta2
+
     def direct_back(self):
 
         distance=-0.3
@@ -878,6 +899,50 @@ class ArucoDockingController:
         
         
         return distance,theta1,theta2    
+
+#------------------------------------FUNCTION---------------------------------------------------------------------------------------------------
+
+    def compose_control(self,distance,roller_speed,yaw,target_yaw,robot_state):
+        control = controlData()
+        control.distance = distance
+        control.roller_speed = roller_speed
+        control.yaw = yaw
+        control.target_yaw = target_yaw
+        control.state = robot_state
+        # control.header.stampd
+        return control
+
+    def handle_emergency_stop(self,req):
+        """
+        当收到紧急停止服务请求时，执行此回调函数
+        :param req: Trigger 请求（无字段）
+        :return: TriggerResponse 包含执行结果和消息
+        """
+        try:
+            # 这里添加你的紧急停止操作代码（例如：停止电机、发送停止指令等）
+            control = self.compose_control(0,0,self.current_yaw,0,1)
+
+            control.header.stamp = rospy.Time.now()
+            control.header.seq = self.control_seq
+            self.control_pub(control)
+            # -----------------------------------------------------------------
+            rospy.loginfo("Executing emergency stop...")
+            # -----------------------------------------------------------------
+
+            # 返回成功响应
+            return TriggerResponse(
+                success=True,
+                message="Emergency stop executed successfully"
+            )
+        except Exception as e:
+            rospy.logerr(f"Emergency stop failed: {str(e)}")
+            return TriggerResponse(
+                success=False,
+                message=f"Error during emergency stop: {str(e)}"
+            )
+
+#------------------------------------CONTROL---------------------------------------------------------------------------------------------------
+    # def compose_control(distance,roller_speed,yaw,target_yaw,robot_state):
 
     def control_loop(self, event):
         """主控制循环""" 
@@ -1478,6 +1543,21 @@ class ArucoDockingController:
             #         self.error = 1
             #     return
 
+    
+        """初始化服务端节点"""
+        rospy.init_node('emergency_stop_server')
+        
+        # 创建服务，指定服务名、类型和回调函数
+        service = rospy.Service(
+            '/emergency_stop',  # 服务名称（必须与客户端一致）
+            Trigger,             # 服务类型
+            handle_emergency_stop # 处理函数
+        )
+        
+        rospy.loginfo("Emergency stop service is ready.")
+        rospy.spin()  # 保持节点运行
+
+#---------------------------------------------------------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     rospy.init_node('aruco_docking_controller')

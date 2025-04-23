@@ -6,8 +6,9 @@ import paho.mqtt.client as mqtt
 from sensor_msgs.msg import Imu
 from sensor_msgs.msg import NavSatFix
 from std_msgs.msg import Bool, String, Float32
+from geometry_msgs.msg import Twist
 from robot_localization.msg import INSPVAE, baseStatus, GPSData
-
+from robot_control.msg import controlData  # 根据实际包名调整
 class MQTTRobotBridge:
     def __init__(self):
         rospy.init_node('mqtt_robot_bridge', anonymous=True)
@@ -80,25 +81,8 @@ class MQTTRobotBridge:
         self.mqtt_client = mqtt.Client(client_id="robot_bridge",
                                         callback_api_version=mqtt.CallbackAPIVersion.VERSION2 )
         self.setup_mqtt()# 初始化ROS发布者和订阅者
-        self.init_ros()
-        
-        # 初始化MQTT客户端
-        self.mqtt_client = mqtt.Client(client_id="robot_bridge",
-                                        callback_api_version=mqtt.CallbackAPIVersion.VERSION2 )
-        self.setup_mqtt()
         
         
-        
-        # {
-        #     "acceleration": {"x": 0.0, "y": 0.0, "z": 0.0},
-        #     "gps": {"latitude": 0.0, "longitude": 0.0},
-        #     "angular_velocity": {"x": 0.0, "y": 0.0, "z": 0.0},
-        #     "pose": {"roll": 0.0, "pitch": 0.0, "yaw": 0.0},
-        #     "task_started": 0,
-        #     "route_id": "unknown",
-        #     "battery_voltage": 0,
-        #     "error": 0
-        # }
 
     def init_ros(self):
         """初始化ROS组件"""
@@ -134,21 +118,6 @@ class MQTTRobotBridge:
         else:
             rospy.logerr(f"MQTT connection failed with code {rc}")
 
-    def on_mqtt_message(self, client, userdata, msg):
-        try:
-            payload = msg.payload.decode('utf-8')
-            rospy.loginfo(f"Received MQTT message: {payload}")
-            
-            # 直接转发原始消息到ROS话题
-            ros_msg = String()
-            ros_msg.data = payload
-            self.cmd_pub.publish(ros_msg)
-            
-            # 这里可以添加自定义消息解析逻辑
-            # 例如：self.process_command(payload)
-            
-        except Exception as e:
-            rospy.logwarn(f"Error processing MQTT message: {str(e)}")
 
     def on_mqtt_disconnect(self, client, userdata, disconnect_flags, rc, properties=None):
         rospy.logwarn(f"MQTT disconnected (rc={rc}), attempting reconnect...")
@@ -197,9 +166,6 @@ class MQTTRobotBridge:
     def route_callback(self, msg):
         self.robot_data["route_id"] = msg.data
 
-    # def battery_callback(self, msg):
-    #     self.robot_data["battery_voltage"] = msg.data
-
     def publish_robot_status(self):
         """发布机器人状态到MQTT"""
         try:
@@ -211,7 +177,7 @@ class MQTTRobotBridge:
             rospy.logerr(f"MQTT publish error: {str(e)}")
 
     def run(self):
-        rate = rospy.Rate(1/5)  # 1Hz发布频率
+        rate = rospy.Rate(1/5)  # 发布频率5s一次
         while not rospy.is_shutdown():
             self.publish_robot_status()
             rate.sleep()
@@ -250,8 +216,8 @@ class MQTTRobotBridge:
             cmd_type = command['command']
             
             # 根据命令类型路由处理
-            if cmd_type == "velocity":
-                self._handle_velocity_command(command)
+            if cmd_type == "control":
+                self._handle_control_command(command)
             elif cmd_type == "mission":
                 self._handle_mission_command(command)
             elif cmd_type == "system":
@@ -268,12 +234,12 @@ class MQTTRobotBridge:
         except Exception as e:
             rospy.logerr(f"Error processing command: {str(e)}")
 
-    def _handle_velocity_command(self, command):
+    def _handle_control_command(self, command):
         """处理速度控制命令"""
-        from geometry_msgs.msg import Twist
+        
         
         # 创建ROS消息
-        twist = Twist()
+        control = controlData()
         
         # 解析线性速度（带默认值）
         linear = command.get('linear', {})
@@ -281,18 +247,9 @@ class MQTTRobotBridge:
         twist.linear.y = float(linear.get('y', 0.0))
         twist.linear.z = float(linear.get('z', 0.0))
         
-        # 解析角速度（带默认值）
-        angular = command.get('angular', {})
-        twist.angular.x = float(angular.get('x', 0.0))
-        twist.angular.y = float(angular.get('y', 0.0))
-        twist.angular.z = float(angular.get('z', 0.0))
         
-        # 发布到控制话题
-        if not hasattr(self, 'cmd_vel_pub'):
-            self.cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
-        self.cmd_vel_pub.publish(twist)
         
-        rospy.loginfo(f"Processed velocity command: {twist}")
+        rospy.loginfo(f"Processed control command: {control}")
 
     def _handle_mission_command(self, command):
         """处理任务控制命令"""
