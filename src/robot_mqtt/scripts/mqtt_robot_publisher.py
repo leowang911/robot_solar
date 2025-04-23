@@ -203,6 +203,7 @@ class MQTTRobotBridge:
     def publish_robot_status(self):
         """发布机器人状态到MQTT"""
         try:
+            self.robot_data["time_stamp"] = rospy.Time.now().to_sec()
             payload = json.dumps(self.robot_data)
             self.mqtt_client.publish(self.pub_topic, payload, qos=1)
             rospy.logdebug("Published to MQTT: %s", payload)
