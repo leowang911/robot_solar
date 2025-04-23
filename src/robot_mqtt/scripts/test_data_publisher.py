@@ -24,7 +24,7 @@ class TestDataPublisher:
         self.gps_pub = rospy.Publisher('/gps/fix', NavSatFix, queue_size=10)
         # self.task_pub = rospy.Publisher('/task/start', Bool, queue_size=10)
         self.route_pub = rospy.Publisher('/mission/route_id', String, queue_size=10)
-        self.battery_pub = rospy.Publisher('/battery/voltage', Float32, queue_size=10)
+        # self.battery_pub = rospy.Publisher('/battery/voltage', Float32, queue_size=10)
         self.cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
         self.robot_state_pub = rospy.Publisher('/robot_state', Int8, queue_size=10)
         self.control_data_pub = rospy.Publisher('/control_data', controlData, queue_size=10)
@@ -173,11 +173,11 @@ class TestDataPublisher:
             self.gps_pub.publish(self.gps_msg)
             # self.task_pub.publish(self.task_msg)
             self.route_pub.publish(self.route_msg)
-            self.battery_pub.publish(self.battery_msg)
+            # self.battery_pub.publish(self.battery_msg)
             self.cmd_vel_pub.publish(self.cmd_vel_msg)
             self.robot_state_pub.publish(self.robot_state_msg)
             self.control_data_pub.publish(self.control_data_msg)
-            # self.inspvae_pub.publish(self.inspvae_msg)
+            self.inspvae_pub.publish(self.inspvae_msg)
             # 
             rate.sleep()
 

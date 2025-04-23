@@ -13,10 +13,12 @@ class MQTTRobotBridge:
         rospy.init_node('mqtt_robot_bridge', anonymous=True)
         
         # 初始化MQTT参数
-        self.mqtt_broker = rospy.get_param('~mqtt_broker', '36.7.136.5')
-        self.mqtt_port = rospy.get_param('~mqtt_port', 13234)
-        # self.mqtt_broker = rospy.get_param('~mqtt_broker', 'broker.emqx.io')
-        # self.mqtt_port = rospy.get_param('~mqtt_port', 1882)
+        # self.mqtt_broker = rospy.get_param('~mqtt_broker', '106.12.23.8')
+        # self.mqtt_port = rospy.get_param('~mqtt_port', 13234)
+        self.mqtt_broker = rospy.get_param('~mqtt_broker', 'broker.emqx.io')
+        self.mqtt_port = rospy.get_param('~mqtt_port', 1883)
+        # self.mqtt_user = rospy.get_param('~mqtt_user', '123')
+        # self.mqtt_password = rospy.get_param('~mqtt_password', '123')
         self.pub_topic = rospy.get_param('~pub_topic', 'robot/status')
         self.sub_topic = rospy.get_param('~sub_topic', 'robot/commands')
         
@@ -24,20 +26,72 @@ class MQTTRobotBridge:
         self.init_ros()
         
         # 初始化MQTT客户端
-        self.mqtt_client = mqtt.Client(client_id="robot_bridge")
+        self.mqtt_client = mqtt.Client(client_id="robot_bridge",
+                                        callback_api_version=mqtt.CallbackAPIVersion.VERSION2 )
         self.setup_mqtt()
         
         # 存储机器人状态数据
         self.robot_data = {
-            "acceleration": {"x": 0.0, "y": 0.0, "z": 0.0},
-            "gps": {"latitude": 0.0, "longitude": 0.0},
-            "angular_velocity": {"x": 0.0, "y": 0.0, "z": 0.0},
-            "pose": {"roll": 0.0, "pitch": 0.0, "yaw": 0.0},
-            "task_started": 0,
-            "route_id": "unknown",
-            "battery_voltage": 0,
+            # 固定帧头标识（需确认实际值）
+            "header": "GIIFEN",
+            
+            # // Unix时间戳（单位：秒）
+            "time_stamp": 1690000000,
+            
+            # // 三轴加速度（单位：m/s²）
+            "acceleration": {
+                "x": 0.12,     
+                "y": -0.05,    
+                "z": 9.81      
+            },
+            
+            # // GPS定位数据（需实际采集）
+            "gps": {
+                "latitude": 22.123456,   
+                "longitude": 113.654321   
+            },
+            
+            # // 三轴角速度（单位：°/s）
+            "angular_velocity": {
+                "x": 1.5,     
+                "y": -0.3,     
+                "z": 0.8       
+            },
+            
+            # // 欧拉角姿态（单位：度） // 俯仰角（绕Y轴旋转）
+            "pos": {
+                "roll": 5.2,   
+                "yaw": 12.7,   
+                "pitch": -3.1  
+            },
+            
+            # // 移动速度（单位：m/s，通过轮速计算）
+            # // 换算公式：速度 = 面积 / 滚刷长度（0.62m）
+            "speed": 0.5,
+            "battery_voltage": 0,  # 电量
+        
+            
+            # // 任务状态码（0:未开始，1:进行中）
+            "task_status": 0,
+            
+            # // 手动录入的航线编号（字符串格式）
+            "route_id": "RT001",
             "error": 0
-        }
+            #bitmask
+            }
+        
+        
+        
+        # {
+        #     "acceleration": {"x": 0.0, "y": 0.0, "z": 0.0},
+        #     "gps": {"latitude": 0.0, "longitude": 0.0},
+        #     "angular_velocity": {"x": 0.0, "y": 0.0, "z": 0.0},
+        #     "pose": {"roll": 0.0, "pitch": 0.0, "yaw": 0.0},
+        #     "task_started": 0,
+        #     "route_id": "unknown",
+        #     "battery_voltage": 0,
+        #     "error": 0
+        # }
 
     def init_ros(self):
         """初始化ROS组件"""
@@ -66,7 +120,7 @@ class MQTTRobotBridge:
             rospy.signal_shutdown("MQTT connection error")
 
     # MQTT回调函数
-    def on_mqtt_connect(self, client, userdata, flags, rc):
+    def on_mqtt_connect(self, client, userdata, flags, rc,properties=None):
         if rc == 0:
             rospy.loginfo("MQTT connected successfully")
             client.subscribe(self.sub_topic)
@@ -89,11 +143,11 @@ class MQTTRobotBridge:
         except Exception as e:
             rospy.logwarn(f"Error processing MQTT message: {str(e)}")
 
-    def on_mqtt_disconnect(self, client, userdata, rc):
+    def on_mqtt_disconnect(self, client, userdata, disconnect_flags, rc, properties=None):
         rospy.logwarn(f"MQTT disconnected (rc={rc}), attempting reconnect...")
         self.setup_mqtt()
 
-    # ROS回调函数
+    # ROS回调函数on_m
     def inspvae_cb(self, msg):
         self.robot_data["gps"] = {
             "latitude": msg.latitude,
@@ -149,7 +203,7 @@ class MQTTRobotBridge:
             rospy.logerr(f"MQTT publish error: {str(e)}")
 
     def run(self):
-        rate = rospy.Rate(1)  # 1Hz发布频率
+        rate = rospy.Rate(1/5)  # 1Hz发布频率
         while not rospy.is_shutdown():
             self.publish_robot_status()
             rate.sleep()
@@ -194,6 +248,8 @@ class MQTTRobotBridge:
                 self._handle_mission_command(command)
             elif cmd_type == "system":
                 self._handle_system_command(command)
+            elif cmd_type == "route":
+                self._handle_route_command(command)
             else:
                 rospy.logwarn(f"Unknown command type: {cmd_type}")
 
@@ -267,6 +323,26 @@ class MQTTRobotBridge:
             
         else:
             rospy.logwarn(f"Unknown mission action: {action}")
+
+    def _handle_route_command(self, command):
+        """处理航线控制命令"""
+        from std_msgs.msg import String
+        
+        route_id = command.get('route_id', '')
+        
+        if route_id:
+            # 发布航线编号
+            route_msg = String()
+            route_msg.data = route_id
+            self.robot_data["route_id"] = route_id
+        
+            if not hasattr(self, 'route_pub'):
+                self.route_pub = rospy.Publisher('/mission/route_id', String, queue_size=1)
+            self.route_pub.publish(route_msg)
+            
+            rospy.loginfo(f"Published route ID: {route_id}")
+        else:
+            rospy.logwarn("Route ID is missing in the command")
 
     def _handle_system_command(self, command):
         """处理系统控制命令"""
