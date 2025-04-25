@@ -370,8 +370,8 @@
         <param name="serial_port" value="/dev/baseSerial"/>
         <param name="baudrate" value="115200"/>
         <param name="serial_timeout" value="0.1"/>
-        <param name="angle_dir" value="$(arg angle_dir)">
-        </node>
+        <param name="angle_dir" value="$(arg angle_dir)"/>
+    </node>
 
     <!-- <node pkg="robot_localization" type="imu_inspvae.py" name="imu_node">
         <param name="serial_port" value="/dev/imu485"/>
