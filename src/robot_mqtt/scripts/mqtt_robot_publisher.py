@@ -58,7 +58,7 @@ class MQTTRobotBridge:
             },
             
             # // 欧拉角姿态（单位：度） // 俯仰角（绕Y轴旋转）
-            "pos": {
+            "pose": {
                 "roll": 5.2,   
                 "yaw": 12.7,   
                 "pitch": -3.1  
