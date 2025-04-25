@@ -370,7 +370,6 @@ class ArucoDockingController:
                 self.marker_time[marker_type] = None
                 # rospy.loginfo(f"清除过期标记数据: {marker_type}")
 
-
 #------------------------------------CALCULATION---------------------------------------------------------------------------------------------------
 
     def calculate_center_side_target(self, side):
@@ -921,7 +920,6 @@ class ArucoDockingController:
         try:
             # 这里添加你的紧急停止操作代码（例如：停止电机、发送停止指令等）
             control = self.compose_control(0,0,self.current_yaw,0,1)
-
             control.header.stamp = rospy.Time.now()
             control.header.seq = self.control_seq
             self.control_pub(control)
