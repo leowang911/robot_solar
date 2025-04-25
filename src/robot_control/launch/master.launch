@@ -160,6 +160,9 @@
     <arg name="ref_frame"       default="base_link"/>  <!-- leave empty and the pose will be published wrt param parent_name -->
     <arg name="corner_refinement" default="LINES" /> <!-- NONE, HARRIS, LINES, SUBPIX -->
 
+    <arg name="angle_dir" default="-1"/> <!-- in door = 1 outdoor = -1 -->
+
+
     <group ns="$(arg camera_name)">
         <node name="camera" pkg="orbbec_camera" type="orbbec_camera_node" output="screen">
             <!-- Use the parameters defined above -->
@@ -360,14 +363,14 @@
         <!-- 发布base_link到其他坐标系的静态变换 -->
         <node pkg="tf2_ros" type="static_transform_publisher" 
             name="base_to_cam" 
-            args="0.232 0 0.287 -0.5 0.5 -0.5 0.5 base_link camera_link  "/>
+            args="0.232 0 0.287 -0.5 0.5 -0s.5 0.5 base_link camera_link  "/>
     </group>
 
     <node pkg="robot_localization" type="base_serial_node.py" name="base_serial_node">
         <param name="serial_port" value="/dev/baseSerial"/>
         <param name="baudrate" value="115200"/>
         <param name="serial_timeout" value="0.1"/>
-        <param name="angle_dir" value="-1"/>
+        <param name="angle_dir" value="$(arg angle_dir)">
         </node>
 
     <!-- <node pkg="robot_localization" type="imu_inspvae.py" name="imu_node">
@@ -389,7 +392,7 @@
         </node>
 
     <node pkg="robot_localization" type="dock_control.py" name="dock_control_node">
-        <param name="angle_dir" value="-1"/>
+        <param name="angle_dir" value="$(arg angle_dir)"/>
         </node>
 
     <!-- <node pkg="rviz_sim" type="virtual_actuator.py" name="virtual_actuator"> 

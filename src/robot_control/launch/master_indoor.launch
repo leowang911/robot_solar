@@ -160,6 +160,8 @@
     <arg name="ref_frame"       default="base_link"/>  <!-- leave empty and the pose will be published wrt param parent_name -->
     <arg name="corner_refinement" default="LINES" /> <!-- NONE, HARRIS, LINES, SUBPIX -->
 
+    <arg name="angle_dir" default="1"/>
+
     <group ns="$(arg camera_name)">
         <node name="camera" pkg="orbbec_camera" type="orbbec_camera_node" output="screen">
             <!-- Use the parameters defined above -->
