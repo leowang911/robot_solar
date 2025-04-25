@@ -9,6 +9,7 @@ from std_msgs.msg import Bool, String, Float32
 from geometry_msgs.msg import Twist
 from robot_localization.msg import INSPVAE, baseStatus, GPSData
 from robot_control.msg import controlData  # 根据实际包名调整
+import uuid
 class MQTTRobotBridge:
     def __init__(self):
         rospy.init_node('mqtt_robot_bridge', anonymous=True)
@@ -22,6 +23,7 @@ class MQTTRobotBridge:
         # self.mqtt_password = rospy.get_param('~mqtt_password', '123')
         self.pub_topic = rospy.get_param('~pub_topic', 'robot/status')
         self.sub_topic = rospy.get_param('~sub_topic', 'robot/commands')
+        self.uuid = str(uuid.uuid4())  # 生成唯一ID
         
         
         
@@ -32,6 +34,7 @@ class MQTTRobotBridge:
             
             # // Unix时间戳（单位：秒）
             "time_stamp": 1690000000,
+            "uuid": self.uuid,
             
             # // 三轴加速度（单位：m/s²）
             "acceleration": {
@@ -241,13 +244,15 @@ class MQTTRobotBridge:
         # 创建ROS消息
         control = controlData()
         
-        # 解析线性速度（带默认值）
-        linear = command.get('linear', {})
-        twist.linear.x = float(linear.get('x', 0.0))
-        twist.linear.y = float(linear.get('y', 0.0))
-        twist.linear.z = float(linear.get('z', 0.0))
-        
-        
+        # 解析命令
+        controlData.distance = command.get('distance', {})
+        controlData.target_yaw = command.get('target_yaw', {})
+        controlData.roller_speed = command.get('roller_speed', {})
+        controlData.yaw = command.get('yaw', {})
+        controlData.robot_state = command.get('robot_state', {})
+        # 发布控制命令
+        if not hasattr(self, 'control_data_pub'):
+            self.control_data_pub = rospy.Publisher('/mqtt/control_data', controlData, queue_size=1)
         
         rospy.loginfo(f"Processed control command: {control}")
 
@@ -300,10 +305,6 @@ class MQTTRobotBridge:
             route_msg = String()
             route_msg.data = route_id
             self.robot_data["route_id"] = route_id
-        
-            if not hasattr(self, 'route_pub'):
-                self.route_pub = rospy.Publisher('/mission/route_id', String, queue_size=1)
-            self.route_pub.publish(route_msg)
             
             rospy.loginfo(f"Published route ID: {route_id}")
         else:
