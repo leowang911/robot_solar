@@ -1541,20 +1541,8 @@ class ArucoDockingController:
             #         self.error = 1
             #     return
 
-    
-        """初始化服务端节点"""
-        rospy.init_node('emergency_stop_server')
-        
-        # 创建服务，指定服务名、类型和回调函数
-        service = rospy.Service(
-            '/emergency_stop',  # 服务名称（必须与客户端一致）
-            Trigger,             # 服务类型
-            self.handle_emergency_stop # 处理函数
-        )
-        
-        rospy.loginfo("Emergency stop service is ready.")
-        rospy.spin()  # 保持节点运行
 
+        
 #---------------------------------------------------------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
