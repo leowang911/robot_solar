@@ -1549,7 +1549,7 @@ class ArucoDockingController:
         service = rospy.Service(
             '/emergency_stop',  # 服务名称（必须与客户端一致）
             Trigger,             # 服务类型
-            handle_emergency_stop # 处理函数
+            self.handle_emergency_stop # 处理函数
         )
         
         rospy.loginfo("Emergency stop service is ready.")
