@@ -979,14 +979,12 @@ class ArucoDockingController:
         """主控制循环""" 
         
         control = controlData()
-        rospy.logwarn(f"stop_flag: {self.stop_flag}")
         if self.stop_flag == False: #是否进入停止状态
             self.control_seq += 1
-            rospy.logwarn(f"control_seq: {self.control_seq}")
             if self.rc_control == 1:
-                self.out_dock_flag = False
-                self.corner_finding_flag = False
-                self.auto_cleaning_flag = False
+                # self.out_dock_flag = False
+                # self.corner_finding_flag = False
+                # self.auto_cleaning_flag = False
 
                 if self.in_dock_flag == False:
                 
@@ -1429,7 +1427,7 @@ class ArucoDockingController:
 
             elif self.rc_control == 2:  
 
-                self.in_dock_flag = False
+                # self.in_dock_flag = False
                 
                 if self.out_dock_flag == False:
                     # if self.count == 0:
