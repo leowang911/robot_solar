@@ -1151,7 +1151,7 @@ class ArucoDockingController:
                                     control.header.seq = self.control_seq
                                     self.state_prev = self.state
                                     rospy.loginfo(f'state: {control.robot_state}')
-                                    if self.complete_state==1 or self.complete_state==2:
+                                    if self.complete_state==1 :
                                         control.robot_state = 1
                                         control.header.stamp = rospy.Time.now()
                                         self.control_pub.publish(control)
@@ -1218,7 +1218,7 @@ class ArucoDockingController:
                                         control.header.seq = self.control_seq
                                         self.state_prev = self.state
                                         rospy.loginfo(f'state: {control.robot_state}')
-                                        if self.complete_state==1 or self.complete_state==2:
+                                        if self.complete_state==1 :
                                             control.robot_state = 1
                                             control.header.stamp = rospy.Time.now()
                                             self.control_pub.publish(control)
@@ -1273,7 +1273,7 @@ class ArucoDockingController:
                                                 control.header.seq = self.control_seq
                                                 self.state_prev = self.state
                                                 rospy.loginfo(f'state: {control.robot_state}')
-                                                if self.complete_state==1 or self.complete_state==2:
+                                                if self.complete_state==1 :
                                                     control.robot_state = 1
                                                     control.header.stamp = rospy.Time.now()
                                                     self.control_pub.publish(control)
