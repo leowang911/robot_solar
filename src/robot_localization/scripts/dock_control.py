@@ -982,7 +982,7 @@ class ArucoDockingController:
         
         if self.stop_flag == False: #是否进入停止状态
             self.control_seq += 1
-
+            rospy.logwarn(f"control_seq: {self.control_seq}")
             if self.rc_control == 1:
                 self.out_dock_flag = False
                 self.corner_finding_flag = False
