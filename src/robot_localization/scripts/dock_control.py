@@ -1321,7 +1321,7 @@ class ArucoDockingController:
                                         self.control_pub.publish(control)
                                         time.sleep(0.5)
                                         rospy.loginfo(f'等待回退结束 ')
-                                        while self.complete_state != 1:
+                                        while self.complete_state != 1 or self.complete_state != 2:
                                             # time.sleep(0.1)
                                             pass
                                         rospy.loginfo(f'成功回退！！ ')
@@ -1347,7 +1347,7 @@ class ArucoDockingController:
                                         self.control_pub.publish(control)
                                         time.sleep(0.1)
                                         rospy.loginfo(f'等待回正结束 ')     
-                                        while self.complete_state != 1:
+                                        while self.complete_state != 1 or self.complete_state != 2:
                                             
                                             # time.sleep(0.1)
                                             pass
