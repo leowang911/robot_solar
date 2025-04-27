@@ -82,16 +82,23 @@ class ArucoDockingController:
         }
 
         self.control_seq = 0
+        self.stop_flag = False
         self.out_dock_flag = True
         self.in_dock_flag = True
-        self.corner_finding_flag = False
-        self.auto_cleaning_flag = False
+        self.corner_finding_flag = True
+        self.auto_cleaning_flag = True
         self.docking_flag = False
 
-        service = rospy.Service(
+        self.service_stop = rospy.Service(
         '/emergency_stop',  # 服务名称（必须与客户端一致）
         Trigger,             # 服务类型
         self.handle_emergency_stop # 处理函数
+        )
+
+        self.service_reboot = rospy.Service(
+        '/reboot',  # 服务名称（必须与客户端一致）
+        Trigger,             # 服务类型
+        self.handle_reboot # 处理函数
         )
 
         #  # 新增滤波参数
@@ -797,32 +804,31 @@ class ArucoDockingController:
     def search(self):
         #找不到旋转180
         if self.distance2drone > 1 or self.distance2drone <=0.1:
-            control = controlData()
-            control.distance = 0 
-            # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            control = self.compose_control(0, 0, self.current_yaw, np.pi/10, 1)
+            # control = controlData()
+            # control.distance = 0 
+            # # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            # # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, np.pi/10)
             # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, np.pi/10)
-            control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            control.roller_speed = 0
-            control.robot_state = 1
+            # control.roller_speed = 0
+            # control.robot_state = 1
             self.control_pub.publish(control)
             time.sleep(0.01)
             control.robot_state = 2
             self.control_pub.publish(control)
             time.sleep(0.5)
-
-            self.control_seq += 1
         else:
+            control = self.compose_control(-200, 0, self.current_yaw, 0, 2)
             control = controlData()
-            control.distance = -200 
+            # control.distance = -200 
+            # # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            # # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
             # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
             # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            control.roller_speed = 0
-            control.robot_state = 2
+            # control.roller_speed = 0
+            # control.robot_state = 2
             self.control_pub.publish(control)
-            self.control_seq += 1
         return control
 
     def get_pre_robot_pose(self,):
@@ -901,13 +907,15 @@ class ArucoDockingController:
 
 #------------------------------------FUNCTION---------------------------------------------------------------------------------------------------
 
-    def compose_control(self,distance,roller_speed,yaw,target_yaw,robot_state):
+    def compose_control(self,distance,roller_speed,yaw,target_yaw_diff,robot_state):
         control = controlData()
         control.distance = distance
         control.roller_speed = roller_speed
-        control.yaw = yaw
-        control.target_yaw = target_yaw
+        control.yaw = self.yaw_to_target_yaw_angle(yaw)
+        control.target_yaw = self.yaw_to_target_yaw_angle(target_yaw_diff,yaw)
         control.state = robot_state
+        control.header.stamp = rospy.Time.now()
+        control.header.seq = self.control_seq
         # control.header.stampd
         return control
 
@@ -920,13 +928,38 @@ class ArucoDockingController:
         try:
             # 这里添加你的紧急停止操作代码（例如：停止电机、发送停止指令等）
             control = self.compose_control(0,0,self.current_yaw,0,1)
-            control.header.stamp = rospy.Time.now()
-            control.header.seq = self.control_seq
             self.control_pub(control)
+            time.sleep(0.1)
+            self.stop_flag = True
             # -----------------------------------------------------------------
             rospy.loginfo("Executing emergency stop...")
             # -----------------------------------------------------------------
-
+            # 返回成功响应
+            return TriggerResponse(
+                success=True,
+                message="Emergency stop executed successfully"
+            )
+        except Exception as e:
+            rospy.logerr(f"Emergency stop failed: {str(e)}")
+            return TriggerResponse(
+                success=False,
+                message=f"Error during emergency stop: {str(e)}"
+            )
+        
+    def handle_reboot(self,req):
+        """
+        当收到重启服务请求时，执行此回调函数
+        :param req: Trigger 请求（无字段）
+        :return: TriggerResponse 包含执行结果和消息
+        """
+        try:
+            # 这里添加你的紧急停止操作代码（例如：停止电机、发送停止指令等）
+            # control = self.compose_control(0,0,self.current_yaw,0,1)
+            # self.control_pub(control)
+            self.stop_flag = False
+            # -----------------------------------------------------------------
+            rospy.loginfo("Reboot")
+            # -----------------------------------------------------------------
             # 返回成功响应
             return TriggerResponse(
                 success=True,
@@ -945,244 +978,176 @@ class ArucoDockingController:
     def control_loop(self, event):
         """主控制循环""" 
         
-        if self.rc_control == 1:
-            self.out_dock_flag = False
-            self.corner_finding_flag = False
-            self.auto_cleaning_flag = False
-            if self.in_dock_flag == False:
-            
-                # if self.count == 0:
-                control = controlData()
-                control.distance = 0
-                control.target_yaw = 0
-                control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                control.roller_speed = 0
-                control.robot_state = 1
-                control.header.stamp = rospy.Time.now()
-                control.header.seq = self.control_seq
-                self.control_pub.publish(control)
-                time.sleep(0.1)
-                    # self.count = 1
+        control = controlData()
+        
+        if self.stop_flag == False: #是否进入停止状态
+            self.control_seq += 1
+
+            if self.rc_control == 1:
+                self.out_dock_flag = False
+                self.corner_finding_flag = False
+                self.auto_cleaning_flag = False
                 
-                control = controlData()
-                control.distance = 0
-                control.target_yaw = 0
-                control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                control.roller_speed = 0
-                control.robot_state = 4
-                self.control_pub.publish(control)
-                time.sleep(0.1)
-                time_current = rospy.Time.now()
-                while self.complete_state !=1:
-                # and (rospy.Time.now()-time_current).to_sec()<10*60:
-                    if self.rc_control == 0:
-                        rospy.logwarn("rc_control == 0")
-                        return
-                    pass
-                if self.complete_state == 1:
-                    self.in_dock_flag = True
-                    self.count  = 0
-                    while self.rc_control !=2:
+                if self.in_dock_flag == False:
+                
+                    # if self.count == 0:
+                    control = self.compose_control(0,0,self.current_yaw,0,1)
+                    # control = controlData()
+                    # control.distance = 0
+                    # control.target_yaw = 0
+                    # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                    # control.roller_speed = 0
+                    # control.robot_state = 1
+                    # control.header.stamp = rospy.Time.now()
+                    # control.header.seq = self.control_seq
+                    self.control_pub.publish(control)
+                    time.sleep(0.1)
+                        # self.count = 1
+                    
+                    control = self.compose_control(0,0,self.current_yaw,0,4)
+                    # control = controlData()
+                    # control.distance = 0
+                    # control.target_yaw = 0
+                    # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                    # control.roller_speed = 0
+                    # control.robot_state = 4
+                    self.control_pub.publish(control)
+                    time.sleep(0.1)
+                    time_current = rospy.Time.now()
+                    while self.complete_state !=1:
+                    # and (rospy.Time.now()-time_current).to_sec()<10*60:
                         if self.rc_control == 0:
                             rospy.logwarn("rc_control == 0")
                             return
-                        control = controlData()
-                        control.distance = 0
-                        control.target_yaw = 0
-                        control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                        control.roller_speed = 0
-                        control.robot_state = 1
-                        control.header.stamp = rospy.Time.now()
-                        control.header.seq = self.control_seq
+                        pass
+                    if self.complete_state == 1:
+                        self.in_dock_flag = True
+                        self.count  = 0
+                        while self.rc_control !=2:
+                            if self.rc_control == 0:
+                                rospy.logwarn("rc_control == 0")
+                                return
+                            control = self.compose_control(0,0,self.current_yaw,0,1)
+                            # control = controlData()
+                            # control.distance = 0
+                            # control.target_yaw = 0
+                            # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                            # control.roller_speed = 0
+                            # control.robot_state = 1
+                            # control.header.stamp = rospy.Time.now()
+                            # control.header.seq = self.control_seq
+                            self.control_pub.publish(control)
+                            time.sleep(0.1)
+                    else:
+                        self.error = 1
+                        control = self.compose_control(0,0,self.current_yaw,0,1)
+                        # control = controlData()
+                        # control.distance = 0
+                        # control.target_yaw = 0
+                        # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                        # control.roller_speed = 0
+                        # control.robot_state = 1
+                        # control.header.stamp = rospy.Time.now()
+                        # control.header.seq = self.control_seq
                         self.control_pub.publish(control)
-                        time.sleep(0.1)
-                else:
-                    self.error = 1
-                    control = controlData()
-                    control.distance = 0
-                    control.target_yaw = 0
-                    control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                    control.roller_speed = 0
-                    control.robot_state = 1
-                    control.header.stamp = rospy.Time.now()
-                    control.header.seq = self.control_seq
-                    self.control_pub.publish(control)
 
 
-            if self.docking_flag ==False and False: #todo 
-                if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
-                    self.state = "APPROACHING"
-                    pass
-                else:
-                    self.update_state()
-                control = controlData()
-                """主控制循环"""
-                rospy.loginfo(f"main loop *******")
-                if self.count == 0:
-                    control = controlData()
-                    control.distance = 0
-                    control.target_yaw = 0
-                    control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                    control.roller_speed = 0
-                    control.robot_state = 1
-                    control.header.stamp = rospy.Time.now()
-                    control.header.seq = self.control_seq
-                    self.control_pub.publish(control)
-                    time.sleep(0.01)
-                    self.count = 1
-                    
-                
-                control.distance = 0
-                control.target_yaw = 0
-                control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                control.roller_speed = 0
-                #control.robot_state = 1
-                # rospy.loginfo(f"当前状态: {self.state}")
-
-                #计算gps距离
-                gps_calculation = self.gps_calculation(self.latitude, self.longitude, self.latitude_drone, self.longitude_drone)
-                # rospy.loginfo(f"gps_calculation: {gps_calculation}")
-                if self.distance2drone > 1 and self.current_target is None: #gps距离大于2米,通过gps数据大致导航
-                    control.distance = np.uint16((self.distance2drone)*1000)
-                    # rospy.loginfo(f"gps_yaw: {self.yaw_to_target_yaw_angle(self.yaw2drone, 0)}")
-                    # rospy.loginfo(f"gps_distance: {self.distance2drone}")
-                    control.target_yaw = self.yaw_to_target_yaw_angle(self.yaw2drone, 0)
-                    control.robot_state = 2
-
-                    # 发布控制指令
-                    control.header.stamp = rospy.Time.now()
-                    control.header.seq = self.control_seq
-                    self.state_prev = self.state
-                    rospy.loginfo(f'state: {control.robot_state}')
-                    if self.complete_state==1:
-                        control.robot_state = 1
+                if self.docking_flag ==False: #todo 
+                    if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
+                        self.state = "APPROACHING"
+                        pass
+                    else:
+                        self.update_state()
+                    """主控制循环"""
+                    rospy.loginfo(f"main loop *******")
+                    if self.count == 0:
+                        control = self.compose_control(0,0,self.current_yaw,0,1)
                         self.control_pub.publish(control)
-                        control.robot_state = 2 
                         time.sleep(0.01)
-                    self.control_pub.publish(control)
-                
-                    self.control_seq += 1
-
-
-                else: #gps距离小于2米,通过aruco数据导航
-
-                    rospy.loginfo(f'state {self.state}')
-                    if self.state == "SEARCH":
-                        rospy.loginfo(f'SEARCH******************* {self.state}')
-                        control = self.search()
-                        return
-                    if self.current_target:
-                        self.lock_current=True
-                        current_pos = np.array([0, 0])  # 基坐标系原点
-                        target_vec = self.current_target['position'][:2] - current_pos
-                        rospy.loginfo(f'target_vec is %%%%%%%%%%% {target_vec}')
+                        self.count = 1
                         
+                    control.distance = 0
+                    control.target_yaw = 0
+                    control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                    control.roller_speed = 0
+                    #control.robot_state = 1
+                    # rospy.loginfo(f"当前状态: {self.state}")
 
-                    # 计算当前状态,行走到目标点前1m
-                        if self.refine_align==False:
-                            #粗定位
-                            if np.linalg.norm(target_vec) >0.6:
-                                self.align_num=False
+                    #计算gps距离
+                    gps_calculation = self.gps_calculation(self.latitude, self.longitude, self.latitude_drone, self.longitude_drone)
+                    # rospy.loginfo(f"gps_calculation: {gps_calculation}")
+                    if self.distance2drone > 1 and self.current_target is None: #gps距离大于2米,通过gps数据大致导航
+                        '''绝对位置,不需要加原始航向角'''
+                        control = \
+                        self.compose_control(np.uint16((self.distance2drone)*1000),0,0,self.yaw2drone,2)
+                        # control.distance = np.uint16((self.distance2drone)*1000)
+                        # # rospy.loginfo(f"gps_yaw: {self.yaw_to_target_yaw_angle(self.yaw2drone, 0)}")
+                        # # rospy.loginfo(f"gps_distance: {self.distance2drone}")
+                        # control.target_yaw = self.yaw_to_target_yaw_angle(self.yaw2drone, 0)
+                        # control.robot_state = 2
+                        # 发布控制指令
+                        # control.header.stamp = rospy.Time.now()
+                        # control.header.seq = self.control_seq
+                        self.state_prev = self.state
+                        # rospy.loginfo(f'state: {control.robot_state}')
+                        if self.complete_state==1:
+                            control.robot_state = 1
+                            self.control_pub.publish(control)
+                            time.sleep(0.05)
+                            control.robot_state = 2 
+                            time.sleep(0.05)
+                        self.control_pub.publish(control)
+                    
+                    else: #gps距离小于2米,通过aruco数据导航
 
-                            if np.linalg.norm(target_vec) > self.stop_distance_threshold and self.align_num==False:
-
-                                if target_vec[0]>0:
-                                    self.target_distance = np.linalg.norm(target_vec) 
-                                    self.target_distance=np.clip(self.target_distance,0,0.3)
-                                    self.target_yaw = math.atan2(target_vec[1], target_vec[0])
-                                    self.target_yaw =np.clip(self.target_yaw,-0.2,0.2)
-                                else:
-                                    self.target_yaw = 0
-                                    control.distance = -100
-                                    control.target_yaw = self.yaw_to_target_yaw_angle(0,self.current_yaw)
-                                    control.robot_state = 2
-                                    control.header.stamp = rospy.Time.now()
-                                    control.robot_state = 1
-                                    self.control_pub.publish(control)
-                                    time.sleep(0.05)
-                                    control.header.stamp = rospy.Time.now()
-                                    control.robot_state = 2 
-                                    self.control_pub.publish(control)
-                                    self.control_seq += 1
-                                    time.sleep(1.0)
-                                    return 
-                                    
-                                if  np.linalg.norm(target_vec)<0.1:
-                                    self.target_yaw=0
-                                
-                                control.distance = int(self.target_distance*1000)
-                                control.target_yaw = self.yaw_to_target_yaw_angle(self.target_yaw,self.current_yaw)
-                                control.robot_state = 2
-
-                                # 发布控制指令
-                                control.header.stamp = rospy.Time.now()
-                                control.header.seq = self.control_seq
-                                self.state_prev = self.state
-                                rospy.loginfo(f'state: {control.robot_state}')
-                                if self.complete_state==1:
-                                    control.robot_state = 1
-                                    control.header.stamp = rospy.Time.now()
-                                    self.control_pub.publish(control)
-                                    control.robot_state = 2 
-                                    control.header.stamp = rospy.Time.now()
-                                    time.sleep(0.01)
-                                self.control_pub.publish(control)
+                        rospy.loginfo(f'state {self.state}')
+                        if self.state == "SEARCH":
+                            rospy.loginfo(f'SEARCH******************* {self.state}')
+                            control = self.search()
+                            return
+                        if self.current_target:
+                            self.lock_current=True
+                            current_pos = np.array([0, 0])  # 基坐标系原点
+                            target_vec = self.current_target['position'][:2] - current_pos
+                            rospy.loginfo(f'target_vec is %%%%%%%%%%% {target_vec}')
                             
-                                self.control_seq += 1
-                                # rospy.loginfo(f"")
-                                rospy.loginfo(f"未到达目标位置: {self.current_target['position']},{self.get_marker_yaw(self.current_target['position'])}")
-                                rospy.loginfo(f"complete_state: {self.complete_state}")
-                                
-                            else:
-                                if self.align_num==False:
-                                    control.robot_state = 1
-                                    control.header.stamp = rospy.Time.now()
-                                    control.header.seq = self.control_seq
 
-                                    self.control_pub.publish(control)
-                                    time.sleep(0.05)
-                                    control.header.stamp = rospy.Time.now()
-                                    self.control_pub.publish(control)
-                                    control.robot_state = 2
+                        # 计算当前状态,行走到目标点前1m
+                            if self.refine_align==False:
+                                #粗定位
+                                if np.linalg.norm(target_vec) >0.6:
+                                    self.align_num=False
 
-                                    self.control_seq += 1
-                                    self.align_num=True
-                                    return
-                            
-                            if self.align_num==True:
-                                self.state = "FINAL_DOCKING"
-                                rospy.loginfo(f"到达目标位置: {self.current_target['center']},{self.get_marker_yaw(self.current_target['center'])}")
-                                rospy.loginfo(f"到达目标位置__yaw: {self.current_yaw}")
-                                if abs(self.get_marker_yaw(self.current_target['center'])) < 0.015:
-                                        rospy.logwarn(f"完成对正 {target_vec[0]} {target_vec[1]}")
-                                        rospy.logwarn("robot start is 1")
-                                        self.refine_align=True
-                                        control.robot_state = 1
-                                        control.header.stamp = rospy.Time.now()
+                                if np.linalg.norm(target_vec) > self.stop_distance_threshold and self.align_num==False:
 
-                                        self.control_pub.publish(control)
-                                        time.sleep(0.1)
-                                        control.header.stamp = rospy.Time.now()
-                                        self.control_pub.publish(control)
-                                        time.sleep(0.5)
-
+                                    if target_vec[0]>0:
+                                        self.target_distance = np.linalg.norm(target_vec) 
+                                        self.target_distance=np.clip(self.target_distance,0,0.3)
+                                        self.target_yaw = math.atan2(target_vec[1], target_vec[0])
+                                        self.target_yaw =np.clip(self.target_yaw,-0.2,0.2)
+                                    else:
+                                        self.target_yaw = 0
+                                        control.distance = -100
+                                        control.target_yaw = self.yaw_to_target_yaw_angle(0,self.current_yaw)
                                         control.robot_state = 2
-
+                                        control.header.stamp = rospy.Time.now()
+                                        control.robot_state = 1
+                                        self.control_pub.publish(control)
+                                        time.sleep(0.05)
+                                        control.header.stamp = rospy.Time.now()
+                                        control.robot_state = 2 
+                                        self.control_pub.publish(control)
                                         self.control_seq += 1
-
-                                    #return
-                                else:
-                                    control.distance = 0
-                                    c_yaw=self.get_marker_yaw(self.current_target['center'])
-                                    if c_yaw>0.1:
-                                        c_yaw=0.1
-                                    if c_yaw<-0.1:
-                                        c_yaw=-0.1
-                                    control.target_yaw = self.yaw_to_target_yaw_angle(c_yaw,self.current_yaw)
+                                        time.sleep(1.0)
+                                        return 
+                                        
+                                    if  np.linalg.norm(target_vec)<0.1:
+                                        self.target_yaw=0
+                                    
+                                    control.distance = int(self.target_distance*1000)
+                                    control.target_yaw = self.yaw_to_target_yaw_angle(self.target_yaw,self.current_yaw)
                                     control.robot_state = 2
 
-                                    rospy.loginfo(f"taget_yal:{ control.target_yaw}, ￥￥￥￥￥￥curent_yaw: {self.current_yaw}")
-                                    time.sleep(0.1)
                                     # 发布控制指令
                                     control.header.stamp = rospy.Time.now()
                                     control.header.seq = self.control_seq
@@ -1193,354 +1158,428 @@ class ArucoDockingController:
                                         control.header.stamp = rospy.Time.now()
                                         self.control_pub.publish(control)
                                         control.robot_state = 2 
+                                        control.header.stamp = rospy.Time.now()
                                         time.sleep(0.01)
-                                        control.header.stamp = rospy.Time.now() 
                                     self.control_pub.publish(control)
                                 
                                     self.control_seq += 1
-                                    self.refine_align=False
-                
-                        if self.refine_align==True:
-                                    #精确对齐
-                                    if np.linalg.norm(target_vec) >1.2:
-                                        self.refine_align=False 
-                                        return 
+                                    # rospy.loginfo(f"")
+                                    rospy.loginfo(f"未到达目标位置: {self.current_target['position']},{self.get_marker_yaw(self.current_target['position'])}")
+                                    rospy.loginfo(f"complete_state: {self.complete_state}")
+                                    
+                                else:
+                                    if self.align_num==False:
+                                        control.robot_state = 1
+                                        control.header.stamp = rospy.Time.now()
+                                        control.header.seq = self.control_seq
 
-                                    if np.linalg.norm(target_vec) <0.15 and abs(target_vec[1])<0.03 and np.linalg.norm(target_vec) >0: 
+                                        self.control_pub.publish(control)
+                                        time.sleep(0.05)
+                                        control.header.stamp = rospy.Time.now()
+                                        self.control_pub.publish(control)
+                                        control.robot_state = 2
 
-                                        if abs(self.get_marker_yaw(self.current_target['center'])) < 0.015:
-                                                rospy.logwarn(f"完成对正 {target_vec[0]} {target_vec[1]}")
-                                                rospy.logwarn("robot start is 1")
-                                                self.refine_align=True
-                                                control.robot_state = 1
-                                                control.header.stamp = rospy.Time.now()
+                                        self.control_seq += 1
+                                        self.align_num=True
+                                        return
+                                
+                                if self.align_num==True:
+                                    self.state = "FINAL_DOCKING"
+                                    rospy.loginfo(f"到达目标位置: {self.current_target['center']},{self.get_marker_yaw(self.current_target['center'])}")
+                                    rospy.loginfo(f"到达目标位置__yaw: {self.current_yaw}")
+                                    if abs(self.get_marker_yaw(self.current_target['center'])) < 0.015:
+                                            rospy.logwarn(f"完成对正 {target_vec[0]} {target_vec[1]}")
+                                            rospy.logwarn("robot start is 1")
+                                            self.refine_align=True
+                                            control.robot_state = 1
+                                            control.header.stamp = rospy.Time.now()
 
-                                                self.control_pub.publish(control)
-                                                time.sleep(0.1)
-                                                control.header.stamp = rospy.Time.now()
-                                                self.control_pub.publish(control)
-                                                time.sleep(0.5)
+                                            self.control_pub.publish(control)
+                                            time.sleep(0.1)
+                                            control.header.stamp = rospy.Time.now()
+                                            self.control_pub.publish(control)
+                                            time.sleep(0.5)
 
-                                                control.robot_state = 2
-
-                                                self.control_seq += 1
-
-                                            #return
-                                        else:
-                                            control.distance = 0
-                                            c_yaw=self.get_marker_yaw(self.current_target['center'])
-                                            if c_yaw>0.1:
-                                                c_yaw=0.1
-                                            if c_yaw<-0.1:
-                                                c_yaw=-0.1
-                                            control.target_yaw = self.yaw_to_target_yaw_angle(c_yaw,self.current_yaw)
                                             control.robot_state = 2
 
-                                            rospy.loginfo(f"taget_yal:{ control.target_yaw}, ￥￥￥￥￥￥curent_yaw: {self.current_yaw}")
-                                            time.sleep(0.1)
-                                            # 发布控制指令
-                                            control.header.stamp = rospy.Time.now()
-                                            control.header.seq = self.control_seq
-                                            self.state_prev = self.state
-                                            rospy.loginfo(f'state: {control.robot_state}')
-                                            if self.complete_state==1:
-                                                control.robot_state = 1
-                                                control.header.stamp = rospy.Time.now()
-                                                self.control_pub.publish(control)
-                                                control.robot_state = 2 
-                                                time.sleep(0.01)
-                                                control.header.stamp = rospy.Time.now() 
-                                            self.control_pub.publish(control)
-                                        
                                             self.control_seq += 1
-                                            time.sleep(0.5)
-                                            return
 
-                                        
-                                        # control.robot_state = 4
-                                        rospy.loginfo(f'GOOD ********start final docking')
+                                        #return
+                                    else:
+                                        control.distance = 0
+                                        c_yaw=self.get_marker_yaw(self.current_target['center'])
+                                        if c_yaw>0.1:
+                                            c_yaw=0.1
+                                        if c_yaw<-0.1:
+                                            c_yaw=-0.1
+                                        control.target_yaw = self.yaw_to_target_yaw_angle(c_yaw,self.current_yaw)
+                                        control.robot_state = 2
 
+                                        rospy.loginfo(f"taget_yal:{ control.target_yaw}, ￥￥￥￥￥￥curent_yaw: {self.current_yaw}")
+                                        time.sleep(0.1)
+                                        # 发布控制指令
                                         control.header.stamp = rospy.Time.now()
-                                        self.stop_distance_threshold=0.1
+                                        control.header.seq = self.control_seq
+                                        self.state_prev = self.state
+                                        rospy.loginfo(f'state: {control.robot_state}')
+                                        if self.complete_state==1:
+                                            control.robot_state = 1
+                                            control.header.stamp = rospy.Time.now()
+                                            self.control_pub.publish(control)
+                                            control.robot_state = 2 
+                                            time.sleep(0.01)
+                                            control.header.stamp = rospy.Time.now() 
                                         self.control_pub.publish(control)
-                                        self.control_seq += 1 
-                                        self.docking_flag = True
-                                        # time.sleep(1000)       
-                                        # self.count = 0                        
-                                        return 
                                     
-
-                                    #step1 
-                                    #get current robot pose
-
-                                    control.distance = 0
-                                    control.target_yaw = 0                            
-                                    control.robot_state = 1
-                                    control.header.stamp = rospy.Time.now()
-                                    self.control_pub.publish(control)
-                                    time.sleep(0.1)
-                                    self.complete_state = 0
-                                    self.lock_refine=True
-                                    #d1,yaw1,yaw2=self.get_pre_robot_pose()
-                                    d1,yaw1,yaw2=self.direct_back()
-                                    sdd1,sdy1,sdy2=self.get_step00_robot_pose()
-                                    rospy.loginfo(f'robot pose1: {d1} {yaw1} {yaw2}')
-                                    control.distance = int(d1*1000)
-                                    control.target_yaw = self.yaw_to_target_yaw_angle(yaw1,self.current_yaw)
-                                    control.robot_state = 2
-                                    control.header.stamp = rospy.Time.now()
-                                    self.control_pub.publish(control)
-                                    time.sleep(0.5)
-                                    rospy.loginfo(f'等待回退结束 ')
-                                    while self.complete_state != 1:
-                                        # time.sleep(0.1)
-                                        pass
-                                    rospy.loginfo(f'成功回退！！ ')
-                                    #执行结束
-                                    control.distance = 0
-                                    control.target_yaw = 0                            
-                                    control.robot_state = 1
-                                    control.header.stamp = rospy.Time.now()
-                                    self.control_pub.publish(control)
-                                    time.sleep(0.05)
-                                    control.distance = 0
-                                    control.target_yaw = 0                            
-                                    control.robot_state = 1
-                                    control.header.stamp = rospy.Time.now()
-                                    self.control_pub.publish(control)
-                                    time.sleep(0.05)
-
-                                    self.complete_state = 0
-                                    control.distance = 0
-                                    control.target_yaw = self.yaw_to_target_yaw_angle(yaw2,self.current_yaw)                            
-                                    control.robot_state = 2
-                                    control.header.stamp = rospy.Time.now()
-                                    self.control_pub.publish(control)
-                                    time.sleep(0.1)
-                                    rospy.loginfo(f'等待回正结束 ')     
-                                    while self.complete_state != 1:
-                                        
-                                        # time.sleep(0.1)
-                                        pass
-                                    rospy.loginfo(f'step1 成功回正！ ')
-                                    self.lock_refine=False
-                                    #执行结束
-                                    time.sleep(2.0)
-                                    #step2
-                                    control.distance = 0
-                                    control.target_yaw = 0                            
-                                    control.robot_state = 1
-                                    control.header.stamp = rospy.Time.now()
-                                    self.control_pub.publish(control)
-                                    time.sleep(0.05)
-                                    control.header.stamp = rospy.Time.now()
-                                    self.control_pub.publish(control)
-
-
-                                    #self.complete_state = 0
-                                    self.lock_refine=True
-                                    d1,yaw1,yaw2=self.get_step2_robot_pose()
-                                    #d1,yaw1,yaw2=sdd1,sdy1,sdy2
-                                    rospy.loginfo(f'robot pose22: {d1} {yaw1} {yaw2}')
-                                    control.distance = int(d1*1000)
-                                    control.target_yaw = self.yaw_to_target_yaw_angle(yaw1,self.current_yaw)
-                                    control.robot_state = 2
-                                    control.header.stamp = rospy.Time.now()
-                                    self.control_pub.publish(control)
-                                    time.sleep(1.0)
-                                    rospy.loginfo(f'等待前进结束 ')
-                                    while self.complete_state != 1:
-                                        #time.sleep(0.1)
-                                        pass
-                                    rospy.loginfo(f'step2 成功前进！！ ')
-                                    #执行结束
-                                    control.distance = 0
-                                    control.target_yaw = 0                            
-                                    control.robot_state = 1
-                                    control.header.stamp = rospy.Time.now()
-                                    self.control_pub.publish(control)
-
-                                    time.sleep(0.05)
-                                    control.header.stamp = rospy.Time.now()
-                                    self.control_pub.publish(control)
-
-
-                                    #self.complete_state = 0
-                                    control.distance = 0
-                                    control.target_yaw = self.yaw_to_target_yaw_angle(yaw2,self.current_yaw)                            
-                                    control.robot_state = 2
-                                    control.header.stamp = rospy.Time.now()
-                                    self.control_pub.publish(control)
-                                    time.sleep(1.0)
-                                    rospy.loginfo(f'step2 等待回正结束')
-                                    while self.complete_state != 1:
-                                    
-                                        pass
-                                    rospy.loginfo(f'step2 成功回正！！')
-                                    time.sleep(1.0 ) 
-
-                                    #对齐
-                            
-
-
-
-
-                                    self.lock_refine=False
-                                    #time.sleep(0.5)
-                                    #执行结束
-
-
-                                    return
-                        self.lock_current=False
-
-
-        if self.rc_control == 2:  
-
-            self.in_dock_flag = False
-            
-            if self.out_dock_flag == False:
-                # if self.count == 0:
-                control = controlData()
-                control.distance = 0
-                control.target_yaw = 0
-                control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                control.roller_speed = 0
-                control.robot_state = 1
-                control.header.stamp = rospy.Time.now()
-                control.header.seq = self.control_seq
-                self.control_pub.publish(control)
-                self.latitude_drone = self.latitude
-                self.longitude_drone = self.longitude
-                time.sleep(0.1)
-                    # self.count = 1
-                control = controlData()
-                control.distance = 0
-                control.target_yaw = 0
-                control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                control.roller_speed = 0
-                control.robot_state = 3
-                self.control_pub.publish(control)
-                time.sleep(0.1)
-                time_current = rospy.Time.now()
-                while self.complete_state !=1: 
-                # and (rospy.Time.now()-time_current).to_sec()<10*60:
-                    if self.rc_control == 0:
-                        rospy.logwarn("rc_control == 0")
-                        return
-                    pass
-                if self.complete_state == 1:
-                    self.out_dock_flag = True
-                    self.count = 0
-                else:
-                    self.error = 1
+                                        self.control_seq += 1
+                                        self.refine_align=False
                     
-                return
-            
-            if self.corner_finding_flag == False:
-                # if self.count == 0:
-                control = controlData()
-                control.distance = 0
-                control.target_yaw = 0
-                control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                control.roller_speed = 0
-                control.robot_state = 1
-                control.header.stamp = rospy.Time.now()
-                control.header.seq = self.control_seq
-                self.control_pub.publish(control)
-                time.sleep(0.1)
-                    # self.count = 1
+                            if self.refine_align==True:
+                                        #精确对齐
+                                        if np.linalg.norm(target_vec) >1.2:
+                                            self.refine_align=False 
+                                            return 
 
-                control = controlData()
-                control.distance = 0
-                control.target_yaw = 0
-                control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                control.roller_speed = 0
-                control.robot_state = 7
-                self.control_pub.publish(control)
-                time.sleep(0.1)
-                time_current = rospy.Time.now()
-                while self.complete_state !=2:
-                    # and (rospy.Time.now()-time_current).to_sec()<10*60:
-                    if self.rc_control == 0:
-                        rospy.logwarn("rc_control == 0")
-                        return
-                    pass
-                if self.complete_state == 2:
-                    self.corner_finding_flag = True
-                    self.count  = 0
-                    rospy.logwarn("corner_finding_flag")
-                else:
-                    self.error = 1
-                return
-            
-            if self.auto_cleaning_flag == False:
-                # if self.count == 0:
-                control = controlData()
-                control.distance = 0
-                control.target_yaw = 0
-                control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                control.roller_speed = 0
-                control.robot_state = 1
-                control.header.stamp = rospy.Time.now()
-                control.header.seq = self.control_seq
-                self.control_pub.publish(control)
-                time.sleep(0.1)
-                # self.count = 1
+                                        if np.linalg.norm(target_vec) <0.15 and abs(target_vec[1])<0.03 and np.linalg.norm(target_vec) >0: 
+
+                                            if abs(self.get_marker_yaw(self.current_target['center'])) < 0.015:
+                                                    rospy.logwarn(f"完成对正 {target_vec[0]} {target_vec[1]}")
+                                                    rospy.logwarn("robot start is 1")
+                                                    self.refine_align=True
+                                                    control.robot_state = 1
+                                                    control.header.stamp = rospy.Time.now()
+
+                                                    self.control_pub.publish(control)
+                                                    time.sleep(0.1)
+                                                    control.header.stamp = rospy.Time.now()
+                                                    self.control_pub.publish(control)
+                                                    time.sleep(0.5)
+
+                                                    control.robot_state = 2
+
+                                                    self.control_seq += 1
+
+                                                #return
+                                            else:
+                                                control.distance = 0
+                                                c_yaw=self.get_marker_yaw(self.current_target['center'])
+                                                if c_yaw>0.1:
+                                                    c_yaw=0.1
+                                                if c_yaw<-0.1:
+                                                    c_yaw=-0.1
+                                                control.target_yaw = self.yaw_to_target_yaw_angle(c_yaw,self.current_yaw)
+                                                control.robot_state = 2
+
+                                                rospy.loginfo(f"taget_yal:{ control.target_yaw}, ￥￥￥￥￥￥curent_yaw: {self.current_yaw}")
+                                                time.sleep(0.1)
+                                                # 发布控制指令
+                                                control.header.stamp = rospy.Time.now()
+                                                control.header.seq = self.control_seq
+                                                self.state_prev = self.state
+                                                rospy.loginfo(f'state: {control.robot_state}')
+                                                if self.complete_state==1:
+                                                    control.robot_state = 1
+                                                    control.header.stamp = rospy.Time.now()
+                                                    self.control_pub.publish(control)
+                                                    control.robot_state = 2 
+                                                    time.sleep(0.01)
+                                                    control.header.stamp = rospy.Time.now() 
+                                                self.control_pub.publish(control)
+                                            
+                                                self.control_seq += 1
+                                                time.sleep(0.5)
+                                                return
+
+                                            
+                                            # control.robot_state = 4
+                                            rospy.loginfo(f'GOOD ********start final docking')
+
+                                            control.header.stamp = rospy.Time.now()
+                                            self.stop_distance_threshold=0.1
+                                            self.control_pub.publish(control)
+                                            self.control_seq += 1 
+                                            self.docking_flag = True
+                                            # time.sleep(1000)       
+                                            # self.count = 0                        
+                                            return 
+                                        
+
+                                        #step1 
+                                        #get current robot pose
+
+                                        control.distance = 0
+                                        control.target_yaw = 0                            
+                                        control.robot_state = 1
+                                        control.header.stamp = rospy.Time.now()
+                                        self.control_pub.publish(control)
+                                        time.sleep(0.1)
+                                        self.complete_state = 0
+                                        self.lock_refine=True
+                                        #d1,yaw1,yaw2=self.get_pre_robot_pose()
+                                        d1,yaw1,yaw2=self.direct_back()
+                                        sdd1,sdy1,sdy2=self.get_step00_robot_pose()
+                                        rospy.loginfo(f'robot pose1: {d1} {yaw1} {yaw2}')
+                                        control.distance = int(d1*1000)
+                                        control.target_yaw = self.yaw_to_target_yaw_angle(yaw1,self.current_yaw)
+                                        control.robot_state = 2
+                                        control.header.stamp = rospy.Time.now()
+                                        self.control_pub.publish(control)
+                                        time.sleep(0.5)
+                                        rospy.loginfo(f'等待回退结束 ')
+                                        while self.complete_state != 1:
+                                            # time.sleep(0.1)
+                                            pass
+                                        rospy.loginfo(f'成功回退！！ ')
+                                        #执行结束
+                                        control.distance = 0
+                                        control.target_yaw = 0                            
+                                        control.robot_state = 1
+                                        control.header.stamp = rospy.Time.now()
+                                        self.control_pub.publish(control)
+                                        time.sleep(0.05)
+                                        control.distance = 0
+                                        control.target_yaw = 0                            
+                                        control.robot_state = 1
+                                        control.header.stamp = rospy.Time.now()
+                                        self.control_pub.publish(control)
+                                        time.sleep(0.05)
+
+                                        self.complete_state = 0
+                                        control.distance = 0
+                                        control.target_yaw = self.yaw_to_target_yaw_angle(yaw2,self.current_yaw)                            
+                                        control.robot_state = 2
+                                        control.header.stamp = rospy.Time.now()
+                                        self.control_pub.publish(control)
+                                        time.sleep(0.1)
+                                        rospy.loginfo(f'等待回正结束 ')     
+                                        while self.complete_state != 1:
+                                            
+                                            # time.sleep(0.1)
+                                            pass
+                                        rospy.loginfo(f'step1 成功回正！ ')
+                                        self.lock_refine=False
+                                        #执行结束
+                                        time.sleep(2.0)
+                                        #step2
+                                        control.distance = 0
+                                        control.target_yaw = 0                            
+                                        control.robot_state = 1
+                                        control.header.stamp = rospy.Time.now()
+                                        self.control_pub.publish(control)
+                                        time.sleep(0.05)
+                                        control.header.stamp = rospy.Time.now()
+                                        self.control_pub.publish(control)
+
+
+                                        #self.complete_state = 0
+                                        self.lock_refine=True
+                                        d1,yaw1,yaw2=self.get_step2_robot_pose()
+                                        #d1,yaw1,yaw2=sdd1,sdy1,sdy2
+                                        rospy.loginfo(f'robot pose22: {d1} {yaw1} {yaw2}')
+                                        control.distance = int(d1*1000)
+                                        control.target_yaw = self.yaw_to_target_yaw_angle(yaw1,self.current_yaw)
+                                        control.robot_state = 2
+                                        control.header.stamp = rospy.Time.now()
+                                        self.control_pub.publish(control)
+                                        time.sleep(1.0)
+                                        rospy.loginfo(f'等待前进结束 ')
+                                        while self.complete_state != 1:
+                                            #time.sleep(0.1)
+                                            pass
+                                        rospy.loginfo(f'step2 成功前进！！ ')
+                                        #执行结束
+                                        control.distance = 0
+                                        control.target_yaw = 0                            
+                                        control.robot_state = 1
+                                        control.header.stamp = rospy.Time.now()
+                                        self.control_pub.publish(control)
+
+                                        time.sleep(0.05)
+                                        control.header.stamp = rospy.Time.now()
+                                        self.control_pub.publish(control)
+
+
+                                        #self.complete_state = 0
+                                        control.distance = 0
+                                        control.target_yaw = self.yaw_to_target_yaw_angle(yaw2,self.current_yaw)                            
+                                        control.robot_state = 2
+                                        control.header.stamp = rospy.Time.now()
+                                        self.control_pub.publish(control)
+                                        time.sleep(1.0)
+                                        rospy.loginfo(f'step2 等待回正结束')
+                                        while self.complete_state != 1:
+                                        
+                                            pass
+                                        rospy.loginfo(f'step2 成功回正！！')
+                                        time.sleep(1.0 ) 
+
+                                        #对齐
+                                
+
+
+
+
+                                        self.lock_refine=False
+                                        #time.sleep(0.5)
+                                        #执行结束
+
+
+                                        return
+                            self.lock_current=False
+
+            elif self.rc_control == 2:  
+
+                self.in_dock_flag = False
                 
-                control = controlData()
-                control.distance = 0
-                control.target_yaw = 0
-                control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                control.roller_speed = 2800
-                control.robot_state = 8
-                self.control_pub.publish(control)
-                time.sleep(0.1)
-                time_current = rospy.Time.now()
-                while self.complete_state !=1:
-                # and (rospy.Time.now()-time_current).to_sec()<10*60:
-                    pass
-                if self.complete_state == 1:
-                    self.auto_cleaning_flag = True
-                    self.count  = 0
-                    while self.rc_control != 1:
+                if self.out_dock_flag == False:
+                    # if self.count == 0:
+                    control = controlData()
+                    control.distance = 0
+                    control.target_yaw = 0
+                    control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                    control.roller_speed = 0
+                    control.robot_state = 1
+                    control.header.stamp = rospy.Time.now()
+                    control.header.seq = self.control_seq
+                    self.control_pub.publish(control)
+                    self.latitude_drone = self.latitude
+                    self.longitude_drone = self.longitude
+                    time.sleep(0.1)
+                        # self.count = 1
+                    control = controlData()
+                    control.distance = 0
+                    control.target_yaw = 0
+                    control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                    control.roller_speed = 0
+                    control.robot_state = 3
+                    self.control_pub.publish(control)
+                    time.sleep(0.1)
+                    time_current = rospy.Time.now()
+                    while self.complete_state !=1: 
+                    # and (rospy.Time.now()-time_current).to_sec()<10*60:
                         if self.rc_control == 0:
                             rospy.logwarn("rc_control == 0")
                             return
-                        control = controlData()
-                        control.distance = 0
-                        control.target_yaw = 0
-                        control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                        control.roller_speed = 0
-                        control.robot_state = 1 
-                        self.control_pub.publish(control)
-                        time.sleep(0.1)
                         pass
+                    if self.complete_state == 1:
+                        self.out_dock_flag = True
+                        self.count = 0
+                    else:
+                        self.error = 1
+                        
+                    return
+                
+                if self.corner_finding_flag == False:
+                    # if self.count == 0:
+                    control = controlData()
+                    control.distance = 0
+                    control.target_yaw = 0
+                    control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                    control.roller_speed = 0
+                    control.robot_state = 1
+                    control.header.stamp = rospy.Time.now()
+                    control.header.seq = self.control_seq
+                    self.control_pub.publish(control)
+                    time.sleep(0.1)
+                        # self.count = 1
 
-                else:
-                    self.error = 1
+                    control = controlData()
+                    control.distance = 0
+                    control.target_yaw = 0
+                    control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                    control.roller_speed = 0
+                    control.robot_state = 7
+                    self.control_pub.publish(control)
+                    time.sleep(0.1)
+                    time_current = rospy.Time.now()
+                    while self.complete_state !=2:
+                        # and (rospy.Time.now()-time_current).to_sec()<10*60:
+                        if self.rc_control == 0:
+                            rospy.logwarn("rc_control == 0")
+                            return
+                        pass
+                    if self.complete_state == 2:
+                        self.corner_finding_flag = True
+                        self.count  = 0
+                        rospy.logwarn("corner_finding_flag")
+                    else:
+                        self.error = 1
+                    return
+                
+                if self.auto_cleaning_flag == False:
+                    # if self.count == 0:
+                    control = controlData()
+                    control.distance = 0
+                    control.target_yaw = 0
+                    control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                    control.roller_speed = 0
+                    control.robot_state = 1
+                    control.header.stamp = rospy.Time.now()
+                    control.header.seq = self.control_seq
+                    self.control_pub.publish(control)
+                    time.sleep(0.1)
+                    # self.count = 1
+                    
+                    control = controlData()
+                    control.distance = 0
+                    control.target_yaw = 0
+                    control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                    control.roller_speed = 2800
+                    control.robot_state = 8
+                    self.control_pub.publish(control)
+                    time.sleep(0.1)
+                    time_current = rospy.Time.now()
+                    while self.complete_state !=1:
+                    # and (rospy.Time.now()-time_current).to_sec()<10*60:
+                        pass
+                    if self.complete_state == 1:
+                        self.auto_cleaning_flag = True
+                        self.count  = 0
+                        while self.rc_control != 1:
+                            if self.rc_control == 0:
+                                rospy.logwarn("rc_control == 0")
+                                return
+                            control = controlData()
+                            control.distance = 0
+                            control.target_yaw = 0
+                            control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                            control.roller_speed = 0
+                            control.robot_state = 1 
+                            self.control_pub.publish(control)
+                            time.sleep(0.1)
+                            pass
 
+                    else:
+                        self.error = 1
+
+                    return
+
+                
+                # if self.in_dock_flag == False:
+                #     control = controlData()
+                #     control.distance = 0
+                #     control.target_yaw = 0
+                #     control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                #     control.roller_speed = 0
+                #     control.robot_state = 4
+                #     self.control_pub.publish(control)
+                #     time.sleep(0.01)
+                #     time_current = rospy.Time.now()
+                #     while self.complete_state !=1 and (rospy.Time.now()-time_current).to_sec()<10*60:
+                #         pass
+                #     if self.complete_state == 1:
+                #         self.in_dock_flag = True
+                #         self.count  = 0
+                #     else:
+                #         self.error = 1
+                #     return
+
+            else:
                 return
-
-            
-            # if self.in_dock_flag == False:
-            #     control = controlData()
-            #     control.distance = 0
-            #     control.target_yaw = 0
-            #     control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            #     control.roller_speed = 0
-            #     control.robot_state = 4
-            #     self.control_pub.publish(control)
-            #     time.sleep(0.01)
-            #     time_current = rospy.Time.now()
-            #     while self.complete_state !=1 and (rospy.Time.now()-time_current).to_sec()<10*60:
-            #         pass
-            #     if self.complete_state == 1:
-            #         self.in_dock_flag = True
-            #         self.count  = 0
-            #     else:
-            #         self.error = 1
-            #     return
-
+        else:
+            control = self.compose_control(0,0,self.current_yaw,0,1)
+            self.control_pub.publish(control)
+            return
 
         
 #---------------------------------------------------------------------------------------------------------------------------------------

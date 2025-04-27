@@ -326,6 +326,12 @@ class MQTTRobotBridge:
                 rospy.logerr(f"Service call failed: {str(e)}")
         
         elif action == "reboot":
+            try:
+                reboot_srv = rospy.ServiceProxy('/reboot', Trigger)
+                response = reboot_srv()
+                rospy.loginfo(f"Reboot response: {response.message}")
+            except rospy.ServiceException as e:
+                rospy.logerr(f"Service call failed: {str(e)}")
             rospy.logwarn("Received reboot command - Implement actual reboot logic here")
             
         else:
