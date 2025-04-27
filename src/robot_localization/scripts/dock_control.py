@@ -1077,7 +1077,7 @@ class ArucoDockingController:
                     if self.distance2drone > 1 and self.current_target is None: #gps距离大于2米,通过gps数据大致导航
                         '''绝对位置,不需要加原始航向角'''
                         control = \
-                        self.compose_control(np.uint16((self.distance2drone)*1000),0,0,self.yaw2drone,2)
+                        self.compose_control(np.uint16((self.distance2drone)*1000),0,self.yaw2drone,0,2)
                         # control.distance = np.uint16((self.distance2drone)*1000)
                         # # rospy.loginfo(f"gps_yaw: {self.yaw_to_target_yaw_angle(self.yaw2drone, 0)}")
                         # # rospy.loginfo(f"gps_distance: {self.distance2drone}")
