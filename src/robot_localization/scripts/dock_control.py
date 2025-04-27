@@ -1012,13 +1012,13 @@ class ArucoDockingController:
                     self.control_pub.publish(control)
                     time.sleep(0.1)
                     time_current = rospy.Time.now()
-                    while self.complete_state !=1:
+                    while self.complete_state !=4:
                     # and (rospy.Time.now()-time_current).to_sec()<10*60:
                         if self.rc_control == 0:
                             rospy.logwarn("rc_control == 0")
                             return
                         pass
-                    if self.complete_state == 1:
+                    if self.complete_state == 4:
                         self.in_dock_flag = True
                         self.count  = 0
                         while self.rc_control !=2:
@@ -1197,8 +1197,6 @@ class ArucoDockingController:
 
                                             control.robot_state = 2
 
-                                            self.control_seq += 1
-
                                         #return
                                     else:
                                         control.distance = 0
@@ -1226,7 +1224,6 @@ class ArucoDockingController:
                                             control.header.stamp = rospy.Time.now() 
                                         self.control_pub.publish(control)
                                     
-                                        self.control_seq += 1
                                         self.refine_align=False
                     
                             if self.refine_align==True:
@@ -1251,8 +1248,6 @@ class ArucoDockingController:
                                                     time.sleep(0.5)
 
                                                     control.robot_state = 2
-
-                                                    self.control_seq += 1
 
                                                 #return
                                             else:
@@ -1281,7 +1276,6 @@ class ArucoDockingController:
                                                     control.header.stamp = rospy.Time.now() 
                                                 self.control_pub.publish(control)
                                             
-                                                self.control_seq += 1
                                                 time.sleep(0.5)
                                                 return
 
