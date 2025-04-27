@@ -1069,7 +1069,7 @@ class ArucoDockingController:
                     control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
                     control.roller_speed = 0
                     #control.robot_state = 1
-                    # rospy.loginfo(f"当前状态: {self.state}")
+                    rospy.logwarn(f"当前状态: {self.state}")
 
                     #计算gps距离
                     gps_calculation = self.gps_calculation(self.latitude, self.longitude, self.latitude_drone, self.longitude_drone)
@@ -1098,7 +1098,7 @@ class ArucoDockingController:
                     
                     else: #gps距离小于2米,通过aruco数据导航
 
-                        rospy.loginfo(f'state {self.state}')
+                        rospy.logwarn(f'state {self.state}')
                         if self.state == "SEARCH":
                             rospy.loginfo(f'SEARCH******************* {self.state}')
                             control = self.search()
@@ -1295,7 +1295,6 @@ class ArucoDockingController:
                                             control.header.stamp = rospy.Time.now()
                                             self.stop_distance_threshold=0.1
                                             self.control_pub.publish(control)
-                                            self.control_seq += 1 
                                             self.docking_flag = True
                                             # time.sleep(1000)       
                                             # self.count = 0                        
