@@ -373,7 +373,7 @@
         </node>
 
     <node pkg="robot_localization" type="imu_inspvae.py" name="imu_node">
-        <param name="serial_port" value="/dev/remote485"/>
+        <param name="serial_port" value="/dev/imu485"/>
         <param name="baudrate" value="115200"/>
         <param name="serial_timeout" value="0.1"/>
         </node>
