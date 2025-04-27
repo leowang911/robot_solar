@@ -911,7 +911,7 @@ class ArucoDockingController:
         control = controlData()
         control.distance = distance
         control.roller_speed = roller_speed
-        control.yaw = self.yaw_to_target_yaw_angle(yaw)
+        control.yaw = self.yaw_to_target_yaw_angle(yaw,0)
         control.target_yaw = self.yaw_to_target_yaw_angle(target_yaw_diff,yaw)
         control.state = robot_state
         control.header.stamp = rospy.Time.now()
