@@ -987,7 +987,7 @@ class ArucoDockingController:
                 self.out_dock_flag = False
                 self.corner_finding_flag = False
                 self.auto_cleaning_flag = False
-                
+
                 if self.in_dock_flag == False:
                 
                     # if self.count == 0:
@@ -1575,6 +1575,8 @@ class ArucoDockingController:
                 #     return
 
             else:
+                control = self.compose_control(0,0,self.current_yaw,0,1)
+                self.control_pub.publish(control)
                 return
         else:
             control = self.compose_control(0,0,self.current_yaw,0,1)
