@@ -979,7 +979,7 @@ class ArucoDockingController:
         """主控制循环""" 
         
         control = controlData()
-        
+        rospy.logwarn(f"stop_flag: {self.stop_flag}")
         if self.stop_flag == False: #是否进入停止状态
             self.control_seq += 1
             rospy.logwarn(f"control_seq: {self.control_seq}")
