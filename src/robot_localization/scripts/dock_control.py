@@ -1012,7 +1012,7 @@ class ArucoDockingController:
                     self.control_pub.publish(control)
                     time.sleep(0.1)
                     time_current = rospy.Time.now()
-                    while self.complete_state !=1:
+                    while self.complete_state !=4:
                     # and (rospy.Time.now()-time_current).to_sec()<10*60:
                         if self.rc_control == 0:
                             rospy.logwarn("rc_control == 0")
@@ -1151,7 +1151,7 @@ class ArucoDockingController:
                                     control.header.seq = self.control_seq
                                     self.state_prev = self.state
                                     rospy.loginfo(f'state: {control.robot_state}')
-                                    if self.complete_state==2:
+                                    if self.complete_state==1 or self.complete_state==2:
                                         control.robot_state = 1
                                         control.header.stamp = rospy.Time.now()
                                         self.control_pub.publish(control)
@@ -1218,7 +1218,7 @@ class ArucoDockingController:
                                         control.header.seq = self.control_seq
                                         self.state_prev = self.state
                                         rospy.loginfo(f'state: {control.robot_state}')
-                                        if self.complete_state==2:
+                                        if self.complete_state==1 or self.complete_state==2:
                                             control.robot_state = 1
                                             control.header.stamp = rospy.Time.now()
                                             self.control_pub.publish(control)
@@ -1273,7 +1273,7 @@ class ArucoDockingController:
                                                 control.header.seq = self.control_seq
                                                 self.state_prev = self.state
                                                 rospy.loginfo(f'state: {control.robot_state}')
-                                                if self.complete_state==2:
+                                                if self.complete_state==1 or self.complete_state==2:
                                                     control.robot_state = 1
                                                     control.header.stamp = rospy.Time.now()
                                                     self.control_pub.publish(control)
@@ -1378,7 +1378,7 @@ class ArucoDockingController:
                                         self.control_pub.publish(control)
                                         time.sleep(1.0)
                                         rospy.loginfo(f'等待前进结束 ')
-                                        while self.complete_state != 1:
+                                        while self.complete_state != 1 and self.complete_state != 2:
                                             #time.sleep(0.1)
                                             pass
                                         rospy.loginfo(f'step2 成功前进！！ ')
