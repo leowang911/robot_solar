@@ -984,9 +984,9 @@ class ArucoDockingController:
             self.control_seq += 1
 
             if self.rc_control == 1:
-                # self.out_dock_flag = False
-                # self.corner_finding_flag = False
-                # self.auto_cleaning_flag = False
+                self.out_dock_flag = False
+                self.corner_finding_flag = False
+                self.auto_cleaning_flag = False
 
                 if self.in_dock_flag == False:
                 
@@ -1429,7 +1429,7 @@ class ArucoDockingController:
 
             elif self.rc_control == 2:  
 
-                # self.in_dock_flag = False
+                self.in_dock_flag = False
                 
                 if self.out_dock_flag == False:
                     # if self.count == 0:
