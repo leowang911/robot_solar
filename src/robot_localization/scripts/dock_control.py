@@ -988,36 +988,20 @@ class ArucoDockingController:
 
                 if self.in_dock_flag == False:
                 
-                    # if self.count == 0:
                     control = self.compose_control(0,0,self.current_yaw,0,1)
-                    # control = controlData()
-                    # control.distance = 0
-                    # control.target_yaw = 0
-                    # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                    # control.roller_speed = 0
-                    # control.robot_state = 1
-                    # control.header.stamp = rospy.Time.now()
-                    # control.header.seq = self.control_seq
                     self.control_pub.publish(control)
                     time.sleep(0.1)
-                        # self.count = 1
                     
                     control = self.compose_control(0,0,self.current_yaw,0,4)
-                    # control = controlData()
-                    # control.distance = 0
-                    # control.target_yaw = 0
-                    # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                    # control.roller_speed = 0
-                    # control.robot_state = 4
                     self.control_pub.publish(control)
                     time.sleep(0.1)
                     time_current = rospy.Time.now()
-                    while self.complete_state !=4:
-                    # and (rospy.Time.now()-time_current).to_sec()<10*60:
-                        if self.rc_control == 0:
-                            rospy.logwarn("rc_control == 0")
-                            return
-                        pass
+                    # while self.complete_state !=4:
+                    # # and (rospy.Time.now()-time_current).to_sec()<10*60:
+                    #     if self.rc_control == 0:
+                    #         rospy.logwarn("rc_control == 0")
+                    #         return
+                    #     pass
                     if self.complete_state == 4:
                         self.in_dock_flag = True
                         self.count  = 0
@@ -1315,7 +1299,7 @@ class ArucoDockingController:
                                         self.control_pub.publish(control)
                                         time.sleep(0.5)
                                         rospy.loginfo(f'等待回退结束 ')
-                                        while self.complete_state != 2:
+                                        while self.complete_state == 0:
                                             # time.sleep(0.1)
                                             pass
                                         rospy.loginfo(f'成功回退！！ ')
