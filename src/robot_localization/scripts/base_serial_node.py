@@ -138,11 +138,11 @@ class BaseSerialNode:
 
         state = data.get('robot_state', 0x00)
 
-        if self.rc_state_prev != 2 and self.rc_state == 2:
-            self.last_tx_data_prev = data
-            state = 0x01
+        # if self.rc_state_prev != 2 and self.rc_state == 2:
+        #     self.last_tx_data_prev = data
+        #     state = 0x01
 
-        if self.complete_state == 1 or state == 0x01:
+        if self.complete_state != 0 or state == 0x01:
             self.last_tx_data_prev = data
 
         # if state == 0x02 and self.complete_state_prev == 0 and self.complete_state ==1:

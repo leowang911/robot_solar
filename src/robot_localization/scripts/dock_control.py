@@ -1134,7 +1134,7 @@ class ArucoDockingController:
                                         control.header.stamp = rospy.Time.now()
                                         control.robot_state = 2 
                                         self.control_pub.publish(control)
-                                        self.control_seq += 1
+                                        # self.control_seq += 1
                                         time.sleep(1.0)
                                         return 
                                         
@@ -1174,7 +1174,7 @@ class ArucoDockingController:
                                         self.control_pub.publish(control)
                                         control.robot_state = 2
 
-                                        self.control_seq += 1
+                                        # self.control_seq += 1
                                         self.align_num=True
                                         return
                                 
@@ -1184,7 +1184,7 @@ class ArucoDockingController:
                                     rospy.loginfo(f"到达目标位置__yaw: {self.current_yaw}")
                                     if abs(self.get_marker_yaw(self.current_target['center'])) < 0.015:
                                             rospy.logwarn(f"完成对正 {target_vec[0]} {target_vec[1]}")
-                                            rospy.logwarn("robot start is 1")
+                                            # rospy.logwarn("robot start is 1")
                                             self.refine_align=True
                                             control.robot_state = 1
                                             control.header.stamp = rospy.Time.now()
