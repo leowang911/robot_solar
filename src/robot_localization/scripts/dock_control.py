@@ -927,10 +927,11 @@ class ArucoDockingController:
         """
         try:
             # 这里添加你的紧急停止操作代码（例如：停止电机、发送停止指令等）
-            control = self.compose_control(0,0,self.current_yaw,0,1)
-            self.control_pub(control)
-            time.sleep(0.1)
+            # control = self.compose_control(0,0,self.current_yaw,0,1)
+            # self.control_pub(control)
+            
             self.stop_flag = True
+            time.sleep(0.1)
             # -----------------------------------------------------------------
             rospy.loginfo("Executing emergency stop...")
             # -----------------------------------------------------------------
@@ -1556,7 +1557,6 @@ class ArucoDockingController:
             self.control_pub.publish(control)
             return
 
-        
 #---------------------------------------------------------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
