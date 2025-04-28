@@ -160,7 +160,7 @@
     <arg name="ref_frame"       default="base_link"/>  <!-- leave empty and the pose will be published wrt param parent_name -->
     <arg name="corner_refinement" default="LINES" /> <!-- NONE, HARRIS, LINES, SUBPIX -->
 
-    <arg name="angle_dir" default="1"/> <!-- in door = 1 outdoor = -1 -->
+    <arg name="angle_dir" default="-1"/> <!-- in door = 1 outdoor = -1 -->
 
 
     <group ns="$(arg camera_name)">
@@ -401,9 +401,9 @@
 
     <node pkg="robot_mqtt" type="mqtt_robot_publisher.py" name="mqtt_sub_node">
         <!-- <param name="mqtt_broker" value="36.7.136.5"/>
-        <param name="mqtt_port" value="13234"/> -->
+        <param name="mqtt_port" value="13234"/>
         <param name="mqtt_broker" value="broker.emqx.io"/>
-        <param name="mqtt_port" value="1883"/>
+        <param name="mqtt_port" value="1883"/> -->
 
         </node>
 
