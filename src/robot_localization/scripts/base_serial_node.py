@@ -180,7 +180,7 @@ class BaseSerialNode:
         :return: TriggerResponse 包含执行结果和消息
         """
         try:
-            # 这里添加你的紧急停止操作代码（例如：停止电机、发送停止指令等）
+            # 这里添加你的重启操作代码（例如：停止电机、发送停止指令等）
             # control = self.compose_control(0,0,self.current_yaw,0,1)
             # self.control_pub(control)
             self.stop_flag = False
@@ -190,13 +190,13 @@ class BaseSerialNode:
             # 返回成功响应
             return TriggerResponse(
                 success=True,
-                message="Emergency stop executed successfully"
+                message="Reboot executed successfully"
             )
         except Exception as e:
-            rospy.logerr(f"Emergency stop failed: {str(e)}")
+            rospy.logerr(f"Reboot failed: {str(e)}")
             return TriggerResponse(
                 success=False,
-                message=f"Error during emergency stop: {str(e)}"
+                message=f"Error during reboot: {str(e)}"
             )
 
 

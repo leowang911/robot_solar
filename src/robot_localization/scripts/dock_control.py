@@ -89,17 +89,7 @@ class ArucoDockingController:
         self.auto_cleaning_flag = True
         self.docking_flag = False
 
-        self.service_stop = rospy.Service(
-        '/emergency_stop',  # 服务名称（必须与客户端一致）
-        Trigger,             # 服务类型
-        self.handle_emergency_stop # 处理函数
-        )
-
-        self.service_reboot = rospy.Service(
-        '/reboot',  # 服务名称（必须与客户端一致）
-        Trigger,             # 服务类型
-        self.handle_reboot # 处理函数
-        )
+        
 
         #  # 新增滤波参数
         # self.filter_enabled = True          # 滤波开关
@@ -919,59 +909,7 @@ class ArucoDockingController:
         # control.header.stampd
         return control
 
-    def handle_emergency_stop(self,req):
-        """
-        当收到紧急停止服务请求时，执行此回调函数
-        :param req: Trigger 请求（无字段）
-        :return: TriggerResponse 包含执行结果和消息
-        """
-        try:
-            # 这里添加你的紧急停止操作代码（例如：停止电机、发送停止指令等）
-            # control = self.compose_control(0,0,self.current_yaw,0,1)
-            # self.control_pub(control)
-            
-            self.stop_flag = True
-            time.sleep(0.1)
-            # -----------------------------------------------------------------
-            rospy.loginfo("Executing emergency stop...")
-            # -----------------------------------------------------------------
-            # 返回成功响应
-            return TriggerResponse(
-                success=True,
-                message="Emergency stop executed successfully"
-            )
-        except Exception as e:
-            rospy.logerr(f"Emergency stop failed: {str(e)}")
-            return TriggerResponse(
-                success=False,
-                message=f"Error during emergency stop: {str(e)}"
-            )
-        
-    def handle_reboot(self,req):
-        """
-        当收到重启服务请求时，执行此回调函数
-        :param req: Trigger 请求（无字段）
-        :return: TriggerResponse 包含执行结果和消息
-        """
-        try:
-            # 这里添加你的紧急停止操作代码（例如：停止电机、发送停止指令等）
-            # control = self.compose_control(0,0,self.current_yaw,0,1)
-            # self.control_pub(control)
-            self.stop_flag = False
-            # -----------------------------------------------------------------
-            rospy.loginfo("Reboot")
-            # -----------------------------------------------------------------
-            # 返回成功响应
-            return TriggerResponse(
-                success=True,
-                message="Emergency stop executed successfully"
-            )
-        except Exception as e:
-            rospy.logerr(f"Emergency stop failed: {str(e)}")
-            return TriggerResponse(
-                success=False,
-                message=f"Error during emergency stop: {str(e)}"
-            )
+    
 
 #------------------------------------CONTROL---------------------------------------------------------------------------------------------------
     # def compose_control(distance,roller_speed,yaw,target_yaw,robot_state):
@@ -980,6 +918,7 @@ class ArucoDockingController:
         """主控制循环""" 
         
         control = controlData()
+        rospy.loginfo(f"in_dock_flag: {self.in_dock_flag} docking_flag: {self.docking_flag} rc_control: {self.rc_control}")
         if self.stop_flag == False: #是否进入停止状态
             self.control_seq += 1
             if self.rc_control == 1:
@@ -1261,7 +1200,7 @@ class ArucoDockingController:
                                                     control.header.stamp = rospy.Time.now() 
                                                 self.control_pub.publish(control)
                                             
-                                                time.sleep(0.5)
+                                                time.sleep(0.1)
                                                 return
 
                                             
