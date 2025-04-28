@@ -7,6 +7,8 @@ import math
 from robot_localization.msg import baseStatus,INSPVAE  # 根据实际包名调整
 from robot_control.msg import controlData  # 根据实际包名调整
 import numpy as np
+from std_srvs.srv import Trigger, TriggerResponse
+import time
 
 class BaseSerialNode:
     def __init__(self):
@@ -20,6 +22,7 @@ class BaseSerialNode:
         self.tx_frame_length = 13       # 发送帧长度
 
         # 状态变量
+        self.stop_flag = False
         self.speed = 0
         self.distance = 0
         self.sensor_state = 0
@@ -53,6 +56,18 @@ class BaseSerialNode:
         # 订阅控制指令
         rospy.Subscriber('/control_data', controlData, self.control_data_callback)
         rospy.Subscriber('/inspvae_data',INSPVAE,self.inspvae_cb)
+
+        self.service_stop = rospy.Service(
+        '/emergency_stop',  # 服务名称（必须与客户端一致）
+        Trigger,             # 服务类型
+        self.handle_emergency_stop # 处理函数
+        )
+
+        self.service_reboot = rospy.Service(
+        '/reboot',  # 服务名称（必须与客户端一致）
+        Trigger,             # 服务类型
+        self.handle_reboot # 处理函数
+        )
 
     def inspvae_cb(self, msg):
         # self.latitude = msg.latitude
@@ -129,6 +144,60 @@ class BaseSerialNode:
             angle += 36000
         # rospy.loginfo(f"angle: {angle}")
         return np.uint16(angle)
+    
+    def handle_emergency_stop(self,req):
+        """
+        当收到紧急停止服务请求时，执行此回调函数
+        :param req: Trigger 请求（无字段）
+        :return: TriggerResponse 包含执行结果和消息
+        """
+        try:
+            # 这里添加你的紧急停止操作代码（例如：停止电机、发送停止指令等）
+            # control = self.compose_control(0,0,self.current_yaw,0,1)
+            # self.control_pub(control)
+            
+            self.stop_flag = True
+            time.sleep(0.1)
+            # -----------------------------------------------------------------
+            rospy.loginfo("Executing emergency stop...")
+            # -----------------------------------------------------------------
+            # 返回成功响应
+            return TriggerResponse(
+                success=True,
+                message="Emergency stop executed successfully"
+            )
+        except Exception as e:
+            rospy.logerr(f"Emergency stop failed: {str(e)}")
+            return TriggerResponse(
+                success=False,
+                message=f"Error during emergency stop: {str(e)}"
+            )
+        
+    def handle_reboot(self,req):
+        """
+        当收到重启服务请求时，执行此回调函数
+        :param req: Trigger 请求（无字段）
+        :return: TriggerResponse 包含执行结果和消息
+        """
+        try:
+            # 这里添加你的紧急停止操作代码（例如：停止电机、发送停止指令等）
+            # control = self.compose_control(0,0,self.current_yaw,0,1)
+            # self.control_pub(control)
+            self.stop_flag = False
+            # -----------------------------------------------------------------
+            rospy.loginfo("Reboot")
+            # -----------------------------------------------------------------
+            # 返回成功响应
+            return TriggerResponse(
+                success=True,
+                message="Emergency stop executed successfully"
+            )
+        except Exception as e:
+            rospy.logerr(f"Emergency stop failed: {str(e)}")
+            return TriggerResponse(
+                success=False,
+                message=f"Error during emergency stop: {str(e)}"
+            )
 
 
     def create_tx_frame(self, data):
@@ -162,6 +231,8 @@ class BaseSerialNode:
         # if state == 0x02 and self.complete_state_prev ==0 and self.complete_state == 1:
         #     state = 0x01
 
+        if self.stop_flag:
+            state = 0x01
         
  
         # if state == 0x02 & self.complete_state == 0:
