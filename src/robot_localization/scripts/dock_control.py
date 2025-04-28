@@ -1265,14 +1265,16 @@ class ArucoDockingController:
                                                 return
 
                                             
-                                            # control.robot_state = 4
+                                            
                                             rospy.loginfo(f'GOOD ********start final docking')
-
-                                            control.header.stamp = rospy.Time.now()
-                                            self.stop_distance_threshold=0.1
+                                            control = self.compose_control(0,0,self.current_yaw,0,1)
+                                            self.control_pub.publish(control)
+                                            time.sleep(0.1)
+                                            control = self.compose_control(0,0,self.current_yaw,0,4)
+                                            # self.stop_distance_threshold=0.1
                                             self.control_pub.publish(control)
                                             self.docking_flag = True
-                                            self.in_dock_flag = False
+                                            # self.in_dock_flag = False
                                             # time.sleep(1000)       
                                             # self.count = 0                        
                                             return 
