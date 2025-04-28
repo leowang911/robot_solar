@@ -244,8 +244,8 @@ class BaseSerialNode:
                             0x55,
                             tx_distance,    
                             tx_target_yaw & 0xFFFF,
-                            # 2800 & 0xFFFF,  # 2200
-                            tx_roller_speed & 0xFFFF,
+                            2800 & 0xFFFF,  # 2200
+                            # tx_roller_speed & 0xFFFF,
                             tx_yaw & 0xFFFF,
                             state)
 
