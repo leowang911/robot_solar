@@ -180,7 +180,7 @@ class BaseSerialNode:
         :return: TriggerResponse 包含执行结果和消息
         """
         try:
-            # 这里添加你的重启操作代码（例如：停止电机、发送停止指令等）
+            # 这里添加你的重启操作代码
             # control = self.compose_control(0,0,self.current_yaw,0,1)
             # self.control_pub(control)
             self.stop_flag = False
