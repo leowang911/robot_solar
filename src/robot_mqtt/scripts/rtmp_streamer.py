@@ -13,7 +13,7 @@ class RTMPStreamer:
             '-f', 'rawvideo',      # 输入格式为原始视频
             '-pix_fmt', 'bgr24',   # OpenCV默认格式为BGR
             '-s', '1280x760',       # 分辨率（需与图像一致）
-            '-r', '15',            # 帧率
+            '-r', '30',            # 帧率
             '-i', '-',             # 从标准输入读取数据
             '-c:v', 'libx264',     # 编码器
             '-preset', 'fast',     # 编码预设
