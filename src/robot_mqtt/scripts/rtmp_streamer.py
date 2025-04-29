@@ -20,7 +20,7 @@ class RTMPStreamer:
             '-preset', 'fast',     # 编码预设
             '-f', 'flv',          # 输出格式为FLV
             '-vf','yadif=1', # 去隔行
-            '-flags', '+progressive', # 进程标志
+            # '-flags', '+progressive', # 进程标志
             '-b:v', '800k',       # 码率
             '-maxrate', '800k',   # 最大码率
             '-bufsize', '1600k',   # 缓冲区大小
