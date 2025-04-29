@@ -135,7 +135,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/robot_mqtt_node.cpp)
-add_executable(rtmp_streamer src/rtmp_streamer.cpp)
+# add_executable(rtmp_streamer src/rtmp_streamer.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -151,7 +151,7 @@ add_executable(rtmp_streamer src/rtmp_streamer.cpp)
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(rtmp_streamer ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+# target_link_libraries(rtmp_streamer ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
 #############+
 ## Install ##
