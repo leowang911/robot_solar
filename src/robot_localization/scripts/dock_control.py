@@ -1300,11 +1300,11 @@ class ArucoDockingController:
                 
                     control = self.compose_control(0,0,self.current_yaw,0,1)
                     self.control_pub.publish(control)
-                    time.sleep(0.01)
+                    time.sleep(0.1)
                     
                     control = self.compose_control(0,0,self.current_yaw,0,4)
                     self.control_pub.publish(control)
-                    time.sleep(0.01)
+                    time.sleep(0.1)
                     # time_current = rospy.Time.now()
                     while self.complete_state ==0:
                     # and (rospy.Time.now()-time_current).to_sec()<10*60:
