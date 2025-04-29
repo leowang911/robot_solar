@@ -18,7 +18,7 @@ class RTMPStreamer:
             '-c:v', 'libx264',     # 编码器
             '-preset', 'fast',     # 编码预设
             '-f', 'flv',          # 输出格式为FLV
-            '-vf', 'yadif=1',  # 去隔行
+            # '-vf', 'yadif=1',  # 去隔行
             # '-flags','+progressive',    # 进阶编码
             'rtmp://tx.direct.huya.com/huyalive/1199574560753-1199574560753-7484892029064985869-2399149244962-10057-A-1742712467-1?seq=1745919923386&type=simple'  # RTMP服务器地址
         ]
