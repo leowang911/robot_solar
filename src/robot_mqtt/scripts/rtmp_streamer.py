@@ -32,5 +32,5 @@ class RTMPStreamer:
 if __name__ == '__main__':
     rospy.init_node('rtmp_streamer')
     streamer = RTMPStreamer()
-    rospy.Subscriber('/camera/color/image_raw/compressed', CompressedImage, streamer.image_callback)
+    rospy.Subscriber('/camera/color/image_raw', Image, streamer.image_callback)
     rospy.spin()
