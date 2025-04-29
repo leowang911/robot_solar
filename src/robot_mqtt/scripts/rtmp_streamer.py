@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import rospy
 import subprocess
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image,CompressedImage
 import cv2
 from cv_bridge import CvBridge
 
@@ -32,5 +32,5 @@ class RTMPStreamer:
 if __name__ == '__main__':
     rospy.init_node('rtmp_streamer')
     streamer = RTMPStreamer()
-    rospy.Subscriber('/camera/color/image_raw/compressed', Image, streamer.image_callback)
+    rospy.Subscriber('/camera/color/image_raw/compressed', CompressedImage, streamer.image_callback)
     rospy.spin()
