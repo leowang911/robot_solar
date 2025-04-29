@@ -83,8 +83,8 @@ class ArucoDockingController:
 
         self.control_seq = 0
         self.stop_flag = False
-        self.out_dock_flag = True
-        self.in_dock_flag = True
+        self.out_dock_flag = False
+        self.in_dock_flag = False
         self.corner_finding_flag = True
         self.auto_cleaning_flag = True
         self.docking_flag = False
@@ -389,7 +389,7 @@ class ArucoDockingController:
         R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
         sign = 1 if side == 'center_right' else -1
         # 计算中间位置 * sign
-        offset = self.marker_side_spacing/2 *sign+0.025
+        offset = self.marker_side_spacing/2 *sign+0.03
         self.pos_target = R@np.array([-offset, 0,self.stop_distance]) + pos
         pos_center = R@np.array([-offset,0, 0]) + pos
         # rospy.loginfo(f"pos: {pos}")
@@ -926,53 +926,6 @@ class ArucoDockingController:
                 # self.corner_finding_flag = False
                 # self.auto_cleaning_flag = False
 
-                if self.in_dock_flag == False:
-                
-                    control = self.compose_control(0,0,self.current_yaw,0,1)
-                    self.control_pub.publish(control)
-                    time.sleep(0.01)
-                    
-                    control = self.compose_control(0,0,self.current_yaw,0,4)
-                    self.control_pub.publish(control)
-                    time.sleep(0.01)
-                    # time_current = rospy.Time.now()
-                    while self.complete_state ==0:
-                    # and (rospy.Time.now()-time_current).to_sec()<10*60:
-                        if self.rc_control == 0:
-                            rospy.logwarn("rc_control == 0")
-                            return
-                        pass
-                    if self.complete_state == 4:
-                        self.in_dock_flag = True
-                        self.count  = 0
-                        while self.rc_control !=2:
-                            if self.rc_control == 0:
-                                rospy.logwarn("rc_control == 0")
-                                return
-                            control = self.compose_control(0,0,self.current_yaw,0,1)
-                            # control = controlData()
-                            # control.distance = 0
-                            # control.target_yaw = 0
-                            # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                            # control.roller_speed = 0
-                            # control.robot_state = 1
-                            # control.header.stamp = rospy.Time.now()
-                            # control.header.seq = self.control_seq
-                            self.control_pub.publish(control)
-                            time.sleep(0.1)
-                    else:
-                        self.error = 1
-                        control = self.compose_control(0,0,self.current_yaw,0,1)
-                        # control = controlData()
-                        # control.distance = 0
-                        # control.target_yaw = 0
-                        # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                        # control.roller_speed = 0
-                        # control.robot_state = 1
-                        # control.header.stamp = rospy.Time.now()
-                        # control.header.seq = self.control_seq
-                        self.control_pub.publish(control)
-
                 if self.docking_flag ==False: #todo 
                     if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
                         self.state = "APPROACHING"
@@ -1212,6 +1165,9 @@ class ArucoDockingController:
                                             # self.stop_distance_threshold=0.1
                                             self.docking_flag = True
                                             self.in_dock_flag = False
+                                            self.out_dock_flag = False
+                                            self.corner_finding_flag = False
+                                            self.auto_cleaning_flag = False
                                             # time.sleep(1000)       
                                             # self.count = 0                        
                                             return 
@@ -1340,6 +1296,53 @@ class ArucoDockingController:
                                         return
                             self.lock_current=False
 
+                if self.in_dock_flag == False:
+                
+                    control = self.compose_control(0,0,self.current_yaw,0,1)
+                    self.control_pub.publish(control)
+                    time.sleep(0.01)
+                    
+                    control = self.compose_control(0,0,self.current_yaw,0,4)
+                    self.control_pub.publish(control)
+                    time.sleep(0.01)
+                    # time_current = rospy.Time.now()
+                    while self.complete_state ==0:
+                    # and (rospy.Time.now()-time_current).to_sec()<10*60:
+                        if self.rc_control == 0:
+                            rospy.logwarn("rc_control == 0")
+                            return
+                        pass
+                    if self.complete_state == 4:
+                        self.in_dock_flag = True
+                        self.count  = 0
+                        while self.rc_control !=2:
+                            if self.rc_control == 0:
+                                rospy.logwarn("rc_control == 0")
+                                return
+                            control = self.compose_control(0,0,self.current_yaw,0,1)
+                            # control = controlData()
+                            # control.distance = 0
+                            # control.target_yaw = 0
+                            # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                            # control.roller_speed = 0
+                            # control.robot_state = 1
+                            # control.header.stamp = rospy.Time.now()
+                            # control.header.seq = self.control_seq
+                            self.control_pub.publish(control)
+                            time.sleep(0.1)
+                    else:
+                        self.error = 1
+                        control = self.compose_control(0,0,self.current_yaw,0,1)
+                        # control = controlData()
+                        # control.distance = 0
+                        # control.target_yaw = 0
+                        # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                        # control.roller_speed = 0
+                        # control.robot_state = 1
+                        # control.header.stamp = rospy.Time.now()
+                        # control.header.seq = self.control_seq
+                        self.control_pub.publish(control)
+            
             elif self.rc_control == 2:  
 
                 # self.in_dock_flag = False
@@ -1376,6 +1379,8 @@ class ArucoDockingController:
                         pass
                     if self.complete_state == 1:
                         self.out_dock_flag = True
+                        self.in_dock_flag = True
+                        self.docking_flag = False
                         self.count = 0
                     else:
                         self.error = 1
