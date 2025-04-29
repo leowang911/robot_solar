@@ -16,7 +16,7 @@ class RTMPStreamer:
             '-r', '60',            # 帧率
             '-i', '-',             # 从标准输入读取数据
             '-c:v', 'libx264',     # 编码器
-            '-profile:v', 'main',  # 编码配置文件
+            # '-profile:v', 'main',  # 编码配置文件
             '-preset', 'fast',     # 编码预设
             '-f', 'flv',          # 输出格式为FLV
             '-vf','yadif=1', # 去隔行
