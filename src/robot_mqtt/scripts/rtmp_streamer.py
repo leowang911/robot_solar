@@ -12,8 +12,8 @@ class RTMPStreamer:
             'ffmpeg',
             '-f', 'rawvideo',      # 输入格式为原始视频
             '-pix_fmt', 'bgr24',   # OpenCV默认格式为BGR
-            '-s', '640x480',       # 分辨率（需与图像一致）
-            '-r', '30',            # 帧率
+            '-s', '1280x760',       # 分辨率（需与图像一致）
+            '-r', '15',            # 帧率
             '-i', '-',             # 从标准输入读取数据
             '-c:v', 'libx264',     # 编码器
             '-preset', 'fast',     # 编码预设
@@ -32,5 +32,5 @@ class RTMPStreamer:
 if __name__ == '__main__':
     rospy.init_node('rtmp_streamer')
     streamer = RTMPStreamer()
-    rospy.Subscriber('/camera/color/image_raw', Image, streamer.image_callback)
+    rospy.Subscriber('/camera/color/image_raw/compressed', Image, streamer.image_callback)
     rospy.spin()
