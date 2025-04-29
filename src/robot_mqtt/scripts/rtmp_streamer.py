@@ -12,12 +12,18 @@ class RTMPStreamer:
             'ffmpeg',
             '-f', 'rawvideo',      # 输入格式为原始视频
             '-pix_fmt', 'bgr24',   # OpenCV默认格式为BGR
-            '-s', '1280x760',       # 分辨率（需与图像一致）
+            '-s', '1280x720',       # 分辨率（需与图像一致）
             '-r', '60',            # 帧率
             '-i', '-',             # 从标准输入读取数据
             '-c:v', 'libx264',     # 编码器
+            '-profile:v', 'main',  # 编码配置文件
             '-preset', 'fast',     # 编码预设
             '-f', 'flv',          # 输出格式为FLV
+            '-vf','yadif=1', # 去隔行
+            '-flags', '+progressive', # 进程标志
+            '-b:v', '800k',       # 码率
+            '-maxrate', '800k',   # 最大码率
+            '-bufsize', '1600k',   # 缓冲区大小
             'rtmp://tx.direct.huya.com/huyalive/1199574560753-1199574560753-7484892029064985869-2399149244962-10057-A-1742712467-1?seq=1745919923386&type=simple'  # RTMP服务器地址
         ]
         self.ffmpeg_proc = subprocess.Popen(self.ffmpeg_cmd, stdin=subprocess.PIPE)
