@@ -151,9 +151,9 @@ add_executable(rtmp_streamer src/rtmp_streamer.cpp)
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(rtmp_streamer ${catkin_LIBRARIES} ${OpenCV_LIBS})
+target_link_libraries(rtmp_streamer ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
-#############
+#############+
 ## Install ##
 #############
 
