@@ -160,6 +160,7 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/mqtt_robot_publisher.py
   scripts/test_data_publisher.py
+  scripts/rtmp_streamer.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
