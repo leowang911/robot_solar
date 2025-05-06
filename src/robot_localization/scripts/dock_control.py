@@ -1007,12 +1007,12 @@ class ArucoDockingController:
                                         control.header.stamp = rospy.Time.now()
                                         control.robot_state = 1
                                         self.control_pub.publish(control)
-                                        time.sleep(0.05)
+                                        time.sleep(0.1)
                                         control.header.stamp = rospy.Time.now()
                                         control.robot_state = 2 
                                         self.control_pub.publish(control)
                                         # self.control_seq += 1
-                                        time.sleep(1.0)
+                                        time.sleep(0.5)
                                         return 
                                         
                                     if  np.linalg.norm(target_vec)<0.1:
@@ -1033,7 +1033,7 @@ class ArucoDockingController:
                                         self.control_pub.publish(control)
                                         control.robot_state = 2 
                                         control.header.stamp = rospy.Time.now()
-                                        time.sleep(0.01)
+                                        time.sleep(0.1)
                                     self.control_pub.publish(control)
                                     # rospy.loginfo(f"")
                                     rospy.loginfo(f"未到达目标位置: {self.current_target['position']},{self.get_marker_yaw(self.current_target['position'])}")
@@ -1097,7 +1097,7 @@ class ArucoDockingController:
                                             control.header.stamp = rospy.Time.now()
                                             self.control_pub.publish(control)
                                             control.robot_state = 2 
-                                            time.sleep(0.01)
+                                            time.sleep(0.1)
                                             control.header.stamp = rospy.Time.now() 
                                         self.control_pub.publish(control)
                                     
@@ -1149,7 +1149,7 @@ class ArucoDockingController:
                                                     control.header.stamp = rospy.Time.now()
                                                     self.control_pub.publish(control)
                                                     control.robot_state = 2 
-                                                    time.sleep(0.01)
+                                                    time.sleep(0.1)
                                                     control.header.stamp = rospy.Time.now() 
                                                 self.control_pub.publish(control)
                                             
