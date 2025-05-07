@@ -22,6 +22,7 @@ def compute_crc32(data_str):
 def parse_inspvae(line):
     """精确解析消息并验证CRC"""
     line = line.strip()  # 去除首尾空白字符（包括\r\n）
+    rospy.loginfo("解析行: %s", line)
     if not line.startswith('$INSPVA'):
         return None
     
@@ -84,6 +85,7 @@ def parse_inspvae(line):
             'align_st': int(parts[26]),
             'nav_st': int(parts[27]),
             'odo_st': int(parts[28]),
+
         }
     except (ValueError, IndexError) as e:
         rospy.logerr("解析错误: %s", str(e))
