@@ -4,12 +4,14 @@ import serial
 from robot_localization.msg import INSPVA
 from std_msgs.msg import Header
 
+#
+
 def compute_crc32(data_str):
-    """Compute CRC-32/ISO-HDLC checksum with correct bit reversal"""
+    """计算符合示例消息的CRC-32校验和（ISO-HDLC标准）"""
     crc = 0xFFFFFFFF
     for byte in data_str.encode('ascii'):
-        # 反转字节的位（bit-reverse）
-        reversed_byte = int('{:08b}'.format(byte)[::-1], 2)
+        # 反转每个字节的比特位（bit-reversed input）
+        reversed_byte = int(f"{byte:08b}"[::-1], 2)
         crc ^= (reversed_byte << 24)
         for _ in range(8):
             if crc & 0x80000000:
@@ -17,9 +19,9 @@ def compute_crc32(data_str):
             else:
                 crc <<= 1
             crc &= 0xFFFFFFFF
-    # 反转整个 CRC 结果的位，并异或 0xFFFFFFFF
-    crc = crc ^ 0xFFFFFFFF
-    crc = int('{:032b}'.format(crc)[::-1], 2)
+    # 反转整个32位结果并异或0xFFFFFFFF（bit-reversed output）
+    crc ^= 0xFFFFFFFF
+    crc = int(f"{crc:032b}"[::-1], 2)
     return crc
 
 def parse_inspvae(line):
