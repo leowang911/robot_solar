@@ -6,19 +6,17 @@ from robot_localization.msg import INSPVA
 from std_msgs.msg import Header
 
 def compute_crc32(data_str):
-    """严格遵循ISO-HDLC标准的CRC-32计算"""
+    """修正后的CRC-32计算（取消字节和整体反转）"""
     crc = 0xFFFFFFFF
     for byte in data_str.encode('ascii'):
-        reversed_byte = int("{0:08b}".format(byte)[::-1], 2)  # 反转每个字节的比特
-        crc ^= (reversed_byte << 24)
+        crc ^= (byte << 24)  # 关键修改：直接使用原始字节，不反转位序
         for _ in range(8):
             if crc & 0x80000000:
                 crc = (crc << 1) ^ 0x04C11DB7
             else:
                 crc <<= 1
             crc &= 0xFFFFFFFF
-    crc = int("{0:032b}".format(crc)[::-1], 2)  # 反转整个32位结果
-    crc ^= 0xFFFFFFFF  # 最后异或
+    crc ^= 0xFFFFFFFF
     return crc
 
 def parse_inspvae(line):
