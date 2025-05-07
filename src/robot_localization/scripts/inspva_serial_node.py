@@ -38,7 +38,7 @@ def parse_inspvae(line):
     computed_crc = compute_crc32(crc_data)
     received_crc = checksum_part.strip().split()[0][:8].upper()  # Handle trailing CR/LF
     computed_crc_str = f"{computed_crc:08X}"
-    
+
     if computed_crc_str != received_crc:
         rospy.logwarn(f"Checksum mismatch: Computed {computed_crc_str}, Received {received_crc}")
         return None
