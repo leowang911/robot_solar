@@ -5,13 +5,11 @@ from robot_localization.msg import INSPVA
 from std_msgs.msg import Header
 
 #
-
 def compute_crc32(data_str):
-    """计算符合示例消息的CRC-32校验和（ISO-HDLC标准）"""
+    """计算符合所有示例的CRC-32校验（ISO-HDLC标准）"""
     crc = 0xFFFFFFFF
     for byte in data_str.encode('ascii'):
-        # 反转每个字节的比特位（bit-reversed input）
-        reversed_byte = int(f"{byte:08b}"[::-1], 2)
+        reversed_byte = int("{0:08b}".format(byte)[::-1], 2)  # 反转字节位序
         crc ^= (reversed_byte << 24)
         for _ in range(8):
             if crc & 0x80000000:
@@ -19,29 +17,27 @@ def compute_crc32(data_str):
             else:
                 crc <<= 1
             crc &= 0xFFFFFFFF
-    # 反转整个32位结果并异或0xFFFFFFFF（bit-reversed output）
-    crc ^= 0xFFFFFFFF
-    crc = int(f"{crc:032b}"[::-1], 2)
+    # 反转整个32位结果并异或0xFFFFFFFF
+    crc = crc ^ 0xFFFFFFFF
+    crc = int("{0:032b}".format(crc)[::-1], 2)
     return crc
+
 
 def parse_inspvae(line):
     """Parse $INSPVA message with CRC validation"""
+    """解析并验证字段数量及CRC"""
     if not line.startswith('$INSPVA'):
         return None
     
-    # Split checksum part
+    # 分离数据与校验和
     if '*' not in line:
-        rospy.logwarn("Invalid message: missing checksum delimiter")
         return None
     data_part, checksum_part = line.split('*', 1)
+    crc_data = data_part[1:]  # 去掉开头的$
     
-    # Prepare CRC calculation data (exclude $)
-    crc_data = data_part[1:]
-    # rospy.loginfo(f"CRC data: {crc_data}")
-    
-    # Compute and validate checksum
+    # 计算CRC
     computed_crc = compute_crc32(crc_data)
-    received_crc = checksum_part.strip().split()[0][:8].upper()  # Handle trailing CR/LF
+    received_crc = checksum_part.strip()[:8].upper()
     computed_crc_str = "{:08X}".format(computed_crc)
 
     if computed_crc_str != received_crc:
