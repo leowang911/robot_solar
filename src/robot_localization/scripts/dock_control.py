@@ -122,7 +122,6 @@ class ArucoDockingController:
         self.pose3_pub = rospy.Publisher("/marker_pose3", PoseStamped, queue_size=1)
         # self.status_pub = rospy.Publisher("/robot_status", Int16, queue_size=1)
 
-        
         #rospy.Timer(rospy.Duration(0.01), self.control_loop)
         rospy.Timer(rospy.Duration(0.1), self.control_loop)
 
@@ -1388,6 +1387,8 @@ class ArucoDockingController:
                         self.out_dock_flag = True
                         self.in_dock_flag = True
                         self.docking_flag = False
+                        self.latitude_drone = self.latitude
+                        self.longitude_drone = self.longitude
                         self.count = 0
                     else:
                         self.error = 1
