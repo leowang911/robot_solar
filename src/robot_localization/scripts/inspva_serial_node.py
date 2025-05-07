@@ -70,12 +70,12 @@ def parse_inspvae(line):
             'acc_x': float(parts[16]),
             'acc_y': float(parts[17]),
             'acc_z': float(parts[18]),
-            'NSV1': int(parts[19]),
-            'NSV2': int(parts[20]),
-            'age': int(parts[21]),
-            'align_st': int(parts[22]),
-            'nav_st': int(parts[23]),
-            'odo_st': int(parts[24])
+            'NSV1': int(parts[20]),
+            'NSV2': int(parts[21]),
+            'age': int(parts[22]),
+            'align_st': int(parts[23]),
+            'nav_st': int(parts[24]),
+            'odo_st': int(parts[25])
         }
     except (ValueError, IndexError) as e:
         rospy.logerr(f"Parsing error: {str(e)}")
