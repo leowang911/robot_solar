@@ -166,12 +166,12 @@ include_directories(
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
   scripts/inspvae_serial_node.py
+  scripts/inspva_serial_node.py
   scripts/modbus_gps_node.py
   scripts/base_node.py
   scripts/base_serial_node.py
   scripts/dock_control.py
   scripts/imu_inspvae.py
-  scripts/imu_inspva.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
