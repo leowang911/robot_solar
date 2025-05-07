@@ -1,15 +1,15 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import rospy
 import serial
 from robot_localization.msg import INSPVA
 from std_msgs.msg import Header
 
-#
 def compute_crc32(data_str):
     """计算符合所有示例的CRC-32校验（ISO-HDLC标准）"""
     crc = 0xFFFFFFFF
     for byte in data_str.encode('ascii'):
-        reversed_byte = int("{0:08b}".format(byte)[::-1], 2)  # 反转字节位序
+        reversed_byte = int("{0:08b}".format(byte)[::-1], 2)
         crc ^= (reversed_byte << 24)
         for _ in range(8):
             if crc & 0x80000000:
@@ -17,37 +17,35 @@ def compute_crc32(data_str):
             else:
                 crc <<= 1
             crc &= 0xFFFFFFFF
-    # 反转整个32位结果并异或0xFFFFFFFF
-    crc = crc ^ 0xFFFFFFFF
+    crc ^= 0xFFFFFFFF
     crc = int("{0:032b}".format(crc)[::-1], 2)
     return crc
 
-
 def parse_inspvae(line):
-    """Parse $INSPVA message with CRC validation"""
-    """解析并验证字段数量及CRC"""
+    """解析并验证字段及CRC"""
     if not line.startswith('$INSPVA'):
         return None
     
-    # 分离数据与校验和
+    # 分离校验和并严格提取8位十六进制
     if '*' not in line:
         return None
     data_part, checksum_part = line.split('*', 1)
-    crc_data = data_part[1:]  # 去掉开头的$
+    received_crc = checksum_part.strip()[:8].upper()  # 确保只取前8位
     
     # 计算CRC
+    crc_data = data_part[1:]  # 去掉开头的$
     computed_crc = compute_crc32(crc_data)
-    received_crc = checksum_part.strip()[:8].upper()
     computed_crc_str = "{:08X}".format(computed_crc)
-
+    
     if computed_crc_str != received_crc:
-        rospy.logwarn(f"Checksum mismatch: expected {computed_crc_str}, got {received_crc}")
+        rospy.logwarn("CRC校验失败：计算值=%s，接收值=%s", computed_crc_str, received_crc)
         return None
     
-    # Split data fields
+    # 解析字段（根据实际协议调整索引）
     parts = data_part.split(',')
-    if len(parts) < 29:
-        rospy.logwarn(f"Invalid field count: Expected 29, got {len(parts)}")
+    expected_fields = 30  # 根据实际消息调整（含新增的四元数字段）
+    if len(parts) != expected_fields:
+        rospy.logwarn("字段数量错误：期望%d，实际=%d", expected_fields, len(parts))
         return None
     
     try:
@@ -70,10 +68,6 @@ def parse_inspvae(line):
             'acc_x': float(parts[16]),
             'acc_y': float(parts[17]),
             'acc_z': float(parts[18]),
-            # float64 quat_w
-            # float64 quat_x
-            # float64 quat_y
-            # float64 quat_z
             'quat_w': float(parts[19]),
             'quat_x': float(parts[20]),
             'quat_y': float(parts[21]),
@@ -83,10 +77,11 @@ def parse_inspvae(line):
             'age': int(parts[25]),
             'align_st': int(parts[26]),
             'nav_st': int(parts[27]),
-            'odo_st': int(parts[28])
+            'odo_st': int(parts[28]),
+            'reserve': parts[29]  # 根据协议确认最后一个字段
         }
     except (ValueError, IndexError) as e:
-        rospy.logerr(f"Parsing error: {str(e)}")
+        rospy.logerr("解析错误：%s", str(e))
         return None
 
 def inspvae_serial_node():
@@ -108,40 +103,40 @@ def inspvae_serial_node():
             stopbits=serial.STOPBITS_ONE,
             timeout=1
         )
-        rospy.loginfo(f"Connected to {port} @ {baudrate} baud")
+        rospy.loginfo("成功连接到串口: %s @ %d 波特率", port, baudrate)
         
         while not rospy.is_shutdown():
-            line = ser.readline().decode('ascii', errors='ignore').strip()
-            if not line:
-                continue
+            raw_line = ser.readline()
+            line = raw_line.decode('ascii', errors='ignore').strip()
             
-            if rospy.is_shutdown():
-                break
-                
+            # 调试输出原始数据
+            rospy.logdebug("原始数据: %s", line)
+            
             data = parse_inspvae(line)
             if not data:
                 continue
             
             msg = INSPVA()
-            msg.header = Header(
-                stamp=rospy.Time.now(),
-                frame_id='inspva'
-            )
+            msg.header.stamp = rospy.Time.now()
+            msg.header.frame_id = 'inspva'
             
-            # Map parsed data to message fields
+            # 动态映射字段
             for field in data:
-                setattr(msg, field, data[field])
+                if hasattr(msg, field):
+                    setattr(msg, field, data[field])
+                else:
+                    rospy.logwarn("未定义字段: %s", field)
             
             pub.publish(msg)
             
     except serial.SerialException as e:
-        rospy.logerr(f"Serial error: {str(e)}")
+        rospy.logerr("串口错误: %s", str(e))
     except rospy.ROSInterruptException:
         pass
     finally:
         if ser and ser.is_open:
             ser.close()
-            rospy.loginfo("Serial port closed")
+            rospy.loginfo("串口已关闭")
 
 if __name__ == '__main__':
     try:
