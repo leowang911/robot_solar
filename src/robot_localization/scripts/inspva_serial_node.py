@@ -40,7 +40,7 @@ def parse_inspvae(line):
     computed_crc_str = "{:08X}".format(computed_crc)
 
     if computed_crc_str != received_crc:
-        rospy.logwarn(f"Checksum mismatch: Computed {computed_crc_str}, Received {received_crc}")
+        rospy.logwarn(f"Checksum mismatch: expected {computed_crc_str}, got {received_crc}")
         return None
     
     # Split data fields
