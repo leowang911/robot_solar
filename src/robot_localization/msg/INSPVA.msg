@@ -17,10 +17,13 @@ float64 gyro_z
 float64 acc_x
 float64 acc_y
 float64 acc_z
+float64 quat_w
+float64 quat_x
+float64 quat_y
+float64 quat_z
 uint32 NSV1
 uint32 NSV2
 uint32 age
 uint32 align_st
 uint32 nav_st
 uint32 odo_st
-uint32 cs

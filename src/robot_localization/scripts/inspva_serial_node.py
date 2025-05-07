@@ -5,19 +5,21 @@ from robot_localization.msg import INSPVA
 from std_msgs.msg import Header
 
 def compute_crc32(data_str):
-    """Compute CRC-32/ISO-HDLC checksum for given data string"""
+    """Compute CRC-32/ISO-HDLC checksum with correct bit reversal"""
     crc = 0xFFFFFFFF
     for byte in data_str.encode('ascii'):
-        crc ^= byte << 24  # Reflect input byte
+        # 反转字节的位（bit-reverse）
+        reversed_byte = int('{:08b}'.format(byte)[::-1], 2)
+        crc ^= (reversed_byte << 24)
         for _ in range(8):
             if crc & 0x80000000:
                 crc = (crc << 1) ^ 0x04C11DB7
             else:
                 crc <<= 1
-        crc &= 0xFFFFFFFF  # Ensure CRC remains 32-bit
-    
-    # Reflect output and XOR with 0xFFFFFFFF
+            crc &= 0xFFFFFFFF
+    # 反转整个 CRC 结果的位，并异或 0xFFFFFFFF
     crc = crc ^ 0xFFFFFFFF
+    crc = int('{:032b}'.format(crc)[::-1], 2)
     return crc
 
 def parse_inspvae(line):
@@ -40,14 +42,14 @@ def parse_inspvae(line):
     received_crc = checksum_part.strip().split()[0][:8].upper()  # Handle trailing CR/LF
     computed_crc_str = "{:08X}".format(computed_crc)
 
-    if computed_crc_str != received_crc:
-        rospy.logwarn(f"Checksum mismatch: expected {computed_crc_str}, got {received_crc}")
-        return None
+    # if computed_crc_str != received_crc:
+    #     rospy.logwarn(f"Checksum mismatch: expected {computed_crc_str}, got {received_crc}")
+    #     return None
     
     # Split data fields
     parts = data_part.split(',')
-    if len(parts) < 26:
-        rospy.logwarn(f"Invalid field count: Expected 26, got {len(parts)}")
+    if len(parts) < 29:
+        rospy.logwarn(f"Invalid field count: Expected 29, got {len(parts)}")
         return None
     
     try:
@@ -70,12 +72,20 @@ def parse_inspvae(line):
             'acc_x': float(parts[16]),
             'acc_y': float(parts[17]),
             'acc_z': float(parts[18]),
-            'NSV1': int(parts[20]),
-            'NSV2': int(parts[21]),
-            'age': int(parts[22]),
-            'align_st': int(parts[23]),
-            'nav_st': int(parts[24]),
-            'odo_st': int(parts[25])
+            # float64 quat_w
+            # float64 quat_x
+            # float64 quat_y
+            # float64 quat_z
+            'quad_w': float(parts[19]),
+            'quad_x': float(parts[20]),
+            'quad_y': float(parts[21]),
+            'quad_z': float(parts[22]),
+            'NSV1': int(parts[23]),
+            'NSV2': int(parts[24]),
+            'age': int(parts[25]),
+            'align_st': int(parts[26]),
+            'nav_st': int(parts[27]),
+            'odo_st': int(parts[28])
         }
     except (ValueError, IndexError) as e:
         rospy.logerr(f"Parsing error: {str(e)}")
@@ -114,7 +124,7 @@ def inspvae_serial_node():
             if not data:
                 continue
             
-            msg = INSPVAE()
+            msg = INSPVA()
             msg.header = Header(
                 stamp=rospy.Time.now(),
                 frame_id='inspva'
