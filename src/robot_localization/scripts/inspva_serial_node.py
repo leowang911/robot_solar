@@ -49,7 +49,7 @@ def parse_inspvae(line):
     
     # 字段解析（严格匹配字段数量）
     parts = data_part.split(',')
-    expected_fields = 30  # 根据实际消息确定
+    expected_fields = 29  # 根据实际消息确定
     if len(parts) != expected_fields:
         rospy.logwarn("字段数量错误：期望=%d 实际=%d", expected_fields, len(parts))
         return None
@@ -84,7 +84,6 @@ def parse_inspvae(line):
             'align_st': int(parts[26]),
             'nav_st': int(parts[27]),
             'odo_st': int(parts[28]),
-            'reserve': parts[29]
         }
     except (ValueError, IndexError) as e:
         rospy.logerr("解析错误: %s", str(e))
