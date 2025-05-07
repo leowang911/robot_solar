@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import serial
-from robot_localization.msg import INSPVAE
+from robot_localization.msg import INSPVA
 from std_msgs.msg import Header
 
 def compute_crc32(data_str):
@@ -87,7 +87,7 @@ def inspvae_serial_node():
     baudrate = rospy.get_param('~baudrate', 460800)
     topic_name = rospy.get_param('~topic', 'inspva_data')
     
-    pub = rospy.Publisher(topic_name, INSPVAE, queue_size=10)
+    pub = rospy.Publisher(topic_name, INSPVA, queue_size=10)
     ser = None
     
     try:
