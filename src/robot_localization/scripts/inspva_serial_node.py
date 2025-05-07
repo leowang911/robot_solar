@@ -22,7 +22,7 @@ def compute_crc32(data_str):
 def parse_inspvae(line):
     """精确解析消息并验证CRC"""
     line = line.strip()  # 去除首尾空白字符（包括\r\n）
-    rospy.loginfo("解析行: %s", line)
+    # rospy.loginfo("解析行: %s", line)
     if not line.startswith('$INSPVA'):
         return None
     
