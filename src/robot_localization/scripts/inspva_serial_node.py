@@ -35,16 +35,16 @@ def parse_inspvae(line):
     
     # Prepare CRC calculation data (exclude $)
     crc_data = data_part[1:]
-    rospy.loginfo(f"CRC data: {crc_data}")
+    # rospy.loginfo(f"CRC data: {crc_data}")
     
     # Compute and validate checksum
     computed_crc = compute_crc32(crc_data)
     received_crc = checksum_part.strip().split()[0][:8].upper()  # Handle trailing CR/LF
     computed_crc_str = "{:08X}".format(computed_crc)
 
-    # if computed_crc_str != received_crc:
-    #     rospy.logwarn(f"Checksum mismatch: expected {computed_crc_str}, got {received_crc}")
-    #     return None
+    if computed_crc_str != received_crc:
+        rospy.logwarn(f"Checksum mismatch: expected {computed_crc_str}, got {received_crc}")
+        return None
     
     # Split data fields
     parts = data_part.split(',')
