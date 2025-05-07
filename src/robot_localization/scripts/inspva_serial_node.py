@@ -6,10 +6,10 @@ from robot_localization.msg import INSPVA
 from std_msgs.msg import Header
 
 def compute_crc32(data_str):
-    """修正顺序后的CRC-32/ISO-HDLC计算"""
+    """严格遵循ISO-HDLC标准的CRC-32计算"""
     crc = 0xFFFFFFFF
     for byte in data_str.encode('ascii'):
-        reversed_byte = int("{0:08b}".format(byte)[::-1], 2)
+        reversed_byte = int("{0:08b}".format(byte)[::-1], 2)  # 反转每个字节的比特
         crc ^= (reversed_byte << 24)
         for _ in range(8):
             if crc & 0x80000000:
@@ -17,31 +17,43 @@ def compute_crc32(data_str):
             else:
                 crc <<= 1
             crc &= 0xFFFFFFFF
-    crc = int("{0:032b}".format(crc)[::-1], 2)
-    crc ^= 0xFFFFFFFF
+    crc = int("{0:032b}".format(crc)[::-1], 2)  # 反转整个32位结果
+    crc ^= 0xFFFFFFFF  # 最后异或
     return crc
 
 def parse_inspvae(line):
-    """解析并验证字段及CRC"""
+    """精确解析消息并验证CRC"""
+    line = line.strip()  # 去除首尾空白字符（包括\r\n）
     if not line.startswith('$INSPVA'):
         return None
     
+    # 分离数据与校验部分（严格处理*后的内容）
     if '*' not in line:
         return None
     data_part, checksum_part = line.split('*', 1)
-    received_crc = checksum_part.strip()[:8].upper()
     
-    crc_data = data_part[1:]
+    # 清理校验和部分（只保留8位十六进制字符）
+    received_crc = checksum_part.strip()[:8].upper().replace(' ', '')
+    if len(received_crc) != 8:
+        rospy.logwarn("无效校验和长度: %s", received_crc)
+        return None
+    
+    # 提取待校验数据（确保不包含$）
+    crc_data = data_part[1:]  # 去掉开头的$
     computed_crc = compute_crc32(crc_data)
     computed_crc_str = "{:08X}".format(computed_crc)
     
+    # CRC验证
     if computed_crc_str != received_crc:
-        rospy.logwarn("CRC校验失败：计算值=%s，接收值=%s", computed_crc_str, received_crc)
+        rospy.logwarn("CRC校验失败：计算值=%s 接收值=%s 数据=[%s]", 
+                     computed_crc_str, received_crc, crc_data)
         return None
     
+    # 字段解析（严格匹配字段数量）
     parts = data_part.split(',')
-    if len(parts) != 30:
-        rospy.logwarn("字段数量错误：期望30，实际=%d", len(parts))
+    expected_fields = 30  # 根据实际消息确定
+    if len(parts) != expected_fields:
+        rospy.logwarn("字段数量错误：期望=%d 实际=%d", expected_fields, len(parts))
         return None
     
     try:
@@ -77,7 +89,7 @@ def parse_inspvae(line):
             'reserve': parts[29]
         }
     except (ValueError, IndexError) as e:
-        rospy.logerr("解析错误：%s", str(e))
+        rospy.logerr("解析错误: %s", str(e))
         return None
 
 def inspvae_serial_node():
@@ -99,28 +111,44 @@ def inspvae_serial_node():
             stopbits=serial.STOPBITS_ONE,
             timeout=1
         )
-        rospy.loginfo("成功连接到串口: %s @ %d 波特率", port, baudrate)
+        rospy.loginfo("成功连接串口: %s @ %d", port, baudrate)
         
         while not rospy.is_shutdown():
             raw_line = ser.readline()
-            line = raw_line.decode('ascii', errors='ignore').strip()
+            try:
+                line = raw_line.decode('ascii').strip()
+            except UnicodeDecodeError:
+                rospy.logwarn("解码错误，忽略无效数据")
+                continue
+            
+            # 调试输出原始数据
+            rospy.logdebug("原始数据: %s", line)
+            
             data = parse_inspvae(line)
-            if data:
-                msg = INSPVA()
-                msg.header.stamp = rospy.Time.now()
-                msg.header.frame_id = 'inspva'
-                for field in data:
-                    if hasattr(msg, field):
-                        setattr(msg, field, data[field])
-                pub.publish(msg)
+            if not data:
+                continue
+            
+            msg = INSPVA()
+            msg.header.stamp = rospy.Time.now()
+            msg.header.frame_id = 'inspva'
+            
+            # 动态映射字段
+            for field in data:
+                if hasattr(msg, field):
+                    setattr(msg, field, data[field])
+                else:
+                    rospy.logwarn("未定义字段: %s", field)
+            
+            pub.publish(msg)
             
     except serial.SerialException as e:
-        rospy.logerr("串口错误: %s", str(e))
+        rospy.logerr("串口异常: %s", str(e))
     except rospy.ROSInterruptException:
         pass
     finally:
         if ser and ser.is_open:
             ser.close()
+            rospy.loginfo("串口已关闭")
 
 if __name__ == '__main__':
     inspvae_serial_node()
