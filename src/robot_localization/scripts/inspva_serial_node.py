@@ -41,11 +41,11 @@ def parse_inspvae(line):
     computed_crc = compute_crc32(crc_data)
     computed_crc_str = "{:08X}".format(computed_crc)
     
-    # CRC验证
-    if computed_crc_str != received_crc:
-        rospy.logwarn("CRC校验失败：计算值=%s 接收值=%s 数据=[%s]", 
-                     computed_crc_str, received_crc, crc_data)
-        return None
+    # # CRC验证
+    # if computed_crc_str != received_crc:
+    #     rospy.logwarn("CRC校验失败：计算值=%s 接收值=%s 数据=[%s]", 
+    #                  computed_crc_str, received_crc, crc_data)
+    #     return None
     
     # 字段解析（严格匹配字段数量）
     parts = data_part.split(',')
