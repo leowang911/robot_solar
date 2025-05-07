@@ -94,9 +94,10 @@ class MQTTRobotBridge:
         # rospy.Subscriber("/inspvae_data", INSPVAE, self.inspvae_cb)
         rospy.Subscriber("/inspva_data", INSPVA, self.inspva_cb)
         rospy.Subscriber("/gps/raw", GPSData, self.drone_gps_cb)
-        rospy.Subscriber('/base_', Bool, self.task_callback)
+        # rospy.Subscriber('/base_', Bool, self.task_callback)
         # rospy.Subscriber('/mission/route_id', String, self.route_callback)
         rospy.Subscriber("/base_status", baseStatus, self.base_cb)
+        rospy.Subscriber('/control_data', String, self.control_callback)
         
         # 发布者（用于接收的MQTT消息）
         self.cmd_pub = rospy.Publisher('/mqtt_received', String, queue_size=10)
@@ -127,6 +128,12 @@ class MQTTRobotBridge:
     def on_mqtt_disconnect(self, client, userdata, disconnect_flags, rc, properties=None):
         rospy.logwarn(f"MQTT disconnected (rc={rc}), attempting reconnect...")
         self.setup_mqtt()
+
+    def control_callback(self, msg):
+        if msg.robot_state != 1:
+            self.robot_data["task_status"] = 0
+        else:
+            self.robot_data["task_status"] = 1
 
     # ROS回调函数on_m
     def inspvae_cb(self, msg):
