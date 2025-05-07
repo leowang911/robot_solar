@@ -265,7 +265,6 @@ class MQTTRobotBridge:
     def _handle_control_command(self, command):
         """处理速度控制命令"""
         
-        
         # 创建ROS消息
         control = controlData()
         
