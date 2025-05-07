@@ -33,6 +33,7 @@ def parse_inspvae(line):
     
     # Prepare CRC calculation data (exclude $)
     crc_data = data_part[1:]
+    rospy.loginfo(f"CRC data: {crc_data}")
     
     # Compute and validate checksum
     computed_crc = compute_crc32(crc_data)
