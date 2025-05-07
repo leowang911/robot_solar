@@ -76,10 +76,10 @@ def parse_inspvae(line):
             # float64 quat_x
             # float64 quat_y
             # float64 quat_z
-            'quad_w': float(parts[19]),
-            'quad_x': float(parts[20]),
-            'quad_y': float(parts[21]),
-            'quad_z': float(parts[22]),
+            'quat_w': float(parts[19]),
+            'quat_x': float(parts[20]),
+            'quat_y': float(parts[21]),
+            'quat_z': float(parts[22]),
             'NSV1': int(parts[23]),
             'NSV2': int(parts[24]),
             'age': int(parts[25]),
