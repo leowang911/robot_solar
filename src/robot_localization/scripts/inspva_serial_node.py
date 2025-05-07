@@ -110,7 +110,7 @@ def inspvae_serial_node():
             line = raw_line.decode('ascii', errors='ignore').strip()
             
             # 调试输出原始数据
-            rospy.logdebug("原始数据: %s", line)
+            rospy.loginfo("原始数据: %s", line)
             
             data = parse_inspvae(line)
             if not data:
