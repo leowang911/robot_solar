@@ -3,6 +3,7 @@ import rospy
 import serial
 from robot_localization.msg import INSPVA
 from std_msgs.msg import Header
+from __future__ import print_function 
 
 def compute_crc32(data_str):
     """Compute CRC-32/ISO-HDLC checksum for given data string"""
