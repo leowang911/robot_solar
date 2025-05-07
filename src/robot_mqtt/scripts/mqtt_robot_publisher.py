@@ -7,7 +7,7 @@ from sensor_msgs.msg import Imu
 from sensor_msgs.msg import NavSatFix
 from std_msgs.msg import Bool, String, Float32
 from geometry_msgs.msg import Twist
-from robot_localization.msg import INSPVAE, baseStatus, GPSData
+from robot_localization.msg import INSPVAE,INSPVA, baseStatus, GPSData
 from robot_control.msg import controlData  # 根据实际包名调整
 import uuid
 class MQTTRobotBridge:
@@ -21,7 +21,7 @@ class MQTTRobotBridge:
         self.mqtt_port = rospy.get_param('~mqtt_port', 1883)
         # self.mqtt_user = rospy.get_param('~mqtt_user', '123')
         # self.mqtt_password = rospy.get_param('~mqtt_password', '123')
-        self.robot_id = rospy.get_param('~robot_id', 'robot_1')
+        self.robot_id = rospy.get_param('~robot_id', 'GFSTJM120250201')
         self.pub_topic = rospy.get_param('~pub_topic', f'robot/{self.robot_id}/status')
         self.sub_topic = rospy.get_param('~sub_topic', 'robot/commands')
         self.uuid = str(uuid.uuid4())  # 生成唯一ID
@@ -91,7 +91,8 @@ class MQTTRobotBridge:
     def init_ros(self):
         """初始化ROS组件"""
         # 订阅者
-        rospy.Subscriber("/inspvae_data", INSPVAE, self.inspvae_cb)
+        # rospy.Subscriber("/inspvae_data", INSPVAE, self.inspvae_cb)
+        rospy.Subscriber("/inspva_data", INSPVA, self.inspva_cb)
         rospy.Subscriber("/gps/raw", GPSData, self.drone_gps_cb)
         rospy.Subscriber('/base_', Bool, self.task_callback)
         # rospy.Subscriber('/mission/route_id', String, self.route_callback)
@@ -144,6 +145,29 @@ class MQTTRobotBridge:
         #     "y": msg.linear_acceleration.y,
         #     "z": msg.linear_acceleration.z
         # }
+
+    def inspva_cb(self, msg):
+        """处理IMU数据"""
+        self.robot_data["gps"] = {
+            "latitude": msg.latitude,
+            "longitude": msg.longitude
+        }
+        self.robot_data["pose"] = {
+            "roll": msg.roll,
+            "pitch": msg.pitch,
+            "yaw": msg.yaw
+        }
+        self.robot_data["acceleration"] = {
+            "x": msg.acc_x,
+            "y": msg.acc_y,
+            "z": msg.acc_z
+        }
+        self.robot_data["angular_velocity"] = {
+            "x": msg.gyro_x,
+            "y": msg.gyro_y,
+            "z": msg.gyro_z
+        }
+
 
     def drone_gps_cb(self, msg):
         """处理无人机GPS数据"""

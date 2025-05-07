@@ -12,7 +12,7 @@ from geographic_msgs.msg import GeoPoint
 from geodesy import utm
 from geometry_msgs.msg import PoseStamped, Twist, PoseArray,PointStamped,Quaternion
 from robot_control.msg import controlData 
-from robot_localization.msg import INSPVAE,baseStatus, GPSData
+from robot_localization.msg import INSPVAE,INSPVA,baseStatus, GPSData
 from std_msgs.msg import Int16, Int32,Header
 from sensor_msgs.msg import Image
 import time
@@ -102,6 +102,7 @@ class ArucoDockingController:
         
         # 订阅器
         rospy.Subscriber("/inspvae_data", INSPVAE, self.inspvae_cb)
+        rospy.Subscriber("/inspva_data", INSPVA, self.inspva_cb)
         rospy.Subscriber("/base_status", baseStatus, self.base_cb)
         rospy.Subscriber("/gps/raw", GPSData, self.drone_gps_cb)
         rospy.Subscriber("/camera/aruco_100/pixel", PointStamped, self.left_cb)
@@ -201,6 +202,12 @@ class ArucoDockingController:
         # self.latitude = msg.latitude
         # self.longitude = msg.longitude
         self.current_yaw = math.radians(msg.yaw)
+
+    def inspva_cb(self, msg):
+        self.latitude = msg.latitude
+        self.longitude = msg.longitude
+        # self.current_yaw = math.radians(msg.yaw)
+        
 
     def left_cb(self, msg): self.process_marker(msg, 'left')
 
