@@ -84,21 +84,12 @@ class ArucoDockingController:
         self.control_seq = 0
         self.stop_flag = False
         self.out_dock_flag = False
-        self.in_dock_flag = True
+        self.in_dock_flag = False
         self.corner_finding_flag = True
         self.auto_cleaning_flag = True
         self.docking_flag = False
 
         
-
-        #  # 新增滤波参数
-        # self.filter_enabled = True          # 滤波开关
-        # self.filter_time_constant = 0.2     # 低通滤波时间常数（秒）
-        # self.ema_alpha = 0.3                # EMA平滑系数（0-1）
-        
-        # # 滤波状态变量
-        # self.filtered_yaw = 0.0             # 滤波后航向角
-        # self.last_filter_time = None        # 上次滤波时间
         
         # 订阅器
         rospy.Subscriber("/inspvae_data", INSPVAE, self.inspvae_cb)
@@ -924,7 +915,7 @@ class ArucoDockingController:
         """主控制循环""" 
         
         control = controlData()
-        rospy.loginfo(f"in_dock_flag: {self.in_dock_flag} docking_flag: {self.docking_flag} rc_control: {self.rc_control}")
+        # rospy.loginfo(f"in_dock_flag: {self.in_dock_flag} docking_flag: {self.docking_flag} rc_control: {self.rc_control}")
         if self.stop_flag == False: #是否进入停止状态
             self.control_seq += 1
             if self.rc_control == 1:
@@ -932,7 +923,7 @@ class ArucoDockingController:
                 # self.corner_finding_flag = False
                 # self.auto_cleaning_flag = False
 
-                if self.docking_flag ==False: #todo 
+                if self.docking_flag ==False and False: #todo 
                     if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
                         self.state = "APPROACHING"
                         pass
