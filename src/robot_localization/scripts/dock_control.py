@@ -289,18 +289,18 @@ class ArucoDockingController:
 
         if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
             self.state = "APPROACHING"
-            if self.first_look_flag == False:
-                self.first_look_flag = True
-                control = controlData()
-                control.distance = 0 
-                # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                control.roller_speed = 0
-                control.robot_state = 1
-                self.control_pub.publish(control)
-                time.sleep(0.1)
+            # if self.first_look_flag == False:
+            #     self.first_look_flag = True
+            #     control = controlData()
+            #     control.distance = 0 
+            #     # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            #     # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            #     control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            #     control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            #     control.roller_speed = 0
+            #     control.robot_state = 1
+            #     self.control_pub.publish(control)
+            #     time.sleep(0.1)
                     
         else:
             self.state = "SEARCH"
