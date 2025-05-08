@@ -251,7 +251,7 @@ class BaseSerialNode:
         # 计算校验和
         checksum = sum(frame[:12]) & 0xFF
         final_frame = frame + bytes([checksum])
-        # rospy.loginfo(f"Creating frame: {final_frame.hex()}")
+        rospy.logwarn(f"Creating frame: {final_frame.hex()}")
         self.complete_state_prev = self.complete_state
         self.rc_state_prev  = self.rc_state
         return final_frame
