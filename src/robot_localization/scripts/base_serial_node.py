@@ -210,8 +210,8 @@ class BaseSerialNode:
         #     self.last_tx_data_prev = data
         #     state = 0x01
 
-        if self.complete_state != 0 or state == 0x01:
-            self.last_tx_data_prev = data
+        # if self.complete_state != 0 or state == 0x01:
+        #     self.last_tx_data_prev = data
 
         # if state == 0x02 and self.complete_state_prev == 0 and self.complete_state ==1:
         #     self.last_tx_data_prev = data
