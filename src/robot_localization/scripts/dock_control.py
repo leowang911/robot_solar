@@ -1297,6 +1297,7 @@ class ArucoDockingController:
                     if self.count == 0:
                         control = self.compose_control(0,0,self.current_yaw,0,1)
                         self.control_pub.publish(control)
+                        rospy.logwarn("pub state 1")
                         time.sleep(0.1)
                         self.count = 1
                     
@@ -1331,6 +1332,7 @@ class ArucoDockingController:
                     else:
                         self.error = 1
                         control = self.compose_control(0,0,self.current_yaw,0,1)
+                        rospy.logwarn("pub state 1 1")
                         # control = controlData()
                         # control.distance = 0
                         # control.target_yaw = 0
