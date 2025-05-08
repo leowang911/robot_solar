@@ -47,7 +47,7 @@ int main(int argc, char** argv)
 
     // 从文件中加载消息
     // std::vector<std::string> messages = load_messages_from_file("/home/orangepi/ros_ws/src/gps/rtkmsgs/bd1.txt");
-    std::vector<std::string> messages = load_messages_from_file("/home/rosubuntu/ros_ws/src/gps/rtkmsgs/bd1.txt");
+    std::vector<std::string> messages = load_messages_from_file("/home/rosubuntu/robot_solar/src/gps/rtkmsgs/bd1.txt");
     if (messages.empty())
     {
         ROS_ERROR("No messages loaded from the file.");

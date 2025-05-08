@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <iostream>
-#include "/home/rosubuntu/ros_ws/src/gps/include/gps.h"
+#include "/home/rosubuntu/robot_solar/src/gps/include/gps.h"
 // #include <stdint.h>  // 包含标准整数类型定义
 #include <cstdint>
 #include <iomanip>  // For std::setw and std::setfill
