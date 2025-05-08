@@ -1,0 +1,26 @@
+broker:
+  host: broker.emqx.io
+  port: 1883
+bridge:
+  ros2mqtt:
+    - ros_topic: /ping/ros
+      mqtt_topic: pingpong/ros
+    - ros_topic: /ping/primitive
+      mqtt_topic: pingpong/primitive
+      primitive: true
+  mqtt2ros:
+    - mqtt_topic: pingpong/ros
+      ros_topic: /pong/ros
+    - mqtt_topic: pingpong/primitive
+      ros_topic: /pong/primitive
+      primitive: true
+  ros2mqtt:
+    - ros_topic: /rosmsg
+      mqtt_topic: device/860065077034033/upload
+      primitive: true
+  mqtt2ros:
+    - mqtt_topic: device/860065077034033/upload
+      ros_topic: /mqttmsg
+      primitive: true
+
+      
