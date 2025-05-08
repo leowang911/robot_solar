@@ -1303,10 +1303,11 @@ class ArucoDockingController:
                             self.lock_current=False
 
                 if self.in_dock_flag == False:
-                
-                    control = self.compose_control(0,0,self.current_yaw,0,1)
-                    self.control_pub.publish(control)
-                    time.sleep(0.1)
+                    if self.count == 0:
+                        control = self.compose_control(0,0,self.current_yaw,0,1)
+                        self.control_pub.publish(control)
+                        time.sleep(0.1)
+                        self.count = 1
                     
                     control = self.compose_control(0,0,self.current_yaw,0,4)
                     self.control_pub.publish(control)
