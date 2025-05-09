@@ -279,6 +279,7 @@ class MQTTRobotBridge:
     def _handle_newID_command(self, command):
         """处理新的ID命令"""
         self.uuid = str(uuid.uuid4())
+        self.robot_data["uuid"] = self.uuid
 
 
     def _handle_control_command(self, command):
