@@ -42,7 +42,7 @@ int main(int argc, char** argv)
 {
     ros::init(argc, argv, "serial_publisher");
     ros::NodeHandle nh;
-    ros::Publisher pub = nh.advertise<std_msgs::String>("serial_topic", 1000);
+    ros::Publisher pub = nh.advertise<std_msgs::String>("rosmsg", 1000);
     ros::Rate loop_rate(100); // 10 Hz
 
     // 从文件中加载消息

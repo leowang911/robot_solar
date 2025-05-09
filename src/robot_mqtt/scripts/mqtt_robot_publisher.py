@@ -15,10 +15,12 @@ class MQTTRobotBridge:
         rospy.init_node('mqtt_robot_bridge', anonymous=True)
         
         # 初始化MQTT参数
-        # self.mqtt_broker = rospy.get_param('~mqtt_broker', '106.12.23.8')
-        # self.mqtt_port = rospy.get_param('~mqtt_port', 13234)
-        self.mqtt_broker = rospy.get_param('~mqtt_broker', 'broker.emqx.io')
-        self.mqtt_port = rospy.get_param('~mqtt_port', 1883)
+        self.mqtt_broker = rospy.get_param('~mqtt_broker', '106.12.23.8')
+        self.mqtt_port = rospy.get_param('~mqtt_port', 13234)
+        # self.mqtt_broker = rospy.get_param('~mqtt_broker', 'broker.emqx.io')
+        # self.mqtt_port = rospy.get_param('~mqtt_port', 1883)
+        self.mqtt_user = rospy.get_param('~mqtt_user', "jifeng")
+        self.mqtt_password = rospy.get_param('~mqtt_password', "8dY9hE5FVF2GEIi")
         # self.mqtt_user = rospy.get_param('~mqtt_user', '123')
         # self.mqtt_password = rospy.get_param('~mqtt_password', '123')
         self.robot_id = rospy.get_param('~robot_id', 'GFSTJM120250201')
@@ -87,6 +89,14 @@ class MQTTRobotBridge:
         self.setup_mqtt()# 初始化ROS发布者和订阅者
         
         
+    def handle_error(self, error_message, error_code_binary):
+        """处理错误日志并更新错误码"""
+        # 将二进制错误码转换为十进制
+        error_code_decimal = int(error_code_binary, 2)
+        rospy.logerr(f"{error_message} (Error Code: {error_code_decimal})")
+        
+        # 更新 robot_data 的错误码
+        self.robot_data["error"] |= error_code_decimal  # 使用位或操作累积错误码
 
     def init_ros(self):
         """初始化ROS组件"""
@@ -108,12 +118,16 @@ class MQTTRobotBridge:
         self.mqtt_client.on_message = self.on_mqtt_message
         self.mqtt_client.on_disconnect = self.on_mqtt_disconnect
         
+        if self.mqtt_user is not None and self.mqtt_password is not None:
+            self.mqtt_client.username_pw_set(self.mqtt_user, self.mqtt_password)
+        
         try:
             self.mqtt_client.connect(self.mqtt_broker, self.mqtt_port, 60)
             self.mqtt_client.loop_start()
             rospy.loginfo(f"Connected to MQTT broker at {self.mqtt_broker}:{self.mqtt_port}")
         except Exception as e:
-            rospy.logerr(f"Initial MQTT connection failed: {str(e)}")
+            # rospy.logerr(f"Initial MQTT connection failed: {str(e)}")
+            self.handle_error(f"Initial MQTT connection failed: {str(e)}", "01000000")  # 示例错误码
             rospy.signal_shutdown("MQTT connection error")
 
     # MQTT回调函数
@@ -122,7 +136,8 @@ class MQTTRobotBridge:
             rospy.loginfo("MQTT connected successfully")
             client.subscribe(self.sub_topic)
         else:
-            rospy.logerr(f"MQTT connection failed with code {rc}")
+            # rospy.logerr(f"MQTT connection failed with code {rc}")
+            self.handle_error(f"MQTT connection failed with {rc}", "00100000")  # 示例错误码
 
 
     def on_mqtt_disconnect(self, client, userdata, disconnect_flags, rc, properties=None):
@@ -209,7 +224,8 @@ class MQTTRobotBridge:
             self.mqtt_client.publish(self.pub_topic, payload, qos=1)
             rospy.logdebug("Published to MQTT: %s", payload)
         except Exception as e:
-            rospy.logerr(f"MQTT publish error: {str(e)}")
+            # rospy.logerr(f"MQTT publish error: {str(e)}")
+            self.handle_error(f"MQTT publish error: {str(e)}", "00010000")  # 示例错误码
 
     def run(self):
         rate = rospy.Rate(1/5)  # 发布频率5s一次
@@ -263,11 +279,13 @@ class MQTTRobotBridge:
                 rospy.logwarn(f"Unknown command type: {cmd_type}")
 
         except json.JSONDecodeError:
-            rospy.logerr("Failed to parse JSON command")
+            # rospy.logerr("Failed to parse JSON command")
+            self.handle_error("Failed to parse JSON command", "00001000")  # 示例错误码
         except KeyError as e:
             rospy.logwarn(f"Missing required field in command: {str(e)}")
         except Exception as e:
-            rospy.logerr(f"Error processing command: {str(e)}")
+            # rospy.logerr(f"Error processing command: {str(e)}")
+            self.handle_error(f"Error processing command: {str(e)}", "00000100")  # 示例错误码
 
     def _handle_control_command(self, command):
         """处理速度控制命令"""
@@ -353,7 +371,8 @@ class MQTTRobotBridge:
                 response = emergency_srv()
                 rospy.loginfo(f"Emergency stop response: {response.message}")
             except rospy.ServiceException as e:
-                rospy.logerr(f"Service call failed: {str(e)}")
+                # rospy.logerr(f"Service call failed: {str(e)}")
+                self.handle_error(f"Service call failed: {str(e)}", "00000010")  # 示例错误码
         
         elif action == "reboot":
             try:
@@ -361,7 +380,8 @@ class MQTTRobotBridge:
                 response = reboot_srv()
                 rospy.loginfo(f"Reboot response: {response.message}")
             except rospy.ServiceException as e:
-                rospy.logerr(f"Service call failed: {str(e)}")
+                # rospy.logerr(f"Service call failed: {str(e)}")
+                self.handle_error(f"Service call failed: {str(e)}", "00000001")
             rospy.logwarn("Received reboot command - Implement actual reboot logic here")
             
         else:

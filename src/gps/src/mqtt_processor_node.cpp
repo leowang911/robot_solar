@@ -27,7 +27,8 @@ public:
     SerialProcessor() {
         // 初始化ROS节点和订阅者
         ros::NodeHandle nh;
-        sub_ = nh.subscribe("/serial_topic", 1000, &SerialProcessor::serialCallback, this);
+        // sub_ = nh.subscribe("/serial_topic", 1000, &SerialProcessor::serialCallback, this);//调试文本消息
+        sub_ = nh.subscribe("/mqttmsg", 1000, &SerialProcessor::serialCallback, this);
         // 初始化数据缓冲区和标志
         // gps_tau1201_num = 0;
         // gps_tau1201_flag = 0;
@@ -633,7 +634,7 @@ static uint8_t gps_gngga_parse (char *line, gps_info_struct *gps)
 int main(int argc, char** argv) {
     ros::init(argc, argv, "serial_processor_node");
     ros::Time::init();
-    ros::Rate r(10); // 10Hz
+    ros::Rate r(1); // 10Hz
     SerialProcessor processor;
 
     ros::NodeHandle nh;

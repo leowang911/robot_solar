@@ -1,15 +1,17 @@
 <launch>
   <!-- real serial -->
    <!-- <node pkg="gps" type="serial_listener.py" name="serial_listener" output="screen"/>  -->
-  <!-- fake test_topic -->
+  <!-- 实地测试注释test_topic -->
   <node pkg="gps" type="test_topic" name="test_topic_node" output="screen"/>
   <node pkg="gps" type="mqtt_processor_node" name="mqtt_processor_node" output="screen"/>
 
   <!-- <node pkg="mqtt" type="mqtt" name="mqtt" output="screen"/> -->
     
  <!-- MQTT Client Node Configuration -->
- <!-- <arg name="params_file" default="$(find mqtt_client)/config/params.yaml" />
+ <!-- <arg name="params_file" default="$(find mqtt_client)/config/params.yaml" /> -->
+ <arg name="params_file" default="$(find gps)/launch/mqttparams.yaml" />
   <node pkg="nodelet" type="nodelet" name="mqtt_client" args="standalone mqtt_client/MqttClient" output="screen">
-    <rosparam command="load" file="$(arg params_file)" /> -->
-  <!-- </node> -->
+    <rosparam command="load" file="$(arg params_file)" />
+  </node>
+
 </launch>
