@@ -264,6 +264,8 @@ class MQTTRobotBridge:
                 self._handle_system_command(command)
             elif cmd_type == "route":
                 self._handle_route_command(command)
+            elif cmd_type == "newID":
+                self._handle_newID_command(command)
             else:
                 rospy.logwarn(f"Unknown command type: {cmd_type}")
 
@@ -273,6 +275,11 @@ class MQTTRobotBridge:
             rospy.logwarn(f"Missing required field in command: {str(e)}")
         except Exception as e:
             rospy.logerr(f"Error processing command: {str(e)}")
+    
+    def _handle_newID_command(self, command):
+        """处理新的ID命令"""
+        self.uuid = str(uuid.uuid4())
+
 
     def _handle_control_command(self, command):
         """处理速度控制命令"""
