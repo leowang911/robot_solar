@@ -399,8 +399,10 @@
 
 
     <node pkg="robot_mqtt" type="mqtt_robot_publisher.py" name="mqtt_sub_node">
-        <param name="mqtt_broker" value="broker.emqx.io"/>
-        <param name="mqtt_port" value="1883"/>
+        <param name="mqtt_broker" value="106.12.23.8"/>
+        <param name="mqtt_port" value="13234"/>
+        <param name="mqtt_user" value="jifeng"/>
+        <param name="mqtt_password" value="8dY9hE5FVF2GEIi"/>
         </node>
 
     <!-- <node pkg="robot_mqtt" type="test_data_publisher.py" name="mqtt_pub_node">

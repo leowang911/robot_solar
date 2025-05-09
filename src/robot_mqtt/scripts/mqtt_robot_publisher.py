@@ -19,6 +19,8 @@ class MQTTRobotBridge:
         # self.mqtt_port = rospy.get_param('~mqtt_port', 13234)
         self.mqtt_broker = rospy.get_param('~mqtt_broker', 'broker.emqx.io')
         self.mqtt_port = rospy.get_param('~mqtt_port', 1883)
+        self.mqtt_user = rospy.get_param('~mqtt_user', None)
+        self.mqtt_password = rospy.get_param('~mqtt_password', None)
         # self.mqtt_user = rospy.get_param('~mqtt_user', '123')
         # self.mqtt_password = rospy.get_param('~mqtt_password', '123')
         self.robot_id = rospy.get_param('~robot_id', 'GFSTJM120250201')
@@ -107,6 +109,9 @@ class MQTTRobotBridge:
         self.mqtt_client.on_connect = self.on_mqtt_connect
         self.mqtt_client.on_message = self.on_mqtt_message
         self.mqtt_client.on_disconnect = self.on_mqtt_disconnect
+        
+        if self.mqtt_user is not None and self.mqtt_password is not None:
+            self.mqtt_client.username_pw_set(self.mqtt_user, self.mqtt_password)
         
         try:
             self.mqtt_client.connect(self.mqtt_broker, self.mqtt_port, 60)

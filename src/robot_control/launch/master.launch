@@ -366,18 +366,18 @@
             args="0.232 0 0.287 -0.5 0.5 -0s.5 0.5 base_link camera_link  "/>
     </group>
 
-    <node pkg="robot_localization" type="base_serial_node.py" name="base_serial_node">
+    <!-- <node pkg="robot_localization" type="base_serial_node.py" name="base_serial_node">
         <param name="serial_port" value="/dev/baseSerial"/>
         <param name="baudrate" value="115200"/>
         <param name="serial_timeout" value="0.1"/>
         <param name="angle_dir" value="$(arg angle_dir)"/>
-    </node>
+    </node> -->
 
-    <!-- <node pkg="robot_localization" type="imu_inspvae.py" name="imu_node">
+    <node pkg="robot_localization" type="imu_inspvae.py" name="imu_node">
         <param name="serial_port" value="/dev/imu485"/>
         <param name="baudrate" value="115200"/>
         <param name="serial_timeout" value="0.1"/>
-        </node> -->
+        </node>
 <!-- 
     <node pkg="robot_localization" type="modbus_gps_node.py" name="drone_gps_node">
         <param name="serial_port" value="/dev/remote485"/>
@@ -385,7 +385,13 @@
         <param name="serial_timeout" value="0.1"/>
         </node> -->
 
-    <node pkg="robot_localization" type="inspvae_serial_node.py" name="imu_node">
+    <!-- <node pkg="robot_localization" type="inspvae_serial_node.py" name="imu_node">
+        <param name="serial_port" value="/dev/rtkSerial"/>
+        <param name="baudrate" value="460800"/>
+        <param name="serial_timeout" value="0.1"/>
+        </node> -->
+
+       <node pkg="robot_localization" type="inspva_serial_node.py" name="imu_node2">
         <param name="serial_port" value="/dev/rtkSerial"/>
         <param name="baudrate" value="460800"/>
         <param name="serial_timeout" value="0.1"/>
@@ -400,10 +406,10 @@
 
 
     <node pkg="robot_mqtt" type="mqtt_robot_publisher.py" name="mqtt_sub_node">
-        <!-- <param name="mqtt_broker" value="36.7.136.5"/>
+        <!-- <param name="mqtt_broker" value="106.12.23.8"/>
         <param name="mqtt_port" value="13234"/>
-        <param name="mqtt_broker" value="broker.emqx.io"/>
-        <param name="mqtt_port" value="1883"/> -->
+        <param name="mqtt_user" value="jifeng"/>
+        <param name="mqtt_password" value="8dY9hE5FVF2GEIi"/> -->
 
         </node>
 
