@@ -84,9 +84,9 @@ class ArucoDockingController:
         self.control_seq = 0
         self.stop_flag = False
         self.out_dock_flag = False
-        self.in_dock_flag = True
-        self.corner_finding_flag = True
-        self.auto_cleaning_flag = True
+        self.in_dock_flag = False
+        self.corner_finding_flag = False
+        self.auto_cleaning_flag = False
         self.docking_flag = False
 
         
@@ -300,15 +300,15 @@ class ArucoDockingController:
             self.state = "APPROACHING"
             if self.first_look_flag == False:
                 self.first_look_flag = True
-                control = controlData()
-                control.distance = 0 
+                # control = controlData()
+                # control.distance = 0 
+                # # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                # # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
                 # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
                 # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                control.roller_speed = 0
-                control.robot_state = 1
-                self.control_pub.publish(control)
+                # control.roller_speed = 0
+                # control.robot_state = 1
+                # self.control_pub.publish(control)
                 time.sleep(0.1)
                     
         else:
