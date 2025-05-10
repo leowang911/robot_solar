@@ -1384,7 +1384,7 @@ class ArucoDockingController:
                             rospy.logwarn("rc_control == 0")
                             return
                         pass
-                    if self.complete_state == 1:
+                    if self.complete_state == 3:
                         self.out_dock_flag = True
                         self.in_dock_flag = True
                         self.docking_flag = False
@@ -1419,13 +1419,13 @@ class ArucoDockingController:
                     self.control_pub.publish(control)
                     time.sleep(0.1)
                     time_current = rospy.Time.now()
-                    while self.complete_state !=2:
+                    while self.complete_state !=7:
                         # and (rospy.Time.now()-time_current).to_sec()<10*60:
                         if self.rc_control == 0:
                             rospy.logwarn("rc_control == 0")
                             return
                         pass
-                    if self.complete_state == 2:
+                    if self.complete_state == 7:
                         self.corner_finding_flag = True
                         self.count  = 0
                         rospy.logwarn("corner_finding_flag")
@@ -1456,10 +1456,10 @@ class ArucoDockingController:
                     self.control_pub.publish(control)
                     time.sleep(0.1)
                     time_current = rospy.Time.now()
-                    while self.complete_state !=1:
+                    while self.complete_state !=8:
                     # and (rospy.Time.now()-time_current).to_sec()<10*60:
                         pass
-                    if self.complete_state == 1:
+                    if self.complete_state == 8:
                         self.auto_cleaning_flag = True
                         self.count  = 0
                         while self.rc_control != 1:
