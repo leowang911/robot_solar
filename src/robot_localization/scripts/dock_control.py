@@ -1378,7 +1378,7 @@ class ArucoDockingController:
                     self.control_pub.publish(control)
                     time.sleep(0.1)
                     time_current = rospy.Time.now()
-                    while self.complete_state !=1: 
+                    while self.complete_state !=3: 
                     # and (rospy.Time.now()-time_current).to_sec()<10*60:
                         if self.rc_control == 0:
                             rospy.logwarn("rc_control == 0")
