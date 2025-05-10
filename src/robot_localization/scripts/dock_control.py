@@ -1005,6 +1005,9 @@ class ArucoDockingController:
                         pass
                     if self.complete_state == 4:
                         self.in_dock_flag = True
+                        self,out_dock_flag = False
+                        self.corner_finding_flag = False
+                        self.auto_cleaning_flag = False
                         self.count  = 0
                         while self.rc_control !=2:
                             if self.rc_control == 0:
@@ -1263,8 +1266,6 @@ class ArucoDockingController:
                                             
                                                 time.sleep(0.5)
                                                 return
-
-                                            
                                             
                                             rospy.loginfo(f'GOOD ********start final docking')
                                             control = self.compose_control(0,0,self.current_yaw,0,1)
