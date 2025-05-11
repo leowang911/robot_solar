@@ -1370,6 +1370,7 @@ class ArucoDockingController:
                                             target_vec=current_pose_state['position'][:2]
                                             rospy.loginfo(f"3.3 refine ")
                                             while True:
+                                                self.lock_current=False
                                                 if abs(self.get_marker_yaw(current_pose_state['center'])) < 0.015:
                                                         rospy.logwarn(f"经修后，完成对正 2222:  {target_vec[0]} {target_vec[1]}")
                                                         self.refine_align=True
