@@ -160,8 +160,7 @@
     <arg name="ref_frame"       default="base_link"/>  <!-- leave empty and the pose will be published wrt param parent_name -->
     <arg name="corner_refinement" default="LINES" /> <!-- NONE, HARRIS, LINES, SUBPIX -->
 
-    <arg name="angle_dir" default="1"/> <!-- in door = 1 outdoor = -1 -->
-
+    <arg name="angle_dir" default="1"/>
 
     <group ns="$(arg camera_name)">
         <node name="camera" pkg="orbbec_camera" type="orbbec_camera_node" output="screen">
@@ -299,7 +298,7 @@
             <param name="marker_id"          value="$(arg markerId1)"/>
             <param name="reference_frame"    value="$(arg ref_frame)"/>   <!-- frame in which the marker pose will be refered -->
             <param name="camera_frame"       value="camera_link"/>
-            <param name="marker_frame"       value="$(arg marker_frame)" />
+            <param name="marker_frame"       value="$(arg marker_frame)100" />
             <param name="corner_refinement"  value="$(arg corner_refinement)" />
         </node>
 
@@ -313,7 +312,7 @@
             <param name="marker_id"          value="$(arg markerId2)"/>
             <param name="reference_frame"    value="$(arg ref_frame)"/>   <!-- frame in which the marker pose will be refered -->
             <param name="camera_frame"       value="camera_link"/>
-            <param name="marker_frame"       value="$(arg marker_frame)" />
+            <param name="marker_frame"       value="$(arg marker_frame)101" />
             <param name="corner_refinement"  value="$(arg corner_refinement)" />
         </node>
 
@@ -327,7 +326,7 @@
             <param name="marker_id"          value="$(arg markerId3)"/>
             <param name="reference_frame"    value="$(arg ref_frame)"/>   <!-- frame in which the marker pose will be refered -->
             <param name="camera_frame"       value="camera_link"/>
-            <param name="marker_frame"       value="$(arg marker_frame)" />
+            <param name="marker_frame"       value="$(arg marker_frame)102" />
             <param name="corner_refinement"  value="$(arg corner_refinement)" />
         </node>
 
@@ -341,7 +340,7 @@
             <param name="marker_id"          value="$(arg markerId4)"/>
             <param name="reference_frame"    value="$(arg ref_frame)"/>   <!-- frame in which the marker pose will be refered -->
             <param name="camera_frame"       value="camera_link"/>
-            <param name="marker_frame"       value="$(arg marker_frame)" />
+            <param name="marker_frame"       value="$(arg marker_frame)103" />
             <param name="corner_refinement"  value="$(arg corner_refinement)" />
         </node>
 
@@ -356,22 +355,22 @@
             <param name="marker_id"          value="$(arg markerId5)"/>
             <param name="reference_frame"    value="$(arg ref_frame)"/>   <!-- frame in which the marker pose will be refered -->
             <param name="camera_frame"       value="camera_link"/>
-            <param name="marker_frame"       value="$(arg marker_frame)" />
+            <param name="marker_frame"       value="$(arg marker_frame)104" />
             <param name="corner_refinement"  value="$(arg corner_refinement)" />
         </node>
 
         <!-- 发布base_link到其他坐标系的静态变换 -->
         <node pkg="tf2_ros" type="static_transform_publisher" 
             name="base_to_cam" 
-            args="0.232 0 0.287 -0.5 0.5 -0s.5 0.5 base_link camera_link  "/>
+            args="0.232 0 0.287 -0.5 0.5 -0.5 0.5 base_link camera_link  "/>
     </group>
 
     <node pkg="robot_localization" type="base_serial_node.py" name="base_serial_node">
         <param name="serial_port" value="/dev/baseSerial"/>
         <param name="baudrate" value="115200"/>
         <param name="serial_timeout" value="0.1"/>
-        <param name="angle_dir" value="$(arg angle_dir)"/>
-    </node>
+        <param name="angle_dir" value="1"/>
+        </node>
 
     <node pkg="robot_localization" type="imu_inspvae.py" name="imu_node">
         <param name="serial_port" value="/dev/imu485"/>
@@ -385,20 +384,14 @@
         <param name="serial_timeout" value="0.1"/>
         </node> -->
 
-    <!-- <node pkg="robot_localization" type="inspvae_serial_node.py" name="imu_node">
-        <param name="serial_port" value="/dev/rtkSerial"/>
-        <param name="baudrate" value="460800"/>
-        <param name="serial_timeout" value="0.1"/>
-        </node> -->
-
-       <node pkg="robot_localization" type="inspva_serial_node.py" name="imu_node2">
+    <node pkg="robot_localization" type="inspva_serial_node.py" name="imu_node2">
         <param name="serial_port" value="/dev/rtkSerial"/>
         <param name="baudrate" value="460800"/>
         <param name="serial_timeout" value="0.1"/>
         </node>
 
     <node pkg="robot_localization" type="dock_control.py" name="dock_control_node">
-        <param name="angle_dir" value="$(arg angle_dir)"/>
+        <param name="angle_dir" value="1"/>    
         </node>
 
     <!-- <node pkg="rviz_sim" type="virtual_actuator.py" name="virtual_actuator"> 
@@ -406,13 +399,10 @@
 
 
     <node pkg="robot_mqtt" type="mqtt_robot_publisher.py" name="mqtt_sub_node">
-        <!-- <param name="mqtt_broker" value="broker.emqx.io"/>
-        <param name="mqtt_port" value="1883"/> -->
         <param name="mqtt_broker" value="106.12.23.8"/>
         <param name="mqtt_port" value="13234"/>
         <param name="mqtt_user" value="jifeng"/>
         <param name="mqtt_password" value="8dY9hE5FVF2GEIi"/>
-
         </node>
 
     <!-- <node pkg="robot_mqtt" type="test_data_publisher.py" name="mqtt_pub_node">
