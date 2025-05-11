@@ -1193,6 +1193,7 @@ class ArucoDockingController:
                                             time.sleep(0.5)
                                             control.robot_state = 2
                                             self.control_seq += 1
+                                            self.control_pub.publish(control)
 
                                         #return
                                     else:
@@ -1249,7 +1250,7 @@ class ArucoDockingController:
                                             control.header.stamp = rospy.Time.now()
                                             self.control_pub.publish(control)
                                             self.control_seq += 1 
-                                            time.sleep(1000)     
+                                            # time.sleep(1000)     
                                             self.lock_current=False                          
                                             return 
                                         
@@ -1380,7 +1381,7 @@ class ArucoDockingController:
                                                         control.header.stamp = rospy.Time.now() 
                                                     self.control_pub.publish(control)
                                                     self.control_seq += 1
-                                                    
+
                             self.lock_current=False
 
                 if self.in_dock_flag == False:
