@@ -1067,7 +1067,7 @@ class ArucoDockingController:
         """主控制循环""" 
         
         control = controlData()
-        rospy.loginfo(f"in_dock_flag: {self.in_dock_flag} docking_flag: {self.docking_flag} rc_control: {self.rc_control}")
+        # rospy.loginfo(f"in_dock_flag: {self.in_dock_flag} docking_flag: {self.docking_flag} rc_control: {self.rc_control}")
         if self.stop_flag == False: #是否进入停止状态
             self.control_seq += 1
             if self.rc_control == 1:
@@ -1271,7 +1271,9 @@ class ArucoDockingController:
                                             control.header.stamp = rospy.Time.now()
                                             self.control_pub.publish(control)
                                             self.control_seq += 1 
-                                            # time.sleep(1000)     
+                                            # time.sleep(1000)
+                                            self.docking_flag=True
+                                            self.in_dock_flag=False     
                                             self.lock_current=False                          
                                             return 
                                         
@@ -1371,7 +1373,7 @@ class ArucoDockingController:
                                             rospy.loginfo(f"3.3 refine ")
                                             while True:
                                                 self.lock_current=False
-                                                if abs(self.get_marker_yaw(current_pose_state['center'])) < 0.02:
+                                                if abs(self.get_marker_yaw(current_pose_state['center'])) < 0.015:
                                                         rospy.logwarn(f"经修后，完成对正 2222:  {target_vec[0]} {target_vec[1]}")
                                                         self.refine_align=True
                                                         control.robot_state = 1
@@ -1385,6 +1387,7 @@ class ArucoDockingController:
                                                 else:
                                                     control.distance = 0
                                                     c_yaw=self.get_marker_yaw(current_pose_state['center'])
+                                                    rospy.loginfo(f'c_yaw: {c_yaw}')
                                                     if c_yaw>0.1:
                                                         c_yaw=0.1
                                                     if c_yaw<-0.1:
