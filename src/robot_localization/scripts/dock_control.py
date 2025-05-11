@@ -935,6 +935,26 @@ class ArucoDockingController:
         theta1 = math.atan2(-prepoint[1], -prepoint[0])
         return distance,theta1,theta2
 
+    def get_step1_robot_pose(self,current_target):
+        
+        v1=current_target['position'][:2]
+        v2=current_target['center'][:2]
+        axis=v1-v2
+        axis/=np.linalg.norm(axis)
+        prepoint=v1+axis*0.3
+        costh=np.dot(prepoint,axis)/np.linalg.norm(prepoint)
+        theta2=math.acos(costh)
+        #axis=-axis
+        if (prepoint[0]*axis[1]-prepoint[1]*axis[0])<0:
+            theta2=-theta2
+        distance=-np.linalg.norm(prepoint)
+        # theta1=math.atan(abs(prepoint[1]/prepoint[0]))
+
+        # if prepoint[1]>0:
+        #     theta1=-theta1
+        theta1 = math.atan2(-prepoint[1], -prepoint[0])
+        return distance,theta1,theta2
+
     def direct_back(self):
 
         distance=-0.3
