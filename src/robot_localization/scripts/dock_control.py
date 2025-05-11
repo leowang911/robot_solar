@@ -965,10 +965,10 @@ class ArucoDockingController:
         theta1 = theta2=   0
         return distance,theta1,theta2
 
-    def get_step00_robot_pose(self,):
+    def get_step00_robot_pose(self,current_target):
         
-        v1=self.current_target['position'][:2]
-        v2=self.current_target['center'][:2]
+        v1=current_target['position'][:2]
+        v2=current_target['center'][:2]
         axis=v1-v2
         axis/=np.linalg.norm(axis)
         axis=-axis
@@ -987,10 +987,10 @@ class ArucoDockingController:
         
         return distance,theta1,theta2    
 
-    def get_step2_robot_pose(self,):
+    def get_step2_robot_pose(self,current_target):
         
-        v1=self.current_target['position'][:2]
-        v2=self.current_target['center'][:2]
+        v1=current_target['position'][:2]
+        v2=current_target['center'][:2]
         axis=v1-v2
         axis/=np.linalg.norm(axis)
         axis=-axis
