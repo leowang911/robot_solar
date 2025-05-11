@@ -35,7 +35,8 @@ class ArucoDockingController:
         self.longitude = 120.07004749195
         self.latitude_drone = 30.32098151262
         # self.longitude_drone = -74.123339
-        self.longitude_drone = 120.07004749195 
+        self.longitude_drone = 120.07004749195
+        self.gps_yaw = 0.0
         self.yaw_drone = 0.0
         self.speed = 0.0
         self.distance2drone = 0.0
@@ -205,7 +206,7 @@ class ArucoDockingController:
     def inspva_cb(self, msg):
         self.latitude = msg.latitude
         self.longitude = msg.longitude
-        # self.current_yaw = math.radians(msg.yaw)
+        self.gps_yaw = math.radians(msg.yaw)
         
 
     def left_cb(self, msg): self.process_marker(msg, 'left')
@@ -956,10 +957,11 @@ class ArucoDockingController:
                     #计算gps距离
                     gps_calculation = self.gps_calculation(self.latitude, self.longitude, self.latitude_drone, self.longitude_drone)
                     # rospy.loginfo(f"gps_calculation: {gps_calculation}")
-                    if self.distance2drone > 1 and self.current_target is None: #gps距离大于2米,通过gps数据大致导航
+                    if self.distance2drone > 0.5 and self.current_target is None: #gps距离大于2米,通过gps数据大致导航
                         '''绝对位置,不需要加原始航向角'''
                         control = \
-                        self.compose_control(np.uint16((self.distance2drone)*1000),0,self.yaw2drone,0,2)
+                        self.compose_control(np.uint16((self.distance2drone)*1000),0,self.yaw2drone-self.gps_yaw,self.current_yaw,2)
+                        '''相对位置,采用imu角度导航，需要加原始航向角'''
                         # control.distance = np.uint16((self.distance2drone)*1000)
                         # # rospy.loginfo(f"gps_yaw: {self.yaw_to_target_yaw_angle(self.yaw2drone, 0)}")
                         # # rospy.loginfo(f"gps_distance: {self.distance2drone}")
@@ -1388,8 +1390,9 @@ class ArucoDockingController:
                         self.out_dock_flag = True
                         self.in_dock_flag = True
                         self.docking_flag = False
-                        self.latitude_drone = self.latitude
-                        self.longitude_drone = self.longitude
+                        if self.latitude_drone != 0 and self.longitude_drone != 0:
+                            self.latitude_drone = self.latitude
+                            self.longitude_drone = self.longitude
                         self.count = 0
                     else:
                         self.error = 1
