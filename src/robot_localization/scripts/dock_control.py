@@ -71,6 +71,7 @@ class ArucoDockingController:
             'center_left': None,
             'center_right': None
         }
+        self.depth_dict={}
 
 
         # 状态变量
