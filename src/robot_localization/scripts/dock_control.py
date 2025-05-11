@@ -1371,7 +1371,7 @@ class ArucoDockingController:
                                             rospy.loginfo(f"3.3 refine ")
                                             while True:
                                                 self.lock_current=False
-                                                if abs(self.get_marker_yaw(current_pose_state['center'])) < 0.015:
+                                                if abs(self.get_marker_yaw(current_pose_state['center'])) < 0.02:
                                                         rospy.logwarn(f"经修后，完成对正 2222:  {target_vec[0]} {target_vec[1]}")
                                                         self.refine_align=True
                                                         control.robot_state = 1
@@ -1389,7 +1389,7 @@ class ArucoDockingController:
                                                         c_yaw=0.1
                                                     if c_yaw<-0.1:
                                                         c_yaw=-0.1
-                                                    control.target_yaw = self.yaw_to_target_yaw_angle(-c_yaw,self.current_yaw)
+                                                    control.target_yaw = self.yaw_to_target_yaw_angle(c_yaw,self.current_yaw)
                                                     control.robot_state = 2
                                                     # 发布控制指令
                                                     control.header.stamp = rospy.Time.now()
