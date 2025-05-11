@@ -1389,7 +1389,7 @@ class ArucoDockingController:
                                                         c_yaw=0.1
                                                     if c_yaw<-0.1:
                                                         c_yaw=-0.1
-                                                    control.target_yaw = self.yaw_to_target_yaw_angle(c_yaw,self.current_yaw)
+                                                    control.target_yaw = self.yaw_to_target_yaw_angle(-c_yaw,self.current_yaw)
                                                     control.robot_state = 2
                                                     # 发布控制指令
                                                     control.header.stamp = rospy.Time.now()
