@@ -1367,12 +1367,13 @@ class ArucoDockingController:
                                         #对齐
 
                                         #3.3 精对正环节下的对齐
-                                        if True:
+                                        if False:
+                                            self.lock_current=False
                                             current_pose_state=self.get_five_avg()#取5次平均值进行计算
                                             target_vec=current_pose_state['position'][:2]
                                             rospy.loginfo(f"3.3 refine ")
                                             while True:
-                                                self.lock_current=False
+                                                
                                                 if abs(self.get_marker_yaw(current_pose_state['center'])) < 0.015:
                                                         rospy.logwarn(f"经修后，完成对正 2222:  {target_vec[0]} {target_vec[1]}")
                                                         self.refine_align=True
