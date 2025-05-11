@@ -29,6 +29,7 @@ class ArucoDockingController:
         self.stop_distance_threshold = rospy.get_param('stop_distance_threshold', 0.1)  # 停止距离阈值
         self.angle_dir = rospy.get_param('~angle_dir', 1)  # 角度方向（1表示顺时针，-1表示逆时针）
         self.target_distance = 1 # 目标距离（米）
+        self.stop_refine_pose_dlt_y=0.03
         self.align_threshold = math.radians(1)  # 航向对准阈值
         self.current_yaw = 0 # 当前航向角
         self.target_yaw = 0# 目标航向角
