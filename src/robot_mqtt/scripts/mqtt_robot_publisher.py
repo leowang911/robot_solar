@@ -7,7 +7,7 @@ from sensor_msgs.msg import Imu
 from sensor_msgs.msg import NavSatFix
 from std_msgs.msg import Bool, String, Float32
 from geometry_msgs.msg import Twist
-from robot_localization.msg import INSPVAE, baseStatus, GPSData
+from robot_localization.msg import INSPVAE,INSPVA, baseStatus, GPSData
 from robot_control.msg import controlData  # 根据实际包名调整
 import uuid
 class MQTTRobotBridge:
@@ -19,9 +19,11 @@ class MQTTRobotBridge:
         # self.mqtt_port = rospy.get_param('~mqtt_port', 13234)
         self.mqtt_broker = rospy.get_param('~mqtt_broker', 'broker.emqx.io')
         self.mqtt_port = rospy.get_param('~mqtt_port', 1883)
-        self.mqtt_user = rospy.get_param('~mqtt_user', '123')
-        self.mqtt_password = rospy.get_param('~mqtt_password', '123')
-        self.robot_id = rospy.get_param('~robot_id', 'robot_1')
+        self.mqtt_user = rospy.get_param('~mqtt_user', None)
+        self.mqtt_password = rospy.get_param('~mqtt_password', None)
+        # self.mqtt_user = rospy.get_param('~mqtt_user', '123')
+        # self.mqtt_password = rospy.get_param('~mqtt_password', '123')
+        self.robot_id = rospy.get_param('~robot_id', 'GFSTJM120250201')
         self.pub_topic = rospy.get_param('~pub_topic', f'robot/{self.robot_id}/status')
         self.sub_topic = rospy.get_param('~sub_topic', 'robot/commands')
         self.uuid = str(uuid.uuid4())  # 生成唯一ID
@@ -91,11 +93,13 @@ class MQTTRobotBridge:
     def init_ros(self):
         """初始化ROS组件"""
         # 订阅者
-        rospy.Subscriber("/inspvae_data", INSPVAE, self.inspvae_cb)
+        # rospy.Subscriber("/inspvae_data", INSPVAE, self.inspvae_cb)
+        rospy.Subscriber("/inspva_data", INSPVA, self.inspva_cb)
         rospy.Subscriber("/gps/raw", GPSData, self.drone_gps_cb)
-        rospy.Subscriber('/base_', Bool, self.task_callback)
+        # rospy.Subscriber('/base_', Bool, self.task_callback)
         # rospy.Subscriber('/mission/route_id', String, self.route_callback)
         rospy.Subscriber("/base_status", baseStatus, self.base_cb)
+        rospy.Subscriber('/control_data', String, self.control_callback)
         
         # 发布者（用于接收的MQTT消息）
         self.cmd_pub = rospy.Publisher('/mqtt_received', String, queue_size=10)
@@ -105,6 +109,9 @@ class MQTTRobotBridge:
         self.mqtt_client.on_connect = self.on_mqtt_connect
         self.mqtt_client.on_message = self.on_mqtt_message
         self.mqtt_client.on_disconnect = self.on_mqtt_disconnect
+        
+        if self.mqtt_user is not None and self.mqtt_password is not None:
+            self.mqtt_client.username_pw_set(self.mqtt_user, self.mqtt_password)
         
         try:
             self.mqtt_client.connect(self.mqtt_broker, self.mqtt_port, 60)
@@ -127,6 +134,12 @@ class MQTTRobotBridge:
         rospy.logwarn(f"MQTT disconnected (rc={rc}), attempting reconnect...")
         self.setup_mqtt()
 
+    def control_callback(self, msg):
+        if msg.robot_state != 1:
+            self.robot_data["task_status"] = 0
+        else:
+            self.robot_data["task_status"] = 1
+
     # ROS回调函数on_m
     def inspvae_cb(self, msg):
         self.robot_data["gps"] = {
@@ -144,6 +157,29 @@ class MQTTRobotBridge:
         #     "y": msg.linear_acceleration.y,
         #     "z": msg.linear_acceleration.z
         # }
+
+    def inspva_cb(self, msg):
+        """处理IMU数据"""
+        self.robot_data["gps"] = {
+            "latitude": msg.latitude,
+            "longitude": msg.longitude
+        }
+        self.robot_data["pose"] = {
+            "roll": msg.roll,
+            "pitch": msg.pitch,
+            "yaw": msg.yaw
+        }
+        self.robot_data["acceleration"] = {
+            "x": msg.acc_x,
+            "y": msg.acc_y,
+            "z": msg.acc_z
+        }
+        self.robot_data["angular_velocity"] = {
+            "x": msg.gyro_x,
+            "y": msg.gyro_y,
+            "z": msg.gyro_z
+        }
+
 
     def drone_gps_cb(self, msg):
         """处理无人机GPS数据"""
@@ -228,6 +264,8 @@ class MQTTRobotBridge:
                 self._handle_system_command(command)
             elif cmd_type == "route":
                 self._handle_route_command(command)
+            elif cmd_type == "newID":
+                self._handle_newID_command(command)
             else:
                 rospy.logwarn(f"Unknown command type: {cmd_type}")
 
@@ -237,10 +275,15 @@ class MQTTRobotBridge:
             rospy.logwarn(f"Missing required field in command: {str(e)}")
         except Exception as e:
             rospy.logerr(f"Error processing command: {str(e)}")
+    
+    def _handle_newID_command(self, command):
+        """处理新的ID命令"""
+        self.uuid = str(uuid.uuid4())
+        self.robot_data["uuid"] = self.uuid
+
 
     def _handle_control_command(self, command):
         """处理速度控制命令"""
-        
         
         # 创建ROS消息
         control = controlData()
