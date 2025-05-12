@@ -116,8 +116,6 @@ private:
   std::string marker_ids_str;
 
 
-  std::map<int, double> id_to_size; // 存储ID与尺寸的映射
-
   ros::NodeHandle nh;
   image_transport::ImageTransport it;
   image_transport::Subscriber image_sub;
@@ -219,19 +217,7 @@ public:
       ROS_INFO("Created topic for marker ID %d: %s", marker_id, topic_name.c_str());
     }
 
-     // 在构造函数中添加参数解析
-    std::string marker_sizes_str;
-    nh.param<std::string>("marker_sizes", marker_sizes_str, "");
-    std::stringstream sizes_ss(marker_sizes_str);
-    std::string size_pair;
-    while (std::getline(sizes_ss, size_pair, ',')) {
-        size_t colon_pos = size_pair.find(':');
-        if (colon_pos != std::string::npos) {
-            int id = std::stoi(size_pair.substr(0, colon_pos));
-            double size = std::stod(size_pair.substr(colon_pos + 1));
-            id_to_size[id] = size;
-        }
-    }
+    // ROS_ASSERT(camera_frame != "" && marker_frame != "");
 
     if (reference_frame.empty())
       reference_frame = camera_frame;
@@ -469,29 +455,6 @@ public:
         // detection results will go into "markers"
         markers.clear();
         mDetector.detect(inImage, markers, camParam, marker_size, false);
-
-
-
-        for (auto& marker : markers) {
-          // 根据ID查找对应尺寸，未找到则使用默认值
-          auto it = id_to_size.find(marker.id);
-          if (it != id_to_size.end()) {
-              marker.ssize = it->second; // 设置实际尺寸
-          } else {
-              marker.ssize = marker_size; // 默认全局尺寸
-          }
-          
-          // 重新计算位姿（关键步骤）
-          if (camParam.isValid()) {
-              marker.calculateExtrinsics(
-                  marker.ssize, 
-                  camParam.CameraMatrix, 
-                  camParam.Distorsion
-              );
-          }
-      }
-
-
 
         for (std::size_t i = 0; i < markers.size(); ++i)
         {

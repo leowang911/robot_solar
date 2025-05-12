@@ -13,5 +13,5 @@
   <node pkg="nodelet" type="nodelet" name="mqtt_client" args="standalone mqtt_client/MqttClient" output="screen">
     <rosparam command="load" file="$(arg params_file)" />
   </node>
-
+  <!-- rostopic pub -r 1 /ping/ros std_msgs/String "Hello MQTT" -->
 </launch>

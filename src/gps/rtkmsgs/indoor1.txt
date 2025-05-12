@@ -1,0 +1,386 @@
+11:52:58.367 收：
++NTRIPEN=1
+11:52:58.371 收：
++ADDR=103.143.19.54,8002
+11:52:58.371 收：
++CORS=wtcs129,54855,RTCM33GRCEJpro
+11:52:58.371 收：
++MQTT_ADDR=broker.emqx.io,1883
+11:52:58.371 收：
++MQTT_USER= , 
+11:52:58.371 收：
++PUBEN=1
+11:52:58.371 收：
++SUBID=860065077034033
+11:52:58.371 收：
++CCID=898604F61924D0298977
+11:52:58.371 收：
++IMEI=860065077034033
+11:52:58.373 收：
++VERSION=V10106.1.3
+11:52:58.373 收：
+OK11:52:58.592 收：
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGNS,,,,,,NNNNN,,,,,,,V*67
+$GNGLL,,,,,,V,N*7A
+$GPGSA,,1,,,,,,,,,,,,,,,,*73
+$GNRMC,,V,,,,,,,,,,N,V*37
+$GPGST,,,,,,,,*57
+#UNIHEADINGA,97,GPS,UNKNOWN,1,2819000,0,0,18,1;INSUFFICIENT_OBS,NONE,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,"",0,0,0,0,0,00,0,0*e4d7c8ac
+$GNGBS,,,,,,,,,,*5F
+$GPGSV,1,1,00,,,,,*55
+11:52:59.250 收：
+[string "repl"]:1: syntax error near '+'
+11:52:59.250 收：
+
+11:52:59.386 收：
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGNS,,,,,,NNNNN,,,,,,,V,response: PARSING FAILD NO MATCHING FUNC  GNGNS*74
+$command,GNGLL,,,,,,V,N,response: PARSING FAILD NO MATCHING FUNC  GNGLL*74
+$command,GPGSA,,1,,,,,,,,,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,,,,,,,,,,,,,,,,*1D
+$command,GNRMC,,V,,,,,,,,,,N,V,response: PARSING FAILD GRAMMAR ERROR,V,,,,,,,,,,N,V*
+11:52:59.388 收：
+0A
+$command,GPGST,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,,,*08
+$command,GNGBS,,,,,,,,,,,response: PARSING FAILD NO MATCHING FUNC  GNGBS*40
+$command,GPGSV,1,1,00,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,1,00,,,,,*26
+11:52:59.600 收：
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGNS,,,,,,NNNNN,,,,,,,V*67
+$GNGLL,,,,,,V,N*7A
+$GPGSA,,1,,,,,,,,,,,,,,,,*73
+$GNRMC,,V,,,,,,,,,,N,V*37
+$GPGST,,,,,,,,*57
+#UNIHEADINGA,97,GPS,UNKNOWN,1,2820000,0,0,18,1;INSUFFICIENT_OBS,NONE,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,"",0,0,0,0,0,00,0,0*3563f64e
+$GNGBS,,,,,,,,,,*5F
+$GPGSV,1,1,00,,,,,*55
+11:53:00.731 收：
+[string "repl"]:1: syntax error near '+'
+11:53:00.731 收：
+
+11:53:00.741 收：
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGNS,,,,,,NNNNN,,,,,,,V*67
+$GNGLL,,,,,,V,N*7A
+$GPGSA,,1,,,,,,,,,,,,,,,,*73
+$GNRMC,,V,,,,,,,,,,N,V*37
+$GPGST,,,,,,,,*57
+#UNIHEADINGA,97,GPS,UNKNOWN,1,2821000,0,0,18,1;INSUFFICIENT_OBS,NONE,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,"",0,0,0,0,0,00,0,0*40d6535f
+$GNGBS,,,,,,,,,,*5F
+$GPGSV,1,1,00,,,,,*55
+11:53:01.190 收：
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGNS,,,,,,NNNNN,,,,,,,V,response: PARSING FAILD NO MATCHING FUNC  GNGNS*74
+$command,GNGLL,,,,,,V,N,response: PARSING FAILD NO MATCHING FUNC  GNGLL*74
+$command,GPGSA,,1,,,,,,,,,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,,,,,,,,,,,,,,,,*1D
+$command,GNRMC,,V,,,,,,,,,,N,V,response: PARSING FAILD GRAMMAR ERROR,V,,,,,,,,,,N,V*
+11:53:01.190 收：
+0A
+$command,GPGST,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,,,*08
+$command,GNGBS,,,,,,,,,,,response: PARSING FAILD NO MATCHING FUNC  GNGBS*40
+$command,GPGSV,1,1,00,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,1,00,,,,,*26
+11:53:01.600 收：
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGNS,,,,,,NNNNN,,,,,,,V*67
+$GNGLL,,,,,,V,N*7A
+$GPGSA,,1,,,,,,,,,,,,,,,,*73
+$GNRMC,,V,,,,,,,,,,N,V*37
+$GPGST,,,,,,,,*57
+#UNIHEADINGA,97,GPS,UNKNOWN,1,2822000,0,0,18,1;INSUFFICIENT_OBS,NONE,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,"",0,0,0,0,0,00,0,0*de08bc6c
+$GNGBS,,,,,,,,,,*5F
+$GPGSV,1,1,00,,,,,*55
+11:53:02.338 收：
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGNS,,,,,,NNNNN,,,,,,,V,response: PARSING FAILD NO MATCHING FUNC  GNGNS*74
+$command,GNGLL,,,,,,V,N,response: PARSING FAILD NO MATCHING FUNC  GNGLL*74
+$command,GPGSA,,1,,,,,,,,,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,,,,,,,,,,,,,,,,*1D
+$command,GNRMC,,V,,,,,,,,,,N,V,response: PARSING FAILD GRAMMAR ERROR,V,,,,,,,,,,N,V*
+11:53:02.338 收：
+0A
+$command,GPGST,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,,,*08
+$command,GNGBS,,,,,,,,,,,response: PARSING FAILD NO MATCHING FUNC  GNGBS*40
+$command,GPGSV,1,1,00,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,1,00,,,,,*26
+11:53:02.598 收：
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGNS,,,,,,NNNNN,,,,,,,V*67
+$GNGLL,,,,,,V,N*7A
+$GPGSA,,1,,,,,,,,,,,,,,,,*73
+$GNRMC,,V,,,,,,,,,,N,V*37
+$GPGST,,,,,,,,*57
+#UNIHEADINGA,97,GPS,UNKNOWN,1,2823000,0,0,18,1;INSUFFICIENT_OBS,NONE,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,"",0,0,0,0,0,00,0,0*abbd197d
+$GNGBS,,,,,,,,,,*5F
+$GPGSV,1,1,00,,,,,*55
+11:53:03.693 收：
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGNS,,,,,,NNNNN,,,,,,,V*67
+$GNGLL,,,,,,V,N*7A
+$GPGSA,,1,,,,,,,,,,,,,,,,*73
+$GNRMC,,V,,,,,,,,,,N,V*37
+$GPGST,,,,,,,,*57
+#UNIHEADINGA,97,GPS,UNKNOWN,1,2824000,0,0,18,1;INSUFFICIENT_OBS,NONE,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,"",0,0,0,0,0,00,0,0*38c4644b
+$GNGBS,,,,,,,,,,*5F
+$GPGSV,1,1,00,,,,,*55
+11:53:03.969 收：
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+11:53:04.079 收：
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGNS,,,,,,NNNNN,,,,,,,V,response: PARSING FAILD NO MATCHING FUNC  GNGNS*74
+$command,GNGLL,,,,,,V,N,response: PARSING FAILD NO MATCHING FUNC  GNGLL*74
+$command,GPGSA,,1,,,,,,,,,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,,,,,,,,,,,,,,,,*1D
+$command,GNRMC,,V,,,,,,,,,,N,V,response: PARSING FAILD GRAMMAR ERROR,V,,,,,,,,,,N,V*0A
+$command,GPGST,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,,,*08
+$command,G
+11:53:04.079 收：
+NGBS,,,,,,,,,,,response: PARSING FAILD NO MATCHING FUNC  GNGBS*40
+$command,GPGSV,1,1,00,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,1,00,,,,,*26
+11:53:04.590 收：
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGNS,,,,,,NNNNN,,,,,,,V*67
+$GNGLL,,,,,,V,N*7A
+$GPGSA,,1,,,,,,,,,,,,,,,,*73
+$GNRMC,,V,,,,,,,,,,N,V*37
+$GPGST,,,,,,,,*57
+#UNIHEADINGA,97,GPS,UNKNOWN,1,2825000,0,0,18,1;INSUFFICIENT_OBS,NONE,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,"",0,0,0,0,0,00,0,0*4d71c15a
+$GNGBS,,,,,,,,,,*5F
+$GPGSV,1,1,00,,,,,*55
+11:53:05.287 收：
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGNS,,,,,,NNNNN,,,,,,,V,response: PARSING FAILD NO MATCHING FUNC  GNGNS*74
+$command,GNGLL,,,,,,V,N,response: PARSING FAILD NO MATCHING FUNC  GNGLL*74
+$command,GPGSA,,1,,,,,,,,,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,,,,,,,,,,,,,,,,*1D
+$command,GNRMC,,V,,,,,,,,,,N,V,response: PARSING FAILD GRAMMAR ERROR,V,,,,,,,,,,N,V*
+11:53:05.287 收：
+0A
+$command,GPGST,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,,,*08
+$command,GNGBS,,,,,,,,,,,response: PARSING FAILD NO MATCHING FUNC  GNGBS*40
+$command,GPGSV,1,1,00,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,1,00,,,,,*26
+11:53:05.592 收：
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGNS,,,,,,NNNNN,,,,,,,V*67
+$GNGLL,,,,,,V,N*7A
+$GPGSA,,1,,,,,,,,,,,,,,,,*73
+$GNRMC,,V,,,,,,,,,,N,V*37
+$GPGST,,,,,,,,*57
+#UNIHEADINGA,97,GPS,UNKNOWN,1,2826000,0,0,18,1;INSUFFICIENT_OBS,NONE,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,"",0,0,0,0,0,00,0,0*d3af2e69
+$GNGBS,,,,,,,,,,*5F
+$GPGSV,1,1,00,,,,,*55
+11:53:06.636 收：
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGNS,,,,,,NNNNN,,,,,,,V*67
+$GNGLL,,,,,,V,N*7A
+$GPGSA,,1,,,,,,,,,,,,,,,,*73
+$GNRMC,,V,,,,,,,,,,N,V*37
+$GPGST,,,,,,,,*57
+#UNIHEADINGA,97,GPS,UNKNOWN,1,2827000,0,0,18,1;INSUFFICIENT_OBS,NONE,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,"",0,0,0,0,0,00,0,0*a61a8b78
+$GNGBS,,,,,,,,,,*5F
+$GPGSV,1,1,00,,,,,*55
+11:53:07.088 收：
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGNS,,,,,,NNNNN,,,,,,,V,response: PARSING FAILD NO MATCHING FUNC  GNGNS*74
+$command,GNGLL,,,,,,V,N,response: PARSING FAILD NO MATCHING FUNC  GNGLL*74
+$command,GPGSA,,1,,,,,,,,,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,,,,,,,,,,,,,,,,*1D
+$command,GNRMC,,V,,,,,,,,,,N,V,response: PARSING FAILD GRAMMAR ERROR,V,,,,,,,,,,N,V*
+11:53:07.088 收：
+0A
+$command,GPGST,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,,,*08
+$command,GNGBS,,,,,,,,,,,response: PARSING FAILD NO MATCHING FUNC  GNGBS*40
+$command,GPGSV,1,1,00,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,1,00,,,,,*26
+11:53:07.599 收：
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGNS,,,,,,NNNNN,,,,,,,V*67
+$GNGLL,,,,,,V,N*7A
+$GPGSA,,1,,,,,,,,,,,,,,,,*73
+$GNRMC,,V,,,,,,,,,,N,V*37
+$GPGST,,,,,,,,*57
+#UNIHEADINGA,97,GPS,UNKNOWN,1,2828000,0,0,18,1;INSUFFICIENT_OBS,NONE,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,"",0,0,0,0,0,00,0,0*2e2cd244
+$GNGBS,,,,,,,,,,*5F
+$GPGSV,1,1,00,,,,,*55
+11:53:08.236 收：
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGNS,,,,,,NNNNN,,,,,,,V,response: PARSING FAILD NO MATCHING FUNC  GNGNS*74
+$command,GNGLL,,,,,,V,N,response: PARSING FAILD NO MATCHING FUNC  GNGLL*74
+$command,GPGSA,,1,,,,,,,,,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,,,,,,,,,,,,,,,,*1D
+$command,GNRMC,,V,,,,,,,,,,N,V,response: PARSING FAILD GRAMMAR ERROR,V,,,,,,,,,,N,V*
+11:53:08.236 收：
+0A
+$command,GPGST,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,,,*08
+$command,GNGBS,,,,,,,,,,,response: PARSING FAILD NO MATCHING FUNC  GNGBS*40
+$command,GPGSV,1,1,00,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,1,00,,,,,*26
+11:53:08.594 收：
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGNS,,,,,,NNNNN,,,,,,,V*67
+$GNGLL,,,,,,V,N*7A
+$GPGSA,,1,,,,,,,,,,,,,,,,*73
+$GNRMC,,V,,,,,,,,,,N,V*37
+$GPGST,,,,,,,,*57
+#UNIHEADINGA,97,GPS,UNKNOWN,1,2829000,0,0,18,1;INSUFFICIENT_OBS,NONE,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,"",0,0,0,0,0,00,0,0*5b997755
+$GNGBS,,,,,,,,,,*5F
+$GPGSV,1,1,00,,,,,*55
+11:53:09.597 收：
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGNS,,,,,,NNNNN,,,,,,,V*67
+$GNGLL,,,,,,V,N*7A
+$GPGSA,,1,,,,,,,,,,,,,,,,*73
+$GNRMC,,V,,,,,,,,,,N,V*37
+$GPGST,,,,,,,,*57
+#UNIHEADINGA,97,GPS,UNKNOWN,1,2830000,0,0,18,1;INSUFFICIENT_OBS,NONE,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,"",0,0,0,0,0,00,0,0*5fa66319
+$GNGBS,,,,,,,,,,*5F
+$GPGSV,1,1,00,,,,,*55
+11:53:09.988 收：
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGNS,,,,,,NNNNN,,,,,,,V,response: PARSING FAILD NO MATCHING FUNC  GNGNS*74
+$command,GNGLL,,,,,,V,N,response: PARSING FAILD NO MATCHING FUNC  GNGLL*74
+$command,GPGSA,,1,,,,,,,,,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,,,,,,,,,,,,,,,,*1D
+$command,GNRMC,,V,,,,,,,,,,N,V,response: PARSING FAILD GRAMMAR ERROR,V,,,,,,,,,,N,V*
+11:53:09.988 收：
+0A
+$command,GPGST,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,,,*08
+$command,GNGBS,,,,,,,,,,,response: PARSING FAILD NO MATCHING FUNC  GNGBS*40
+$command,GPGSV,1,1,00,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,1,00,,,,,*26
+11:53:11.060 收：
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGNS,,,,,,NNNNN,,,,,,,V*67
+$GNGLL,,,,,,V,N*7A
+$GPGSA,,1,,,,,,,,,,,,,,,,*73
+$GNRMC,,V,,,,,,,,,,N,V*37
+$GPGST,,,,,,,,*57
+#UNIHEADINGA,97,GPS,UNKNOWN,1,2831000,0,0,18,1;INSUFFICIENT_OBS,NONE,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,"",0,0,0,0,0,00,0,0*2a13c608
+$GNGBS,,,,,,,,,,*5F
+$GPGSV,1,1,00,,,,,*55
+11:53:11.433 收：
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGNS,,,,,,NNNNN,,,,,,,V,response: PARSING FAILD NO MATCHING FUNC  GNGNS*74
+$command,GNGLL,,,,,,V,N,response: PARSING FAILD NO MATCHING FUNC  GNGLL*74
+$command,GPGSA,,1,,,,,,,,,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,,,,,,,,,,,,,,,,*1D
+$command,GNRMC,,V,,,,,,,,,,N,V,response: PARSING FAILD GRAMMAR ERROR,V,,,,,,,,,,N,V*
+11:53:11.433 收：
+0A
+$command,GPGST,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,,,*08
+$command,GNGBS,,,,,,,,,,,response: PARSING FAILD NO MATCHING FUNC  GNGBS*40
+$command,GPGSV,1,1,00,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,1,00,,,,,*26
+11:53:11.591 收：
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGNS,,,,,,NNNNN,,,,,,,V*67
+$GNGLL,,,,,,V,N*7A
+$GPGSA,,1,,,,,,,,,,,,,,,,*73
+$GNRMC,,V,,,,,,,,,,N,V*37
+$GPGST,,,,,,,,*57
+#UNIHEADINGA,97,GPS,UNKNOWN,1,2832000,0,0,18,1;INSUFFICIENT_OBS,NONE,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,"",0,0,0,0,0,00,0,0*b4cd293b
+$GNGBS,,,,,,,,,,*5F
+$GPGSV,1,1,00,,,,,*55
+11:53:12.598 收：
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGNS,,,,,,NNNNN,,,,,,,V*67
+$GNGLL,,,,,,V,N*7A
+$GPGSA,,1,,,,,,,,,,,,,,,,*73
+$GNRMC,,V,,,,,,,,,,N,V*37
+$GPGST,,,,,,,,*57
+#UNIHEADINGA,97,GPS,UNKNOWN,1,2833000,0,0,18,1;INSUFFICIENT_OBS,NONE,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,"",0,0,0,0,0,00,0,0*c1788c2a
+$GNGBS,,,,,,,,,,*5F
+$GPGSV,1,1,00,,,,,*55
+11:53:13.038 收：
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGNS,,,,,,NNNNN,,,,,,,V,response: PARSING FAILD NO MATCHING FUNC  GNGNS*74
+$command,GNGLL,,,,,,V,N,response: PARSING FAILD NO MATCHING FUNC  GNGLL*74
+$command,GPGSA,,1,,,,,,,,,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,,,,,,,,,,,,,,,,*1D
+$command,GNRMC,,V,,,,,,,,,,N,V,response: PARSING FAILD GRAMMAR ERROR,V,,,,,,,,,,N,V*
+11:53:13.038 收：
+0A
+$command,GPGST,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,,,*08
+$command,GNGBS,,,,,,,,,,,response: PARSING FAILD NO MATCHING FUNC  GNGBS*40
+$command,GPGSV,1,1,00,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,1,00,,,,,*26
+11:53:14.009 收：
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGNS,,,,,,NNNNN,,,,,,,V*67
+$GNGLL,,,,,,V,N*7A
+$GPGSA,,1,,,,,,,,,,,,,,,,*73
+$GNRMC,,V,,,,,,,,,,N,V*37
+$GPGST,,,,,,,,*57
+#UNIHEADINGA,97,GPS,UNKNOWN,1,2834000,0,0,18,1;INSUFFICIENT_OBS,NONE,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,"",0,0,0,0,0,00,0,0*5201f11c
+$GNGBS,,,,,,,,,,*5F
+$GPGSV,1,1,00,,,,,*55
+11:53:14.385 收：
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+11:53:14.471 收：
+$command,GNGNS,,,,,,NNNNN,,,,,,,V,response: PARSING FAILD NO MATCHING FUNC  GNGNS*74
+$command,GNGLL,,,,,,V,N,response: PARSING FAILD NO MATCHING FUNC  GNGLL*74
+$command,GPGSA,,1,,,,,,,,,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,,,,,,,,,,,,,,,,*1D
+$command,GNRMC,,V,,,,,,,,,,N,V,response: PARSING FAILD GRAMMAR ERROR,V,,,,,,,,,,N,V*0A
+$command,GPGST,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,,,*08
+$command,GNGBS,,,,,,,,,,,response: PARSING FAILD NO MATCHING FUNC  GNGBS*40
+$command,GPGSV,1,1,
+11:53:14.471 收：
+00,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,1,00,,,,,*26
+11:53:14.591 收：
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGNS,,,,,,NNNNN,,,,,,,V*67
+$GNGLL,,,,,,V,N*7A
+$GPGSA,,1,,,,,,,,,,,,,,,,*73
+$GNRMC,,V,,,,,,,,,,N,V*37
+$GPGST,,,,,,,,*57
+#UNIHEADINGA,97,GPS,UNKNOWN,1,2835000,0,0,18,1;INSUFFICIENT_OBS,NONE,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,"",0,0,0,0,0,00,0,0*27b4540d
+$GNGBS,,,,,,,,,,*5F
+$GPGSV,1,1,00,,,,,*55
+11:53:15.484 收：
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGNS,,,,,,NNNNN,,,,,,,V,response: PARSING FAILD NO MATCHING FUNC  GNGNS*74
+$command,GNGLL,,,,,,V,N,response: PARSING FAILD NO MATCHING FUNC  GNGLL*74
+$command,GPGSA,,1,,,,,,,,,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,,,,,,,,,,,,,,,,*1D
+$command,GNRMC,,V,,,,,,,,,,N,V,response: PARSING FAILD GRAMMAR ERROR,V,,,,,,,,,,N,V*
+11:53:15.484 收：
+0A
+$command,GPGST,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,,,*08
+$command,GNGBS,,,,,,,,,,,response: PARSING FAILD NO MATCHING FUNC  GNGBS*40
+$command,GPGSV,1,1,00,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,1,00,,,,,*26
+11:53:15.596 收：
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGGA,,,,,,0,,,,,,,,*78
+$GNGNS,,,,,,NNNNN,,,,,,,V*67
+$GNGLL,,,,,,V,N*7A
+$GPGSA,,1,,,,,,,,,,,,,,,,*73
+$GNRMC,,V,,,,,,,,,,N,V*37
+$GPGST,,,,,,,,*57
+#UNIHEADINGA,97,GPS,UNKNOWN,1,2836000,0,0,18,1;INSUFFICIENT_OBS,NONE,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,"",0,0,0,0,0,00,0,0*b96abb3e
+$GNGBS,,,,,,,,,,*5F
+$GPGSV,1,1,00,,,,,*55
+11:53:16.235 收：
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGGA,,,,,,0,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,0,,,,,,,,*17
+$command,GNGNS,,,,,,NNNNN,,,,,,,V,response: PARSING FAILD NO MATCHING FUNC  GNGNS*74
+$command,GNGLL,,,,,,V,N,response: PARSING FAILD NO MATCHING FUNC  GNGLL*74
+$command,GPGSA,,1,,,,,,,,,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,,,,,,,,,,,,,,,,*1D
+$command,GNRMC,,V,,,,,,,,,,N,V,response: PARSING FAILD GRAMMAR ERROR,V,,,,,,,,,,N,V*
+11:53:16.235 收：
+0A
+$command,GPGST,,,,,,,,,response: PARSING FAILD GRAMMAR ERROR,,,,,,,*08
+$command,GNGBS,,,,,,,,,,,response: PARSING FAILD NO MATCHING FUNC  GNGBS*40
+$command,GPGSV,1,1,00,,,,,,response: PARSING FAILD GRAMMAR ERROR,1,1,00,,,,,*26
+

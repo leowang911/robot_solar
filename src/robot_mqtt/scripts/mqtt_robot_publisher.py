@@ -92,6 +92,7 @@ class MQTTRobotBridge:
     def handle_error(self, error_message, error_code_binary):
         """处理错误日志并更新错误码"""
         # 将二进制错误码转换为十进制
+        print(f"Binary Error Code: {error_code_binary}")
         error_code_decimal = int(error_code_binary, 2)
         rospy.logerr(f"{error_message} (Error Code: {error_code_decimal})")
         

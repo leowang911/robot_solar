@@ -65,7 +65,14 @@
         "thread": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "any": "cpp",
+        "codecvt": "cpp",
+        "list": "cpp",
+        "regex": "cpp",
+        "shared_mutex": "cpp",
+        "typeindex": "cpp",
+        "variant": "cpp"
     },
     "ros.distro": "noetic"
 }

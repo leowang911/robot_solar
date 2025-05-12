@@ -61,6 +61,7 @@ for (char dat : data) {
 
         // 检查是否到达行尾
         if (dat == '\r' || dat == '\n') {
+        // if ((dat == '\r' || dat == '\n') && gps_tau1201_num > 1) {
             gps_tau1201_buffer2[gps_tau1201_num] = '\0';  // 在末尾添加 null 终止符
             gps_tau1201_num++;
 
@@ -72,7 +73,7 @@ for (char dat : data) {
             std::fill(std::begin(gps_tau1201_buffer2), std::end(gps_tau1201_buffer2), 0);
 
             // 打印接收到的完整消息
-            // std::string message(gps_tau1201_buffer1);
+            std::string message(gps_tau1201_buffer1);
                         // 在 serialCallback 中
             // std::cout << "gps_data_parse - : " << gps_tau1201_buffer1 << std::endl;
                 // ROS_INFO("Received complete message: %s", message.c_str());
@@ -125,32 +126,54 @@ void gps_data_parse(void) {
         std::string buffer_str(reinterpret_cast<char*>(gps_tau1201_buffer1));
         // std::cout << "Received buffer: " << buffer_str << std::endl;
         
-        
     // 确保 buffer_str 至少包含 6 个字符（GGA 的最小长度）
-    if (buffer_str.length() >= 6) {
-        // 检查前缀是否为 "#UNIHEADINGA"
-        if (std::strncmp(buffer_str.c_str(), "#UNIHEADINGA", 12) == 0) {
-            // 确保缓冲区大小足够
-            size_t buffer_length = std::strlen(reinterpret_cast<char*>(gps_tau1201_buffer1));
-            if (buffer_length >= 70) {
-                // 调用解析函数
-                gps_heading_parse(reinterpret_cast<char*>(gps_tau1201_buffer1), &gps_tau1201);
-            }
-            //  else {
-            //     std::cerr << "Error: Buffer length is too short for parsing." << std::endl;
-            // }
-        } 
-        // 检查后三位是否为 "GGA"
-        else if (buffer_str.substr(3, 3) == "GGA") {
-            // 如果是 GGA 数据，调用 GGA 解析函数
-            gps_gngga_parse(reinterpret_cast<char*>(gps_tau1201_buffer1), &gps_tau1201);
-        } 
-        // else {
-        //     std::cerr << "Error: Unsupported prefix. Received: " << buffer_str.substr(0, 12) << std::endl;
-        // }
-    // } else {
-    //     std::cerr << "Error: Input string is too short. Length: " << buffer_str.length() << std::endl;
+if (buffer_str.length() >= 6) {
+    // 检查前缀是否为 "#UNIHEADINGA"
+    if (std::strncmp(buffer_str.c_str(), "#UNIHEADINGA", 12) == 0) {
+        std::cout << "UNIHEADINGA的Buffer长度: " << buffer_str.length() << std::endl;
+        // 确保缓冲区大小足够
+        size_t buffer_length = std::strlen(reinterpret_cast<char*>(gps_tau1201_buffer1));
+        if (buffer_length >= 70) {
+            // 调用解析函数
+            gps_heading_parse(reinterpret_cast<char*>(gps_tau1201_buffer1), &gps_tau1201);
         }
+    } 
+    
+    // 检查后三位是否为 "GGA"
+    if (buffer_str.substr(3, 3) == "GGA") {
+        std::cout << "GNGGA的Buffer长度: " << buffer_str.length() << std::endl;
+        // 如果是 GGA 数据，调用 GGA 解析函数
+        gps_gngga_parse(reinterpret_cast<char*>(gps_tau1201_buffer1), &gps_tau1201);
+    }
+}
+    
+    // 确保 buffer_str 至少包含 6 个字符（GGA 的最小长度）
+    // if (buffer_str.length() >= 6) {
+    //     // 检查前缀是否为 "#UNIHEADINGA"
+    //     if (std::strncmp(buffer_str.c_str(), "#UNIHEADINGA", 12) == 0) {
+    //         std::cout << "UNIHEADINGA的Buffer长度: " << buffer_str.length() << std::endl;
+    //         // 确保缓冲区大小足够
+    //         size_t buffer_length = std::strlen(reinterpret_cast<char*>(gps_tau1201_buffer1));
+    //         if (buffer_length >= 70) {
+    //             // 调用解析函数
+    //             gps_heading_parse(reinterpret_cast<char*>(gps_tau1201_buffer1), &gps_tau1201);
+    //         }
+    //         //  else {
+    //         //     std::cerr << "Error: Buffer length is too short for parsing." << std::endl;
+    //         // }
+    //     } 
+    //     // 检查后三位是否为 "GGA"
+    //     if (buffer_str.substr(3, 3) == "GGA") {
+    //         std::cout << "GNGGA的Buffer长度: " << buffer_str.length() << std::endl;
+    //         // 如果是 GGA 数据，调用 GGA 解析函数
+    //         gps_gngga_parse(reinterpret_cast<char*>(gps_tau1201_buffer1), &gps_tau1201);
+    //     } 
+    //     // else {
+    //     //     std::cerr << "Error: Unsupported prefix. Received: " << buffer_str.substr(0, 12) << std::endl;
+    //     // }
+    // // } else {
+    // //     std::cerr << "Error: Input string is too short. Length: " << buffer_str.length() << std::endl;
+    //     }
 
 
     }
@@ -558,6 +581,7 @@ static void utc_to_btc (gps_time_struct *time)
     // 解析 pitch 和 heading
     uint8_t pitch_index = get_parameter_index(11, buf); // pitch 的索引
     uint8_t heading_index = get_parameter_index(12, buf); // heading 的索引
+    std::cout << "state: " << state << std::endl;
     if (state == 'F') {
         ROS_INFO("State: FINE");
         if (pitch_index > 0) {
@@ -596,7 +620,7 @@ static uint8_t gps_gngga_parse (char *line, gps_info_struct *gps)
     uint8_t return_value = 0;
 
 	state = buf[get_parameter_index(2, buf)];
-    // printf("state:%c\n", state);
+    printf("gps_gngga_parse_state:%c\n", state);
     if (state != ',')
     {
         // 解析经纬度
@@ -640,7 +664,7 @@ int main(int argc, char** argv) {
     ros::NodeHandle nh;
     // ros::Publisher gps_pub = nh.advertise<std_msgs::String>("gps_data", 1000);
     ros::Publisher gps_pub = nh.advertise<std_msgs::String>("gps/raw", 1000);
-    ros::Rate loop_rate(10);
+    ros::Rate loop_rate(0.1);
     bool has_valid_data = false; // 添加标志位，表示是否接收到有效数据
 
     while (ros::ok()) {
