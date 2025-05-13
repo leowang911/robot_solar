@@ -114,6 +114,8 @@ class ArucoDockingController:
         rospy.Subscriber("/camera/aruco_102/pixel", PointStamped, self.center_cb)
         rospy.Subscriber("/camera/aruco_103/pixel", PointStamped, self.center_left_cb)
         rospy.Subscriber("/camera/aruco_104/pixel", PointStamped, self.center_right_cb)
+        rospy.Subscriber("/camera/aruco_111/pixel", PointStamped, self.back_left_cb)
+        rospy.Subscriber("/camera/aruco_112/pixel", PointStamped, self.back_right_cb)
         rospy.Subscriber("/camera/depth/image_raw", Image, self.depth_cb)
         
         # rospy.Subscriber("/virtual_marker_102/pose", PoseStamped, self.center_cb)
@@ -222,6 +224,10 @@ class ArucoDockingController:
 
     def center_right_cb(self, msg): self.process_marker(msg, 'center_right')
 
+    def back_left_cb(self, msg): self.process_marker(msg, 'back_left')
+
+    def back_right_cb(self, msg): self.process_marker(msg, 'back_right')
+
     def process_marker(self, msg, marker_type):
         """处理ArUco检测数据（增加时间戳）"""
         # base_data = self.transform_to_base(msg)
@@ -297,6 +303,18 @@ class ArucoDockingController:
                 left_right.append(right_target)
             #valid_target.append(self.calculate_center_side_target('center_right'))
             # rospy.loginfo(f"right: {valid_target}")
+
+        if self.markers['back_left'] is not None:
+            left_target = self.calculate_back_side_target('back_left')    
+            if left_target is not None:    
+                valid_target.append(left_target)   
+                left_right.append(left_target)
+
+        if self.markers['back_right'] is not None:
+            right_target = self.calculate_back_side_target('back_right')    
+            if right_target is not None:    
+                valid_target.append(right_target)   
+                left_right.append(right_target)
 
         # for marker_type in ['left', 'right', 'center', 'center_left', 'center_right']:
         #     rospy.loginfo(f"{marker_type} marker_time: {self.marker_time[marker_type]}")
@@ -399,6 +417,39 @@ class ArucoDockingController:
         rot=pose.orientation
         R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
         sign = 1 if side == 'center_right' else -1
+        # 计算中间位置 * sign
+        offset = self.marker_side_spacing/2 *sign+0.03
+        self.pos_target = R@np.array([-offset, 0,self.stop_distance]) + pos
+        pos_center = R@np.array([-offset,0, 0]) + pos
+        # rospy.loginfo(f"pos: {pos}")
+        # rospy.loginfo(f"self.pos_target : {self.pos_target }")
+
+        return {
+            'position': self.pos_target,
+            'yaw': self.get_marker_yaw(self.pos_target),
+            'center': pos_center,
+            # 'yaw': np.arctan2(marker['position'][1], marker['position'][0]) + np.pi/2
+        }
+    
+    def calculate_back_side_target(self, side):
+        """计算中间标记前的目标点（基于单侧标记）"""
+        marker = self.markers[side]
+        # pos = marker['position']
+        # rot = marker['orientation']
+        
+        pose_stamped=self.get_rot(self.markers[side])
+        if pose_stamped is None:
+            return None
+        pose = pose_stamped.pose
+        # if side == 'back_left':
+        #     self.pose2_pub.publish(pose_stamped)
+        # else:
+        #     self.pose3_pub.publish(pose_stamped)
+            
+        pos=np.array([pose.position.x,pose.position.y,pose.position.z])
+        rot=pose.orientation
+        R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
+        sign = 1 if side == 'back_right' else -1
         # 计算中间位置 * sign
         offset = self.marker_side_spacing/2 *sign+0.03
         self.pos_target = R@np.array([-offset, 0,self.stop_distance]) + pos
