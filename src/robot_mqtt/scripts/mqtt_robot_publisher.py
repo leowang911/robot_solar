@@ -115,7 +115,7 @@ class MQTTRobotBridge:
         if self.mqtt_user is not None and self.mqtt_password is not None:
             self.mqtt_client.username_pw_set(self.mqtt_user, self.mqtt_password)
         
-        if not self.mqtt_connected:
+        while not self.mqtt_connected:
             try:
                 self.mqtt_client.connect(self.mqtt_broker, self.mqtt_port, 60)
                 self.mqtt_client.loop_start()
