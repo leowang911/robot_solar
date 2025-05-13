@@ -299,7 +299,7 @@
             <param name="reference_frame"    value="$(arg ref_frame)"/>   <!-- frame in which the marker pose will be refered -->
             <param name="camera_frame"       value="camera_link"/>
             <param name="marker_frame"       value="$(arg marker_frame)100" />
-            <param name="corner_refinement"  value="$(arg corner_refinement)" />
+            <!-- <param name="corner_refinement"  value="$(arg corner_refinement)" /> -->
         </node>
 
         <node pkg="aruco_ros" type="single" name="aruco_101">
@@ -313,7 +313,7 @@
             <param name="reference_frame"    value="$(arg ref_frame)"/>   <!-- frame in which the marker pose will be refered -->
             <param name="camera_frame"       value="camera_link"/>
             <param name="marker_frame"       value="$(arg marker_frame)101" />
-            <param name="corner_refinement"  value="$(arg corner_refinement)" />
+            <!-- <param name="corner_refinement"  value="$(arg corner_refinement)" /> -->
         </node>
 
         <node pkg="aruco_ros" type="single" name="aruco_102">
@@ -327,7 +327,7 @@
             <param name="reference_frame"    value="$(arg ref_frame)"/>   <!-- frame in which the marker pose will be refered -->
             <param name="camera_frame"       value="camera_link"/>
             <param name="marker_frame"       value="$(arg marker_frame)102" />
-            <param name="corner_refinement"  value="$(arg corner_refinement)" />
+            <!-- <param name="corner_refinement"  value="$(arg corner_refinement)" /> -->
         </node>
 
         <node pkg="aruco_ros" type="single" name="aruco_103">
@@ -341,7 +341,7 @@
             <param name="reference_frame"    value="$(arg ref_frame)"/>   <!-- frame in which the marker pose will be refered -->
             <param name="camera_frame"       value="camera_link"/>
             <param name="marker_frame"       value="$(arg marker_frame)103" />
-            <param name="corner_refinement"  value="$(arg corner_refinement)" />
+            <!-- <param name="corner_refinement"  value="$(arg corner_refinement)" /> -->
         </node>
 
 
@@ -356,7 +356,7 @@
             <param name="reference_frame"    value="$(arg ref_frame)"/>   <!-- frame in which the marker pose will be refered -->
             <param name="camera_frame"       value="camera_link"/>
             <param name="marker_frame"       value="$(arg marker_frame)104" />
-            <param name="corner_refinement"  value="$(arg corner_refinement)" />
+            <!-- <param name="corner_refinement"  value="$(arg corner_refinement)" /> -->
         </node>
 
         <!-- 发布base_link到其他坐标系的静态变换 -->
