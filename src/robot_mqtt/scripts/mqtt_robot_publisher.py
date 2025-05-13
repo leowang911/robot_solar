@@ -137,6 +137,7 @@ class MQTTRobotBridge:
 
     def on_mqtt_disconnect(self, client, userdata, disconnect_flags, rc, properties=None):
         rospy.logwarn(f"MQTT disconnected (rc={rc}), attempting reconnect...")
+        self.mqtt_connected = False
         self.setup_mqtt()
 
     def control_callback(self, msg):
