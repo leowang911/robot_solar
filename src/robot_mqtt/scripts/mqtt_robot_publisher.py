@@ -10,6 +10,7 @@ from geometry_msgs.msg import Twist
 from robot_localization.msg import INSPVAE,INSPVA, baseStatus, GPSData
 from robot_control.msg import controlData  # 根据实际包名调整
 import uuid
+import time
 class MQTTRobotBridge:
     def __init__(self):
         rospy.init_node('mqtt_robot_bridge', anonymous=True)
@@ -27,6 +28,7 @@ class MQTTRobotBridge:
         self.pub_topic = rospy.get_param('~pub_topic', f'robot/{self.robot_id}/status')
         self.sub_topic = rospy.get_param('~sub_topic', 'robot/commands')
         self.uuid = str(uuid.uuid4())  # 生成唯一ID
+        self.mqtt_connected = False
         
         
         
@@ -113,13 +115,16 @@ class MQTTRobotBridge:
         if self.mqtt_user is not None and self.mqtt_password is not None:
             self.mqtt_client.username_pw_set(self.mqtt_user, self.mqtt_password)
         
-        try:
-            self.mqtt_client.connect(self.mqtt_broker, self.mqtt_port, 60)
-            self.mqtt_client.loop_start()
-            rospy.loginfo(f"Connected to MQTT broker at {self.mqtt_broker}:{self.mqtt_port}")
-        except Exception as e:
-            rospy.logerr(f"Initial MQTT connection failed: {str(e)}")
-            rospy.signal_shutdown("MQTT connection error")
+        if not self.mqtt_connected:
+            try:
+                self.mqtt_client.connect(self.mqtt_broker, self.mqtt_port, 60)
+                self.mqtt_client.loop_start()
+                rospy.loginfo(f"Connected to MQTT broker at {self.mqtt_broker}:{self.mqtt_port}")
+                self.mqtt_connected = True
+            except Exception as e:
+                rospy.logerr(f"Initial MQTT connection failed: {str(e)}, retrying...")
+                time.sleep(5)  # 等待5秒后重试连接
+            # rospy.signal_shutdown("MQTT connection error")
 
     # MQTT回调函数
     def on_mqtt_connect(self, client, userdata, flags, rc,properties=None):
