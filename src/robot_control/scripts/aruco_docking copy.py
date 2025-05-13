@@ -22,11 +22,10 @@ class DockingController:
         # 订阅器
         # rospy.Subscriber("/inspvae_data", INSPVAE, self.robot_gps_cb)
         # rospy.Subscriber("/gps/fix", NavSatFix , self.drone_gps_cb)
-        rospy.Subscriber("camera/aruco_103/pose", PoseStamped, self.left_cb)
-        rospy.Subscriber("camera/aruco_104/pose", PoseStamped, self.right_cb)
-        rospy.Subscriber("camera/aruco_102/pose", PoseStamped, self.center_cb)
-        rospy.Subscriber("camera/aruco_101/pose", PoseStamped, self.leftedge_cb)
-        rospy.Subscriber("camera/aruco_100/pose", PoseStamped, self.rightedge_cb)
+        rospy.Subscriber("camera/aruco_100/pose", PoseStamped, self.left_cb)
+        rospy.Subscriber("camera/aruco_101/pose", PoseStamped, self.right_cb)
+        rospy.Subscriber("camera/aruco_102/pose", PoseStamped, self.front_cb)
+        
         # 发布控制指令
         self.control_pub = rospy.Publisher("/control_data", controlData, queue_size=1)
         
@@ -61,9 +60,6 @@ class DockingController:
     def left_cb(self, msg): self.process_marker(msg, 'left')
     def right_cb(self, msg): self.process_marker(msg, 'right')
     def center_cb(self, msg): self.process_marker(msg, 'center')
-    def leftedge_cb(self, msg): self.edge_process_marker(msg, 'leftedge')
-    def rightedge_cb(self, msg): self.edge_process_marker(msg, 'rightedge')
-
 
     def process_marker(self, msg, marker_type):
         """处理检测到的ArUco标记"""
@@ -85,51 +81,6 @@ class DockingController:
             self.state = "SIDE_GUIDE"
         else:
             self.state = "SEARCH"
-
-    def edge_process_marker(self, msg, marker_type):
-        """处理检测到的侧边ArUco标记"""
-        base_pose = self.transform_to_base(msg)
-        if base_pose:
-            self.detected_markers[marker_type] = {
-                'position': np.array([base_pose.pose.position.x, 
-                                     base_pose.pose.position.y]),
-                'orientation': base_pose.pose.orientation
-            }
-            self.edge_update_state()
-
-    def edge_update_state(self):
-        """侧边状态机更新逻辑"""
-        if self.detected_markers['leftedge']:
-            # 检测到左侧标记（101），发送右转指令
-            rospy.loginfo("Detected left edge marker (101), turning right...")
-            control = controlData()
-            control.distance = 0  # 停止前进
-            control.yaw = -0.5  # 右转
-            self.control_pub.publish(control)
-            # 检查是否找到正前方标记（103）
-            if self.detected_markers['left']:
-                rospy.loginfo("Detected front-left marker (103), switching to SIDE_GUIDE...")
-                self.state = "SIDE_GUIDE"
-
-        elif self.detected_markers['rightedge']:
-            # 检测到右侧标记（100），发送左转指令
-            rospy.loginfo("Detected right edge marker (100), turning left...")
-            control = controlData()
-            control.distance = 0  # 停止前进
-            control.yaw = 0.5  # 左转
-            self.control_pub.publish(control)
-            # 检查是否找到正前方标记（104）
-            if self.detected_markers['right']:
-                rospy.loginfo("Detected front-right marker (104), switching to SIDE_GUIDE...")
-                self.state = "SIDE_GUIDE"
-
-        else:
-            # 未检测到侧边标记，保持搜索状态
-            self.state = "SEARCH"
-        
-
-
-    def leftedge_cb(self, msg): self.edge_process_marker(msg, 'leftedge')
 
     def calculate_control(self):
         """根据当前状态生成控制指令"""

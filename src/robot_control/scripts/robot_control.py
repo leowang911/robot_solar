@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import rospy
@@ -7,7 +7,6 @@ import tf2_ros
 from geometry_msgs.msg import Twist, PointStamped, PoseStamped
 from sensor_msgs.msg import NavSatFix
 from tf.transformations import euler_from_quaternion
-
 class DroneDockingController:
     def __init__(self):
         rospy.init_node('drone_docking_controller')
