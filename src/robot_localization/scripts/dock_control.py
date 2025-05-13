@@ -70,7 +70,9 @@ class ArucoDockingController:
             'right': None,
             'center': None,
             'center_left': None,
-            'center_right': None
+            'center_right': None,
+            'back_left': None,
+            'back_right': None,
         }
         self.depth_dict={}
 
