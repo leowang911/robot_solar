@@ -452,8 +452,8 @@ class ArucoDockingController:
         sign = 1 if side == 'back_right' else -1
         # 计算中间位置 * sign
         offset = self.marker_side_spacing/2 *sign+0.03
-        self.pos_target = R@np.array([-offset, 0,self.stop_distance]) + pos
-        pos_center = R@np.array([-offset,0, 0]) + pos
+        self.pos_target = R@np.array([-offset, 0,self.stop_distance+0.9]) + pos
+        pos_center = R@np.array([-offset,0, 0.9]) + pos
         # rospy.loginfo(f"pos: {pos}")
         # rospy.loginfo(f"self.pos_target : {self.pos_target }")
 
