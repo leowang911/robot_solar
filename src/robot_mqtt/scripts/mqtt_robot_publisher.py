@@ -15,12 +15,12 @@ class MQTTRobotBridge:
         rospy.init_node('mqtt_robot_bridge', anonymous=True)
         
         # 初始化MQTT参数
-        # self.mqtt_broker = rospy.get_param('~mqtt_broker', '106.12.23.8')
-        # self.mqtt_port = rospy.get_param('~mqtt_port', 13234)
-        self.mqtt_broker = rospy.get_param('~mqtt_broker', 'broker.emqx.io')
-        self.mqtt_port = rospy.get_param('~mqtt_port', 1883)
-        self.mqtt_user = rospy.get_param('~mqtt_user', None)
-        self.mqtt_password = rospy.get_param('~mqtt_password', None)
+        self.mqtt_broker = rospy.get_param('~mqtt_broker', '106.12.23.8')
+        self.mqtt_port = rospy.get_param('~mqtt_port', 13234)
+        # self.mqtt_broker = rospy.get_param('~mqtt_broker', 'broker.emqx.io')
+        # self.mqtt_port = rospy.get_param('~mqtt_port', 1883)
+        self.mqtt_user = rospy.get_param('~mqtt_user', 'gifeng')
+        self.mqtt_password = rospy.get_param('~mqtt_password', '8dY9hE5FVF2GEIi')
         # self.mqtt_user = rospy.get_param('~mqtt_user', '123')
         # self.mqtt_password = rospy.get_param('~mqtt_password', '123')
         self.robot_id = rospy.get_param('~robot_id', 'GFSTJM120250201')
