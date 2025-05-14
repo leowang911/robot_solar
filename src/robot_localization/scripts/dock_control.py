@@ -1266,7 +1266,18 @@ class ArucoDockingController:
 
                                         if np.linalg.norm(target_vec) <self.stop_distance_threshold and abs(target_vec[1])<self.stop_refine_pose_dlt_y and np.linalg.norm(target_vec) >0: 
 
+                                            #最后基于偏差量盲转一个delta 角度
+                                            target2=current_pose_state['center'][:2]-current_pose_state['position'][:2]
+                                            target2/=np.linalg.norm(target2)
+                                            target2=current_pose_state['center'][:2]+target2*0.9
+                                            yaw_last=self.get_marker_yaw(target2)
+                                            control.distance = int(0)
+                                            control.target_yaw = self.yaw_to_target_yaw_angle(yaw_last,self.current_yaw)
+                                            control.robot_state = 2
+                                            control.header.stamp = rospy.Time.now()
+                                            self.control_pub.publish(control)
 
+                                            time.sleep(0.5)
                                             control.robot_state = 1
                                             rospy.loginfo(f'************GOOD start final docking**************')
                                             # rospy.loginfo(f)
