@@ -234,11 +234,15 @@ class ArucoDockingController:
     def back_left_cb(self, msg): self.process_marker(msg, 'back_left')
 
     def back_right_cb(self, msg): self.process_marker(msg, 'back_right')
-
+ 
+    def leftedge_cb(self, msg): self.edge_process_marker(msg, 'leftedge')
+    def rightedge_cb(self, msg): self.edge_process_marker(msg, 'rightedge')
 
 
     def edge_process_marker(self, msg, marker_type):
-        """处理ArUco检测数据、计算base_link到标记点右侧1米处的新标记点的距离与朝向"""
+        """
+        处理ArUco检测数据、计算base_link到标记点左侧或右侧1米处的新标记点的距离与朝向
+        """
         try:
             # 将标记点的位姿从 camera_link 转换到 base_link
             transform_cam_to_base = self.tf_buffer.lookup_transform(
@@ -259,10 +263,18 @@ class ArucoDockingController:
                 [marker_orientation.x, marker_orientation.y, marker_orientation.z, marker_orientation.w]
             )
 
-            # 计算右侧1米的目标点坐标
-            # 偏移量：右侧 1 米相对于标记点的朝向是90度 (yaw + 90)？？？
-            offset_x = 1.0 * math.cos(marker_yaw + math.pi / 2)
-            offset_y = 1.0 * math.sin(marker_yaw + math.pi / 2)
+            # 判断方向，根据marker_type区分左右
+            if marker_type == 'rightedge':
+                # 计算左侧1米正前方边缘的目标点坐标
+                offset_x = 1.0 * math.cos(marker_yaw - math.pi / 2)  # 左侧是 yaw - 90°
+                offset_y = 1.0 * math.sin(marker_yaw - math.pi / 2)
+            elif marker_type == 'leftedge':
+                # 计算右侧1米正前方边缘的目标点坐标
+                offset_x = 1.0 * math.cos(marker_yaw + math.pi / 2)  # 右侧是 yaw + 90°
+                offset_y = 1.0 * math.sin(marker_yaw + math.pi / 2)
+            else:
+                rospy.logwarn(f"Unknown marker type: {marker_type}")
+                return
 
             # 新标记点的位置
             new_marker_x = marker_position.x + offset_x
@@ -278,14 +290,14 @@ class ArucoDockingController:
             # 计算朝向 (yaw)
             yaw = math.atan2(dy, dx)
 
-            rospy.loginfo(f"Distance to new marker (right side 1m): {distance:.2f} meters, Yaw: {math.degrees(yaw):.2f} degrees")
+            rospy.loginfo(f"Distance to new marker ({marker_type}): {distance:.2f} meters, Yaw: {math.degrees(yaw):.2f} degrees")
 
             # 根据距离和朝向发布控制指令
             control = controlData()
             control.distance = distance
             control.yaw = yaw
             self.control_pub.publish(control)
-        
+            
         except tf2_ros.TransformException as e:
             rospy.logwarn(f"Transform exception: {e}")
 
