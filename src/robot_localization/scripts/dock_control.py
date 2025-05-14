@@ -277,13 +277,16 @@ class ArucoDockingController:
             if self.markers['center_left'] is None or self.markers['center_right'] is None:
                 current_target = self.estimate_center('left')  
                 self.current_target = current_target
+            else:
+                self.markers['left'] = None
             # rospy.loginfo(f"left: {valid_target}")
 
         if self.markers['right'] is not None:
             if self.markers['center_left'] is None or self.markers['center_right'] is None:
                 current_target = self.estimate_center('right')  
                 self.current_target = current_target
-
+            else:
+                self.markers['right'] = None
 
         if self.markers['center_left'] is not None:
             left_target = self.calculate_center_side_target('center_left')  
@@ -1143,6 +1146,8 @@ class ArucoDockingController:
                                 rospy.loginfo(f'SEARCH******************* {self.state}')
                                 self.search()
                             return
+                        
+                    
 
                         if self.current_target:
                             self.lock_current=True #不允许currentpose改为None，可以进行更新
@@ -1150,6 +1155,7 @@ class ArucoDockingController:
                             # 计算当前状态,行走到目标点前1m
                             target_vec = self.current_target['position'][:2] - current_pos
                             rospy.loginfo(f'target_vec is %%%%%%%%%%% {target_vec}')
+                            
                             
 
                             #2.2 粗定位
