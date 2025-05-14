@@ -86,6 +86,12 @@ class ArucoDockingController:
             'center': np.array([0.0, 0.0, 0.0]),
         }
 
+        self.side_target_target = {
+            'position': np.array([0.0, 0.0, 0.0]),
+            'yaw': 0.0,
+            'center': np.array([0.0, 0.0, 0.0]),
+        }
+
         self.control_seq = 0
         self.stop_flag = False
         self.out_dock_flag = False
@@ -275,21 +281,23 @@ class ArucoDockingController:
 
         if self.markers['left'] is not None:
             if self.markers['center_left'] is None and self.markers['center_right'] is None:
-                left_side_target = self.estimate_center('left')  
-                if left_side_target is not None: 
-                    valid_target.append(left_side_target)
+                self.side_target = self.estimate_center('left')  
+                # if left_side_target is not None: 
+                #     valid_target.append(left_side_target)
                     # left_right.append(left_target)
             else:
                 self.markers['left'] = None
+                self.side_target = None
             # rospy.loginfo(f"left: {valid_target}")
 
         if self.markers['right'] is not None:
             if self.markers['center_left'] is None and self.markers['center_right'] is None:
-                right_side_target = self.estimate_center('right')  
-                if right_side_target is not None: 
-                    valid_target.append(right_side_target)
+                self.side_target = self.estimate_center('right')  
+                # if right_side_target is not None: 
+                #     valid_target.append(right_side_target)
             else:
                 self.markers['right'] = None
+                self.side_target = None
 
         if self.markers['center_left'] is not None:
             left_target = self.calculate_center_side_target('center_left')  
@@ -1150,7 +1158,55 @@ class ArucoDockingController:
                                 self.search()
                             return
                         
-                    
+                        if self.side_target:
+                            self.lock_current=True
+                            current_pos = np.array([0, 0])  # 基坐标系原点
+                            target_vec = self.side_target['position'][:2] - current_pos
+                            rospy.loginfo(f'target_vec is %%%%%%%%%%% {target_vec}')
+
+                            if target_vec[0]>0:
+                                self.target_distance = np.linalg.norm(target_vec) 
+                                self.target_distance=np.clip(self.target_distance,0,1)
+                                self.target_yaw = math.atan2(target_vec[1], target_vec[0])
+                                if  np.linalg.norm(target_vec)<0.1:
+                                    self.target_yaw=0
+                            else:
+                                self.target_yaw = 0
+                                control.distance = -100
+                                control.target_yaw = self.yaw_to_target_yaw_angle(0,self.current_yaw)
+                                control.header.stamp = rospy.Time.now()
+                                control.robot_state = 1
+                                self.control_pub.publish(control)
+                                time.sleep(0.05)
+                                control.header.stamp = rospy.Time.now()
+                                control.robot_state = 2 
+                                self.control_pub.publish(control)
+                                self.control_seq += 1
+                                time.sleep(0.5)
+                                self.lock_current=False
+                                return 
+                            
+                            control.distance = int(self.target_distance*1000)
+                            control.target_yaw = self.yaw_to_target_yaw_angle(self.target_yaw,self.current_yaw)
+                            control.robot_state = 2
+
+                            # 发布控制指令
+                            control.header.stamp = rospy.Time.now()
+                            control.header.seq = self.control_seq
+                            self.state_prev = self.state
+                            rospy.loginfo(f'state: {control.robot_state}')
+                            if self.complete_state==2:
+                                control.robot_state = 1
+                                control.header.stamp = rospy.Time.now()
+                                self.control_pub.publish(control)
+                                time.sleep(0.05)
+                                control.robot_state = 2 
+                                control.header.stamp = rospy.Time.now()
+                            self.control_pub.publish(control)
+                            self.control_seq += 1
+
+
+
 
                         if self.current_target:
                             self.lock_current=True #不允许currentpose改为None，可以进行更新
