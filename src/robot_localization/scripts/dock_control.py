@@ -848,74 +848,74 @@ class ArucoDockingController:
         self.distance2drone = math.sqrt(easting_diff**2 + northing_diff**2)
         self.yaw2drone = math.atan2(easting_diff, northing_diff)
         
+    def search(self):
+        #找不到旋转180
+        if self.distance2drone > 1 or self.distance2drone <=0.1:
+            control = self.compose_control(0, 0, self.current_yaw, np.pi/10, 1)
+            # control = controlData()
+            # control.distance = 0 
+            # # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            # # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, np.pi/10)
+            # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            # control.roller_speed = 0
+            # control.robot_state = 1
+            self.control_pub.publish(control)
+            time.sleep(0.01)
+            control.robot_state = 2
+            self.control_pub.publish(control)
+            time.sleep(0.5)
+        else:
+            control = self.compose_control(-200, 0, self.current_yaw, 0, 2)
+            control = controlData()
+            # control.distance = -200 
+            # # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            # # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            # control.roller_speed = 0
+            # control.robot_state = 2
+            self.control_pub.publish(control)
+        return control
+
     # def search(self):
-    #     #找不到旋转180
-    #     if self.distance2drone > 1 or self.distance2drone <=0.1:
-    #         control = self.compose_control(0, 0, self.current_yaw, np.pi/10, 1)
-    #         # control = controlData()
-    #         # control.distance = 0 
-    #         # # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-    #         # # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-    #         # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, np.pi/10)
+    #     #找不到，基于与无人机朝向，左右旋转np.pi/20弧度。
+    #     self.current_target=None
+    #     self.state="SEARCH"
+    #     if self.distance2drone > 1.0 or self.distance2drone <=0.1:
+    #         control = controlData()
+    #         control.distance = 0 
+    #         # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
     #         # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-    #         # control.roller_speed = 0
-    #         # control.robot_state = 1
+    #         if self.current_yaw>self.yaw2drone:
+    #             up_yaw=-np.pi/20
+    #         else:
+    #             up_yaw=np.pi/20
+    #         control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, up_yaw)
+    #         control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+    #         control.roller_speed = 0
+    #         control.robot_state = 1
     #         self.control_pub.publish(control)
-    #         time.sleep(0.01)
+    #         time.sleep(0.05)
     #         control.robot_state = 2
     #         self.control_pub.publish(control)
     #         time.sleep(0.5)
+
+    #         self.control_seq += 1
     #     else:
-    #         control = self.compose_control(-200, 0, self.current_yaw, 0, 2)
     #         control = controlData()
-    #         # control.distance = -200 
-    #         # # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-    #         # # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+    #         control.distance = -100 
     #         # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
     #         # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-    #         # control.roller_speed = 0
-    #         # control.robot_state = 2
+    #         control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+    #         control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+    #         control.roller_speed = 0
+    #         control.robot_state = 2
     #         self.control_pub.publish(control)
+    #         self.control_seq += 1
+    #         time.sleep(0.5)
+
     #     return control
-
-    def search(self):
-        #找不到，基于与无人机朝向，左右旋转np.pi/20弧度。
-        self.current_target=None
-        self.state="SEARCH"
-        if self.distance2drone > 1.0 or self.distance2drone <=0.1:
-            control = controlData()
-            control.distance = 0 
-            # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            if self.current_yaw>self.yaw2drone:
-                up_yaw=-np.pi/20
-            else:
-                up_yaw=np.pi/20
-            control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, up_yaw)
-            control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            control.roller_speed = 0
-            control.robot_state = 1
-            self.control_pub.publish(control)
-            time.sleep(0.05)
-            control.robot_state = 2
-            self.control_pub.publish(control)
-            time.sleep(0.5)
-
-            self.control_seq += 1
-        else:
-            control = controlData()
-            control.distance = -100 
-            # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            control.roller_speed = 0
-            control.robot_state = 2
-            self.control_pub.publish(control)
-            self.control_seq += 1
-            time.sleep(0.5)
-
-        return control
 
     def get_pre_robot_pose(self,):
         
