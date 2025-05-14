@@ -1175,7 +1175,7 @@ class ArucoDockingController:
 
                             if target_vec[0]>0:
                                 self.target_distance = np.linalg.norm(target_vec) 
-                                self.target_distance=np.clip(self.target_distance,0,1)
+                                # self.target_distance=np.clip(self.target_distance,0,1)
                                 self.target_yaw = math.atan2(target_vec[1], target_vec[0])
                                 if  np.linalg.norm(target_vec)<0.1:
                                     self.target_yaw=0
@@ -1192,7 +1192,9 @@ class ArucoDockingController:
                                 self.control_pub.publish(control)
                                 self.control_seq += 1
                                 time.sleep(0.5)
-                                self.lock_current=False
+                                while self.complete_state!=2:
+                                    continue
+                                
                                 return 
                             
                             control.distance = int(self.target_distance*1000)
