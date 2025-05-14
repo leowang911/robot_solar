@@ -1076,7 +1076,7 @@ class ArucoDockingController:
                 # self.corner_finding_flag = False
                 # self.auto_cleaning_flag = False
 
-                if self.docking_flag ==False and False: #todo 
+                if self.docking_flag ==False : #todo 
                     self.update_state()
                     control = controlData()
                     control.distance = 0
@@ -1411,7 +1411,7 @@ class ArucoDockingController:
 
                             self.lock_current=False
 
-                if self.in_dock_flag == False or True:
+                if self.in_dock_flag == False :
                     if self.count == 0:
                         control = self.compose_control(0,0,self.current_yaw,0,1)
                         self.control_pub.publish(control)
