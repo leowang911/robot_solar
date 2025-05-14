@@ -1159,7 +1159,7 @@ class ArucoDockingController:
                                 self.search()
                             return
                         
-                        if self.self.markers['left'] or self.markers['right']:
+                        if self.markers['left'] or self.markers['right']:
                             # self.lock_current=True
                             current_pos = np.array([0, 0])  # 基坐标系原点
                             target_vec = self.side_target['position'][:2] - current_pos
