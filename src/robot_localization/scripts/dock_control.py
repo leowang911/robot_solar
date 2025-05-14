@@ -1011,6 +1011,17 @@ class ArucoDockingController:
         
         return distance,theta1,theta2    
 
+    def direct_forward(self):
+        distance=0.28
+
+        # theta1=math.atan(abs(prepoint[1]/prepoint[0]))
+
+        # if prepoint[1]>0:
+        #     theta1=-theta1
+        theta1 = theta2=   0
+        return distance,theta1,theta2
+
+
     def get_five_avg(self,):
         target_list=[]
         y_list=[]
@@ -1340,7 +1351,8 @@ class ArucoDockingController:
                                         current_pose_state=self.get_five_avg()#取5次平均值进行计算
 
                                         #d1,yaw1,yaw2=self.get_step2_robot_pose()
-                                        d1,yaw1,yaw2=self.get_step2_robot_pose(current_pose_state)
+                                        #d1,yaw1,yaw2=self.get_step2_robot_pose(current_pose_state)#重新计算marker位置
+                                        d1,yaw1,yaw2=self.direct_forward()#不重新计算图像marker位置
 
                                         rospy.loginfo(f'robot pose22: {d1} {yaw1} {yaw2}')
                                         control.distance = int(d1*1000)
