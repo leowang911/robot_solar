@@ -1267,8 +1267,9 @@ class ArucoDockingController:
                                         if np.linalg.norm(target_vec) <self.stop_distance_threshold and abs(target_vec[1])<self.stop_refine_pose_dlt_y and np.linalg.norm(target_vec) >0: 
 
 
-                                            control.robot_state = 4
+                                            control.robot_state = 1
                                             rospy.loginfo(f'************GOOD start final docking**************')
+                                            # rospy.loginfo(f)
                                             control.header.stamp = rospy.Time.now()
                                             self.control_pub.publish(control)
                                             self.control_seq += 1 
