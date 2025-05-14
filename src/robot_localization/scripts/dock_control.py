@@ -86,7 +86,7 @@ class ArucoDockingController:
             'center': np.array([0.0, 0.0, 0.0]),
         }
 
-        self.side_target_target = {
+        self.side_target = {
             'position': np.array([0.0, 0.0, 0.0]),
             'yaw': 0.0,
             'center': np.array([0.0, 0.0, 0.0]),
