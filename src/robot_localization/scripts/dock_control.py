@@ -810,8 +810,8 @@ class ArucoDockingController:
         angle = np.arccos(cos_angle)
         # 计算航向角
         yaw = math.pi - angle
-        if self.markers['right'] is not None:
-            yaw =-yaw
+        # if self.markers['right'] is not None:
+        #     yaw =-yaw
         return yaw 
 
     def calculate_docking_target(self):
