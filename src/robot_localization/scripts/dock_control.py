@@ -1156,7 +1156,7 @@ class ArucoDockingController:
                                 self.search()
                             return
                         
-                        if self.side_target:
+                        if self.side_target is not None:
                             # self.lock_current=True
                             current_pos = np.array([0, 0])  # 基坐标系原点
                             target_vec = self.side_target['position'][:2] - current_pos
@@ -1208,7 +1208,7 @@ class ArucoDockingController:
 
 
 
-                        if self.current_target:
+                        if self.current_target is not None:
                             self.lock_current=True #不允许currentpose改为None，可以进行更新
                             current_pos = np.array([0, 0])  # 基坐标系原点
                             # 计算当前状态,行走到目标点前1m
