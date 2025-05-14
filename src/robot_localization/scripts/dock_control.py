@@ -274,7 +274,7 @@ class ArucoDockingController:
 
 
         if self.markers['left'] is not None:
-            if self.markers['center_left'] is None or self.markers['center_right'] is None:
+            if self.markers['center_left'] is None and self.markers['center_right'] is None:
                 left_side_target = self.estimate_center('left')  
                 if left_side_target is not None: 
                     valid_target.append(left_side_target)
@@ -284,7 +284,7 @@ class ArucoDockingController:
             # rospy.loginfo(f"left: {valid_target}")
 
         if self.markers['right'] is not None:
-            if self.markers['center_left'] is None or self.markers['center_right'] is None:
+            if self.markers['center_left'] is None and self.markers['center_right'] is None:
                 right_side_target = self.estimate_center('right')  
                 if right_side_target is not None: 
                     valid_target.append(right_side_target)
