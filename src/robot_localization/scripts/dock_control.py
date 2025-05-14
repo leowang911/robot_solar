@@ -1192,9 +1192,8 @@ class ArucoDockingController:
                                 self.control_pub.publish(control)
                                 self.control_seq += 1
                                 time.sleep(0.5)
-                                while self.complete_state!=2:
-                                    continue
                                 
+
                                 return 
                             
                             control.distance = int(self.target_distance*1000)
@@ -1206,6 +1205,7 @@ class ArucoDockingController:
                             control.header.seq = self.control_seq
                             self.state_prev = self.state
                             rospy.loginfo(f'state: {control.robot_state}')
+                            
                             if self.complete_state==2:
                                 control.robot_state = 1
                                 control.header.stamp = rospy.Time.now()
@@ -1214,6 +1214,8 @@ class ArucoDockingController:
                                 control.robot_state = 2 
                                 control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
+                            while self.complete_state!=2:
+                                    continue
                             self.control_seq += 1
                             self.lock_current=False
                             return
