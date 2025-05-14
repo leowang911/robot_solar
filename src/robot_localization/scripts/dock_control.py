@@ -801,6 +801,19 @@ class ArucoDockingController:
             # 'yaw': np.arctan2(marker['position'][1], marker['position'][0]) + np.pi/2
         }
 
+    def get_side_center_angle(self, side_target):
+        l1 = np.linalg.norm(side_target['position'][:2])
+        l2 = np.linalg.norm(side_target['center'][:2])
+        l3 = np.linalg.norm(side_target['position'][:2] - side_target['center'][:2])
+        # 余弦定理计算角度
+        cos_angle = (l1**2 + l3**2 - l2**2) / (2 * l1 * l3)
+        angle = np.arccos(cos_angle)
+        # 计算航向角
+        yaw = math.pi - angle
+        if self.markers['right'] is not None:
+            yaw =-yaw
+        return yaw 
+
     def calculate_docking_target(self):
         """计算中间标记前的目标点"""
 
@@ -1171,6 +1184,7 @@ class ArucoDockingController:
                             self.lock_current=True
                             current_pos = np.array([0, 0])  # 基坐标系原点
                             target_vec = self.side_target['position'][:2] - current_pos
+                            yaw_final = self.get_side_center_angle(self.side_target)
                             rospy.loginfo(f'side!!! target_vec is %%%%%%%%%%% {target_vec}')
 
                             if target_vec[0]>0:
@@ -1213,6 +1227,12 @@ class ArucoDockingController:
                                 time.sleep(0.05)
                                 control.robot_state = 2 
                                 control.header.stamp = rospy.Time.now()
+                            self.control_pub.publish(control)
+                            while self.complete_state!=2:
+                                    continue
+                            control.distance = 0
+                            control.target_yaw = self.yaw_to_target_yaw_angle(yaw_final,self.current_yaw)
+                            control.robot_state = 2
                             self.control_pub.publish(control)
                             while self.complete_state!=2:
                                     continue
