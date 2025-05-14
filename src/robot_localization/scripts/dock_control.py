@@ -1168,7 +1168,7 @@ class ArucoDockingController:
                             return
                         
                         if self.markers['left'] or self.markers['right']:
-                            # self.lock_current=True
+                            self.lock_current=True
                             current_pos = np.array([0, 0])  # 基坐标系原点
                             target_vec = self.side_target['position'][:2] - current_pos
                             rospy.loginfo(f'side!!! target_vec is %%%%%%%%%%% {target_vec}')
@@ -1213,7 +1213,7 @@ class ArucoDockingController:
                                 control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
                             self.control_seq += 1
-
+                            self.lock_current=False
                             return
 
 
