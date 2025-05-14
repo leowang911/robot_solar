@@ -110,8 +110,8 @@ class ArucoDockingController:
         rospy.Subscriber("/inspva_data", INSPVA, self.inspva_cb)
         rospy.Subscriber("/base_status", baseStatus, self.base_cb)
         rospy.Subscriber("/gps/raw", GPSData, self.drone_gps_cb)
-        # rospy.Subscriber("/camera/aruco_100/pixel", PointStamped, self.left_cb)
-        # rospy.Subscriber("/camera/aruco_101/pixel", PointStamped, self.right_cb)
+        rospy.Subscriber("/camera/aruco_100/pixel", PointStamped, self.left_cb)
+        rospy.Subscriber("/camera/aruco_101/pixel", PointStamped, self.right_cb)
         rospy.Subscriber("/camera/aruco_102/pixel", PointStamped, self.center_cb)
         rospy.Subscriber("/camera/aruco_103/pixel", PointStamped, self.center_left_cb)
         rospy.Subscriber("/camera/aruco_104/pixel", PointStamped, self.center_right_cb)
@@ -274,13 +274,15 @@ class ArucoDockingController:
 
 
         if self.markers['left'] is not None:
-            current_target = self.estimate_center('left')  
-            self.current_target = current_target
+            if self.markers['center_left'] is None or self.markers['center_right'] is None:
+                current_target = self.estimate_center('left')  
+                self.current_target = current_target
             # rospy.loginfo(f"left: {valid_target}")
 
-        if self.markers['left'] is not None:
-            current_target = self.estimate_center('right')  
-            self.current_target = current_target
+        if self.markers['right'] is not None:
+            if self.markers['center_left'] is None or self.markers['center_right'] is None:
+                current_target = self.estimate_center('right')  
+                self.current_target = current_target
 
 
         if self.markers['center_left'] is not None:
@@ -757,8 +759,8 @@ class ArucoDockingController:
         sign = 1 if side == 'right' else -1
         # 计算中间位置 * sign
         offset = -self.marker_spacing/2*sign
-        self.pos_target = R@[-sign*self.stop_distance,0, -offset] + pos
-        pos_center = R@[0,0, offset] + pos
+        self.pos_target = R@[sign*2,0, 0] + pos
+        pos_center = R@[0,0, -offset] + pos
         return {
             'position': self.pos_target,
             'yaw': self.get_marker_yaw(self.pos_target),
@@ -792,6 +794,7 @@ class ArucoDockingController:
         t = pos_target
         yaw = math.atan2(t[1], t[0])
         
+
         # _, _, yaw = euler_from_quaternion([q.x, q.y, q.z, q.w])
         return yaw  
     
