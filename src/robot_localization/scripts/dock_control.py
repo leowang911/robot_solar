@@ -86,7 +86,6 @@ class ArucoDockingController:
             'center': np.array([0.0, 0.0, 0.0]),
         }
 
-
         self.side_target = {
             'position': np.array([0.0, 0.0, 0.0]),
             'yaw': 0.0,
@@ -254,6 +253,11 @@ class ArucoDockingController:
             'yaw': 0.0,
             'center': np.array([0.0, 0.0, 0.0]),
         }
+        side_target = {
+            'position': np.array([0.0, 0.0, 0.0]),
+            'yaw': 0.0,
+            'center': np.array([0.0, 0.0, 0.0]),
+        }
 
         # 检查是否有有效数据
         valid_left = self.markers['left'] is not None
@@ -284,23 +288,25 @@ class ArucoDockingController:
 
         if self.markers['left'] is not None:
             if self.markers['center_left'] is None and self.markers['center_right'] is None:
-                self.side_target = self.estimate_center('left')  
+                side_target = self.estimate_center('left') 
+                self.side_target = side_target 
                 # if left_side_target is not None: 
                 #     valid_target.append(left_side_target)
                     # left_right.append(left_target)
             else:
                 self.markers['left'] = None
-                self.side_target = None
+                self.side_target = side_target
             # rospy.loginfo(f"left: {valid_target}")
 
         if self.markers['right'] is not None:
             if self.markers['center_left'] is None and self.markers['center_right'] is None:
-                self.side_target = self.estimate_center('right')  
+                side_target = self.estimate_center('right')  
+                self.side_target = side_target 
                 # if right_side_target is not None: 
                 #     valid_target.append(right_side_target)
             else:
                 self.markers['right'] = None
-                self.side_target = None
+                self.side_target = side_target
 
         if self.markers['center_left'] is not None:
             left_target = self.calculate_center_side_target('center_left')  
