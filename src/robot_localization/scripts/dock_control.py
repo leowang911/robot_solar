@@ -208,8 +208,8 @@ class ArucoDockingController:
         self.current_yaw = math.radians(msg.yaw)
 
     def inspva_cb(self, msg):
-        self.latitude = msg.latitude
-        self.longitude = msg.longitude
+        # self.latitude = msg.latitude
+        # self.longitude = msg.longitude
         self.gps_yaw = math.radians(msg.yaw)
         
 
