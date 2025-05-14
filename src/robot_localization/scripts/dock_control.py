@@ -751,9 +751,18 @@ class ArucoDockingController:
         marker = self.markers[side]
         # pos = self.markers[side]['position']
         # rot = self.markers[side]['orientation']
-        pose=self.get_rot(self.markers[side])
+
+        pose_stamped=self.get_rot(self.markers[side])
+        if pose_stamped is None:
+            return None
+        pose = pose_stamped.pose
+        
+            
         pos=np.array([pose.position.x,pose.position.y,pose.position.z])
         rot=pose.orientation
+        pose=self.get_rot(self.markers[side])
+        # pos=np.array([pose.position.x,pose.position.y,pose.position.z])
+        # rot=pose.orientation
 
         R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
         sign = 1 if side == 'right' else -1
