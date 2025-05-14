@@ -771,7 +771,6 @@ class ArucoDockingController:
             return None
         pose = pose_stamped.pose
         
-            
         pos=np.array([pose.position.x,pose.position.y,pose.position.z])
         rot=pose.orientation
         pose=self.get_rot(self.markers[side])
@@ -1047,7 +1046,6 @@ class ArucoDockingController:
         theta1 = theta2=   0
         return distance,theta1,theta2
 
-
     def get_five_avg(self,):
         target_list=[]
         y_list=[]
@@ -1159,10 +1157,10 @@ class ArucoDockingController:
                             return
                         
                         if self.side_target:
-                            self.lock_current=True
+                            # self.lock_current=True
                             current_pos = np.array([0, 0])  # 基坐标系原点
                             target_vec = self.side_target['position'][:2] - current_pos
-                            rospy.loginfo(f'target_vec is %%%%%%%%%%% {target_vec}')
+                            rospy.loginfo(f'side!!! target_vec is %%%%%%%%%%% {target_vec}')
 
                             if target_vec[0]>0:
                                 self.target_distance = np.linalg.norm(target_vec) 
