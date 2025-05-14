@@ -363,7 +363,7 @@
         <!-- 发布base_link到其他坐标系的静态变换 -->
         <node pkg="tf2_ros" type="static_transform_publisher" 
             name="base_to_cam" 
-            args="0.232 0 0.287 -0.5 0.5 -0s.5 0.5 base_link camera_link  "/>
+            args="0.232 0 0.287 -0.5 0.5 -0.5 0.5 base_link camera_link  "/>
     </group>
 
     <node pkg="robot_localization" type="base_serial_node.py" name="base_serial_node">
