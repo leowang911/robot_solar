@@ -262,7 +262,7 @@ class ArucoDockingController:
             _, _, marker_yaw = euler_from_quaternion(
                 [marker_orientation.x, marker_orientation.y, marker_orientation.z, marker_orientation.w]
             )
-
+            print(f"marker_yaw: {marker_yaw}")
             # 判断方向，根据marker_type区分左右
             if marker_type == 'rightedge':
                 # 计算左侧1米正前方边缘的目标点坐标
@@ -297,7 +297,10 @@ class ArucoDockingController:
             control.distance = distance
             control.yaw = yaw
             self.control_pub.publish(control)
-            
+            print(f"Distance: {distance}, Yaw: {yaw}")
+            self.state="SEARCH"
+            time.sleep(0.1)
+
         except tf2_ros.TransformException as e:
             rospy.logwarn(f"Transform exception: {e}")
 
