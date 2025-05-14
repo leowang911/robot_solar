@@ -1203,6 +1203,8 @@ class ArucoDockingController:
                             self.control_pub.publish(control)
                             self.control_seq += 1
 
+                            return
+
 
 
 
