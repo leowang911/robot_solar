@@ -1270,7 +1270,7 @@ class ArucoDockingController:
                                             target2=current_pose_state['center'][:2]-current_pose_state['position'][:2]
                                             target2/=np.linalg.norm(target2)
                                             target2=current_pose_state['center'][:2]+target2*0.9
-                                            yaw_last=self.get_marker_yaw(target2)*1.0
+                                            yaw_last=self.get_marker_yaw(target2)*1.0-0.01
                                             rospy.loginfo(f'yaw_last: {yaw_last}')
 
                                             control.distance = int(0)
