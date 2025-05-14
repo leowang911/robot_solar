@@ -285,7 +285,7 @@ class ArucoDockingController:
 
         if self.markers['right'] is not None:
             if self.markers['center_left'] is None or self.markers['center_right'] is None:
-                right_side_target = self.estimate_center('left')  
+                right_side_target = self.estimate_center('right')  
                 if right_side_target is not None: 
                     valid_target.append(right_side_target)
             else:
