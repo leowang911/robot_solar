@@ -1382,7 +1382,7 @@ class ArucoDockingController:
                                         #对齐
 
                                         #3.3 精对正环节下的对齐
-                                        if True:
+                                        if False:
                                             self.lock_current=False
                                             
                                             while True:
