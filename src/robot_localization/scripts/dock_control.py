@@ -943,7 +943,7 @@ class ArucoDockingController:
         v2=current_target['center'][:2]
         axis=v1-v2
         axis/=np.linalg.norm(axis)
-        prepoint=v1+axis*0.3
+        prepoint=v1+axis*0.4
         costh=np.dot(prepoint,axis)/np.linalg.norm(prepoint)
         theta2=math.acos(costh)
         #axis=-axis
@@ -1011,8 +1011,8 @@ class ArucoDockingController:
         
         return distance,theta1,theta2    
 
-    def direct_forward(self):
-        distance=0.28
+    def direct_forward(self,yaw):
+        distance=math.cos(yaw)*0.4
 
         # theta1=math.atan(abs(prepoint[1]/prepoint[0]))
 
@@ -1352,7 +1352,7 @@ class ArucoDockingController:
 
                                         #d1,yaw1,yaw2=self.get_step2_robot_pose()
                                         #d1,yaw1,yaw2=self.get_step2_robot_pose(current_pose_state)#重新计算marker位置
-                                        d1,yaw1,yaw2=self.direct_forward()#不重新计算图像marker位置
+                                        d1,yaw1,yaw2=self.direct_forward(yaw2)#不重新计算图像marker位置
 
                                         rospy.loginfo(f'robot pose22: {d1} {yaw1} {yaw2}')
                                         control.distance = int(d1*1000)
