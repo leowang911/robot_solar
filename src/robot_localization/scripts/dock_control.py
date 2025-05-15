@@ -1203,8 +1203,8 @@ class ArucoDockingController:
                         if self.markers['left'] or self.markers['right'] and not (self.markers['center'] or self.markers['center_left'] or self.markers['center_right']):
                             # self.lock_current=True
                             time.sleep(0.5)
-                            side_target = self.get_five_avg('side_target')
-                            # side_target = self.side_target
+                            # side_target = self.get_five_avg('side_target')
+                            side_target = self.side_target
                             current_pos = np.array([0, 0])  # 基坐标系原点
                             target_vec = side_target['position'][:2] - current_pos
                             yaw_final = self.get_side_center_angle(side_target)
