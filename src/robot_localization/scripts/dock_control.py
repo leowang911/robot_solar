@@ -51,6 +51,7 @@ class ArucoDockingController:
         self.lock_current=False
         self.lock_refine=False
         self.rc_control = 0
+        self.search_count = 0
 
         # TF配置
         self.tf_buffer = tf2_ros.Buffer()
