@@ -1075,11 +1075,14 @@ class ArucoDockingController:
         theta1 = theta2=   0
         return distance,theta1,theta2
 
-    def get_five_avg(self,current_target,id):
+    def get_five_avg(self,id):
         target_list=[]
         y_list=[]
         for i in range(11):
-            loc=copy.deepcopy(current_target)
+            if id == 'current_target':
+                loc=copy.deepcopy(self.current_target)
+            if id == 'side_target':
+                loc=copy.deepcopy(self.side_target)
             target_list.append(loc)
             y_list.append(loc['center'][1])
             time.sleep(0.1)
@@ -1105,9 +1108,8 @@ class ArucoDockingController:
         outtarget['center']/=5
         outtarget['position']/=5
         xaxis/=np.linalg.norm(outtarget['position'])
-        if id == 'forward':
+        if id == 'current_target':
             outtarget['position']=outtarget['center']-xaxis*self.stop_distance
-
 
         return outtarget
     
@@ -1201,7 +1203,7 @@ class ArucoDockingController:
                         if self.markers['left'] or self.markers['right'] and not (self.markers['center'] or self.markers['center_left'] or self.markers['center_right']):
                             # self.lock_current=True
                             time.sleep(0.5)
-                            side_target = self.get_five_avg(self.side_target,'side')
+                            side_target = self.get_five_avg('side_target')
                             # side_target = self.side_target
                             current_pos = np.array([0, 0])  # 基坐标系原点
                             target_vec = side_target['position'][:2] - current_pos
@@ -1405,7 +1407,7 @@ class ArucoDockingController:
                                         control.header.stamp = rospy.Time.now()
                                         self.control_pub.publish(control)
                                         time.sleep(0.5)
-                                        current_pose_state=self.get_five_avg(self.current_target,'forward')#取5次平均值进行计算
+                                        current_pose_state=self.get_five_avg('current_target')#取5次平均值进行计算
                                         target_vec = current_pose_state['position'][:2]
                                         rospy.loginfo(f'target_vec_refine: {target_vec}')
                                         if np.linalg.norm(target_vec) >1.0:
@@ -1487,7 +1489,7 @@ class ArucoDockingController:
                                         self.control_pub.publish(control)
                                         time.sleep(1.0)
 
-                                        current_pose_state=self.get_five_avg(self.current_target,'forward')#取5次平均值进行计算
+                                        current_pose_state=self.get_five_avg('current_target')#取5次平均值进行计算
 
                                         #d1,yaw1,yaw2=self.get_step2_robot_pose()
                                         #d1,yaw1,yaw2=self.get_step2_robot_pose(current_pose_state)#重新计算marker位置
