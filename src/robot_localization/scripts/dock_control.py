@@ -1139,6 +1139,7 @@ class ArucoDockingController:
                 # self.auto_cleaning_flag = False
 
                 if self.docking_flag ==False : #todo 
+                    gps_move_flag = False
                     self.update_state()
                     control = controlData()
                     control.distance = 0
@@ -1146,6 +1147,7 @@ class ArucoDockingController:
                     self.gps_calculation(self.latitude, self.longitude, self.latitude_drone, self.longitude_drone)
                     # rospy.loginfo(f"gps_calculation: {gps_calculation}")
                     if self.distance2drone > 1 and self.current_target is None: #gps距离大于2米,通过gps数据大致导航
+                        gps_move_flag = True
                         control.distance = np.uint16((self.distance2drone)*1000)
                         # rospy.loginfo(f"gps_yaw: {self.yaw_to_target_yaw_angle(self.yaw2drone, 0)}")
                         # rospy.loginfo(f"gps_distance: {self.distance2drone}")
@@ -1169,14 +1171,17 @@ class ArucoDockingController:
 
 
                     else: #gps距离小于2米,通过aruco数据导航
-                        
+                        if gps_move_flag == True:
+                            control = self.compose_control(0, 0, self.current_yaw, 0, 1)
+                            self.control_pub.publish(control)
+                            time.sleep(0.01)
                         #rospy.loginfo(f'state {self.state}')
                         #2.1 执行搜索逻辑,持续20次，1s未检测到marker 进行搜索。
                         if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
                             self.state = "APPROACHING"
-                            control = self.compose_control(0, 0, self.current_yaw, 0, 1)
-                            self.control_pub.publish(control)
-                            time.sleep(0.01)
+                            # control = self.compose_control(0, 0, self.current_yaw, 0, 1)
+                            # self.control_pub.publish(control)
+                            # time.sleep(0.01)
                             self.search_count=0
                         else:
                             if self.search_count<20:
