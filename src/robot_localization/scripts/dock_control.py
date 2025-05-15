@@ -795,8 +795,8 @@ class ArucoDockingController:
         sign = 1 if side == 'right' else -1
         # 计算中间位置 * sign
         offset = -self.marker_spacing/2*sign
-        self.pos_target = R@[-sign*2,0, 0] + pos
-        pos_center = R@[0,0, -offset] + pos
+        self.pos_target = R@[-sign*2,0, 1] + pos
+        pos_center = R@[0,0, offset] + pos
         return {
             'position': self.pos_target,
             'yaw': self.get_marker_yaw(self.pos_target),
@@ -894,7 +894,7 @@ class ArucoDockingController:
         
         easting_diff = utm2.easting - utm1.easting
         northing_diff = utm2.northing - utm1.northing
-        rospy.loginfo(f"easting_diff: {easting_diff} northing_diff: {northing_diff} gps distance:{self.distance2drone} yaw: {self.yaw2drone}")
+        # rospy.loginfo(f"easting_diff: {easting_diff} northing_diff: {northing_diff} gps distance:{self.distance2drone} yaw: {self.yaw2drone}")
         # 航向角（北向为0，北偏东为正0-360）
         # 计算无人机相对于基坐标系的坐标
         self.distance2drone = math.sqrt(easting_diff**2 + northing_diff**2)
