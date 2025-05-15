@@ -1181,10 +1181,10 @@ class ArucoDockingController:
                         #2.1 执行搜索逻辑,持续20次，1s未检测到marker 进行搜索。
                         if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
                             self.state = "APPROACHING"
-                            control = self.compose_control(0, 0, self.current_yaw, 0, 1)
-                            self.control_pub.publish(control)
-                            time.sleep(0.01)
-                            self.search_count=0
+                            # control = self.compose_control(0, 0, self.current_yaw, 0, 1)
+                            # self.control_pub.publish(control)
+                            # time.sleep(0.01)
+                            # self.search_count=0
                         else:
                             if self.search_count<20:
                                 self.search_count+=1
@@ -1233,13 +1233,13 @@ class ArucoDockingController:
                             self.state_prev = self.state
                             rospy.loginfo(f'state: {control.robot_state}')
                             
-                            if self.complete_state==2:
-                                control.robot_state = 1
-                                control.header.stamp = rospy.Time.now()
-                                self.control_pub.publish(control)
-                                time.sleep(0.05)
-                                control.robot_state = 2 
-                                control.header.stamp = rospy.Time.now()
+                            # if self.complete_state==2:
+                            control.robot_state = 1
+                            control.header.stamp = rospy.Time.now()
+                            self.control_pub.publish(control)
+                            time.sleep(0.05)
+                            control.robot_state = 2 
+                            control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
                             while self.complete_state!=2:
                                     continue
