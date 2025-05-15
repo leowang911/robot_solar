@@ -98,7 +98,7 @@ class ArucoDockingController:
 
         self.control_seq = 0
         self.stop_flag = False
-        self.out_dock_flag = False
+        self.out_dock_flag = True
         self.in_dock_flag = True
         self.corner_finding_flag = True
         self.auto_cleaning_flag = True
@@ -1427,7 +1427,8 @@ class ArucoDockingController:
                                             self.control_seq += 1 
                                             # time.sleep(1000)
                                             self.docking_flag=True
-                                            self.in_dock_flag=False     
+                                            self.in_dock_flag=False
+                                            self.out_dock_flag=True     
                                             self.lock_current=False                          
                                             return 
                                         
@@ -1585,24 +1586,27 @@ class ArucoDockingController:
                     if self.complete_state == 4:
                         self.in_dock_flag = True
                         self.out_dock_flag = False
+                        self.docking_flag =True
                         # self.auto_cleaning_flag = False
                         # self.corner_finding_flag = False
                         self.count  = 0
-                        while self.rc_control !=2:
-                            if self.rc_control == 0:
-                                rospy.logwarn("rc_control == 0")
-                                return
-                            control = self.compose_control(0,0,self.current_yaw,0,1)
-                            # control = controlData()
-                            # control.distance = 0
-                            # control.target_yaw = 0
-                            # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                            # control.roller_speed = 0
-                            # control.robot_state = 1
-                            # control.header.stamp = rospy.Time.now()
-                            # control.header.seq = self.control_seq
-                            self.control_pub.publish(control)
-                            time.sleep(0.1)
+                       
+
+                        # while self.rc_control !=2:
+                        #     if self.rc_control == 0:
+                        #         rospy.logwarn("rc_control == 0")
+                        #         return
+                        #     control = self.compose_control(0,0,self.current_yaw,0,1)
+                        #     # control = controlData()
+                        #     # control.distance = 0
+                        #     # control.target_yaw = 0
+                        #     # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                        #     # control.roller_speed = 0
+                        #     # control.robot_state = 1
+                        #     # control.header.stamp = rospy.Time.now()
+                        #     # control.header.seq = self.control_seq
+                        #     self.control_pub.publish(control)
+                        #     time.sleep(0.1)
                     else:
                         self.error = 1
                         control = self.compose_control(0,0,self.current_yaw,0,1)
@@ -1615,6 +1619,72 @@ class ArucoDockingController:
                         # control.header.stamp = rospy.Time.now()
                         # control.header.seq = self.control_seq
                         self.control_pub.publish(control)
+
+
+                if self.out_dock_flag == False:
+                    # if self.count == 0:
+                    control = controlData()
+                    control.distance = 0
+                    control.target_yaw = 0
+                    control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                    control.roller_speed = 0
+                    control.robot_state = 1
+                    control.header.stamp = rospy.Time.now()
+                    control.header.seq = self.control_seq
+                    self.control_pub.publish(control)
+                    time.sleep(0.1)
+                        # self.count = 1
+                    control = controlData()
+                    control.distance = 0
+                    control.target_yaw = 0
+                    control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                    control.roller_speed = 0
+                    control.robot_state = 3
+                    self.control_pub.publish(control)
+                    time.sleep(0.1)
+                    time_current = rospy.Time.now()
+                    while self.complete_state !=3: 
+                    # and (rospy.Time.now()-time_current).to_sec()<10*60:
+                        if self.rc_control == 0:
+                            rospy.logwarn("rc_control == 0")
+                            return
+                        pass
+                    # if self.complete_state == 3:
+                    self.out_dock_flag = True
+                    self.in_dock_flag = True
+                    self.docking_flag = False
+                    if self.latitude_drone != 0 and self.longitude_drone != 0:
+                        self.latitude_drone = self.latitude
+                        self.longitude_drone = self.longitude
+
+
+                    control = self.compose_control(-200,0,self.current_yaw,0,2)
+                    self.control_pub.publish(control)
+                    time.sleep(0.1)
+                    while self.complete_state !=2:
+                        continue
+                    control = self.compose_control(300,0,self.current_yaw,math.pi/2,2)
+                    self.control_pub.publish(control)
+                    time.sleep(0.1)
+                    while self.complete_state !=2:
+                        continue
+                    control = self.compose_control(300,0,self.current_yaw,-math.pi/2,2)
+                    self.control_pub.publish(control)
+                    time.sleep(0.1)
+                    while self.complete_state !=2:
+                        continue
+                    control = self.compose_control(0,0,self.current_yaw,math.pi/2,2)
+                    self.control_pub.publish(control)
+                    time.sleep(0.1)
+                    while self.complete_state !=2:
+                        continue
+                    
+                    
+                    self.count = 0
+                    # else:
+                    #     self.error = 1
+                        
+                    return
             
             elif self.rc_control == 2:  
 
@@ -1655,6 +1725,30 @@ class ArucoDockingController:
                     if self.latitude_drone != 0 and self.longitude_drone != 0:
                         self.latitude_drone = self.latitude
                         self.longitude_drone = self.longitude
+
+
+                    control = self.compose_control(-200,0,self.current_yaw,0,2)
+                    self.control_pub.publish(control)
+                    time.sleep(0.1)
+                    while self.complete_state !=2:
+                        continue
+                    control = self.compose_control(300,0,self.current_yaw,math.pi/2,2)
+                    self.control_pub.publish(control)
+                    time.sleep(0.1)
+                    while self.complete_state !=2:
+                        continue
+                    control = self.compose_control(300,0,self.current_yaw,-math.pi/2,2)
+                    self.control_pub.publish(control)
+                    time.sleep(0.1)
+                    while self.complete_state !=2:
+                        continue
+                    control = self.compose_control(0,0,self.current_yaw,math.pi/2,2)
+                    self.control_pub.publish(control)
+                    time.sleep(0.1)
+                    while self.complete_state !=2:
+                        continue
+                    
+                    
                     self.count = 0
                     # else:
                     #     self.error = 1
