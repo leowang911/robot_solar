@@ -1149,7 +1149,8 @@ class ArucoDockingController:
                         control.distance = np.uint16((self.distance2drone)*1000)
                         # rospy.loginfo(f"gps_yaw: {self.yaw_to_target_yaw_angle(self.yaw2drone, 0)}")
                         # rospy.loginfo(f"gps_distance: {self.distance2drone}")
-                        control.target_yaw = self.yaw_to_target_yaw_angle(self.yaw2drone, 0)
+                        # control.target_yaw = self.yaw_to_target_yaw_angle(self.yaw2drone, 0)
+                        control.target_yaw = self.yaw_to_target_yaw_angle(-(self.yaw2drone-self.gps_yaw), self.current_yaw)
                         control.robot_state = 2
 
                         # 发布控制指令
