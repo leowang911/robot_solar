@@ -797,7 +797,7 @@ class ArucoDockingController:
         sign = 1 if side == 'right' else -1
         # 计算中间位置 * sign
         offset = -self.marker_spacing/2
-        self.pos_target = R@[-sign*2,0,-0.1] + pos
+        self.pos_target = R@[-sign*2,0,0] + pos
         pos_center = R@[0,0, offset] + pos
         return {
             'position': self.pos_target,
