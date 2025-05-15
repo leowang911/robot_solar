@@ -797,7 +797,7 @@ class ArucoDockingController:
         sign = 1 if side == 'right' else -1
         # 计算中间位置 * sign
         offset = -self.marker_spacing/2
-        self.pos_target = R@[-sign*2,0,0] + pos
+        self.pos_target = R@[-sign*2.5,0,0] + pos
         pos_center = R@[0,0, offset] + pos
         return {
             'position': self.pos_target,
@@ -1201,7 +1201,7 @@ class ArucoDockingController:
                             yaw_final = self.get_side_center_angle(self.side_target)
 
                             rospy.loginfo(f'side!!! target_vec is %%%%%%%%%%% {target_vec}, yaw_final: {yaw_final}')
-
+              
                              # if target_vec[0]>0:
                             self.target_distance = np.linalg.norm(target_vec) 
                             # self.target_distance=np.clip(self.target_distance,0,1)
@@ -1262,7 +1262,7 @@ class ArucoDockingController:
 
 
 
-                        if self.current_target is not None:
+                        if self.current_target is not None and not (self.markers['left'] or self.markers['right']):
                             self.lock_current=True #不允许currentpose改为None，可以进行更新
                             current_pos = np.array([0, 0])  # 基坐标系原点
                             # 计算当前状态,行走到目标点前1m
