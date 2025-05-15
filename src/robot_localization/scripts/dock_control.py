@@ -104,6 +104,8 @@ class ArucoDockingController:
         self.auto_cleaning_flag = True
         self.docking_flag = False
 
+        self.sign =1
+
         
 
         #  # 新增滤波参数
@@ -1655,7 +1657,7 @@ class ArucoDockingController:
                         self.latitude_drone = self.latitude
                         self.longitude_drone = self.longitude
                     
-                    sign = -sign
+                    self.sign = -self.sign
                     control = self.compose_control(-200,0,self.current_yaw,0,1)
                     self.control_pub.publish(control)
                     time.sleep(0.1)
@@ -1667,7 +1669,7 @@ class ArucoDockingController:
                     control = self.compose_control(-200,0,self.current_yaw,0,1)
                     self.control_pub.publish(control)
                     time.sleep(0.1)
-                    control = self.compose_control(2000,0,self.current_yaw,math.pi/2*sign,2)
+                    control = self.compose_control(2000,0,self.current_yaw,math.pi/2*self.sign,2)
                     self.control_pub.publish(control)
                     time.sleep(0.1)
                     while self.complete_state !=2:
@@ -1675,7 +1677,7 @@ class ArucoDockingController:
                     control = self.compose_control(-200,0,self.current_yaw,0,1)
                     self.control_pub.publish(control)
                     time.sleep(0.1)
-                    control = self.compose_control(1000,0,self.current_yaw,-math.pi/2*sign,2)
+                    control = self.compose_control(1000,0,self.current_yaw,-math.pi/2*self.sign,2)
                     self.control_pub.publish(control)
                     time.sleep(0.1)
                     while self.complete_state !=2:
@@ -1683,7 +1685,7 @@ class ArucoDockingController:
                     control = self.compose_control(-200,0,self.current_yaw,0,1)
                     self.control_pub.publish(control)
                     time.sleep(0.1)
-                    control = self.compose_control(0,0,self.current_yaw,-math.pi/2*sign,2)
+                    control = self.compose_control(0,0,self.current_yaw,-math.pi/2*self.sign,2)
                     self.control_pub.publish(control)
                     time.sleep(0.1)
                     while self.complete_state !=2:
