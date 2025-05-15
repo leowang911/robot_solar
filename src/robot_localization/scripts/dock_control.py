@@ -1647,16 +1647,16 @@ class ArucoDockingController:
                             rospy.logwarn("rc_control == 0")
                             return
                         pass
-                    if self.complete_state == 3:
-                        self.out_dock_flag = True
-                        self.in_dock_flag = True
-                        self.docking_flag = False
-                        if self.latitude_drone != 0 and self.longitude_drone != 0:
-                            self.latitude_drone = self.latitude
-                            self.longitude_drone = self.longitude
-                        self.count = 0
-                    else:
-                        self.error = 1
+                    # if self.complete_state == 3:
+                    self.out_dock_flag = True
+                    self.in_dock_flag = True
+                    self.docking_flag = False
+                    if self.latitude_drone != 0 and self.longitude_drone != 0:
+                        self.latitude_drone = self.latitude
+                        self.longitude_drone = self.longitude
+                    self.count = 0
+                    # else:
+                    #     self.error = 1
                         
                     return
                 
