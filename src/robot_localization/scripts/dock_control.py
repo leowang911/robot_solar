@@ -1650,9 +1650,7 @@ class ArucoDockingController:
                             return
                         pass
                     # if self.complete_state == 3:
-                    self.out_dock_flag = True
-                    self.in_dock_flag = True
-                    self.docking_flag = False
+                    
                     if self.latitude_drone != 0 and self.longitude_drone != 0:
                         self.latitude_drone = self.latitude
                         self.longitude_drone = self.longitude
@@ -1663,12 +1661,12 @@ class ArucoDockingController:
                     time.sleep(0.1)
                     while self.complete_state !=2:
                         continue
-                    control = self.compose_control(300,0,self.current_yaw,math.pi/2,2)
+                    control = self.compose_control(1000,0,self.current_yaw,math.pi/2,2)
                     self.control_pub.publish(control)
                     time.sleep(0.1)
                     while self.complete_state !=2:
                         continue
-                    control = self.compose_control(300,0,self.current_yaw,-math.pi/2,2)
+                    control = self.compose_control(1000,0,self.current_yaw,-math.pi/2,2)
                     self.control_pub.publish(control)
                     time.sleep(0.1)
                     while self.complete_state !=2:
@@ -1678,6 +1676,10 @@ class ArucoDockingController:
                     time.sleep(0.1)
                     while self.complete_state !=2:
                         continue
+
+                    self.out_dock_flag = True
+                    self.in_dock_flag = True
+                    self.docking_flag = False
                     
                     
                     self.count = 0
