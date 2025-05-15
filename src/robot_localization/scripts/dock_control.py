@@ -1201,25 +1201,25 @@ class ArucoDockingController:
                             yaw_final = self.get_side_center_angle(self.side_target)
                             rospy.loginfo(f'side!!! target_vec is %%%%%%%%%%% {target_vec}')
 
-                            if target_vec[0]>0:
-                                self.target_distance = np.linalg.norm(target_vec) 
-                                # self.target_distance=np.clip(self.target_distance,0,1)
-                                self.target_yaw = math.atan2(target_vec[1], target_vec[0])
-                                if  np.linalg.norm(target_vec)<0.1:
-                                    self.target_yaw=0
-                            else:
-                                self.target_yaw = 0
-                                control.distance = -100
-                                control.target_yaw = self.yaw_to_target_yaw_angle(0,self.current_yaw)
-                                control.header.stamp = rospy.Time.now()
-                                control.robot_state = 1
-                                self.control_pub.publish(control)
-                                time.sleep(0.05)
-                                control.header.stamp = rospy.Time.now()
-                                control.robot_state = 2 
-                                self.control_pub.publish(control)
-                                self.control_seq += 1
-                                time.sleep(0.5)
+                            # if target_vec[0]>0:
+                            self.target_distance = np.linalg.norm(target_vec) 
+                            # self.target_distance=np.clip(self.target_distance,0,1)
+                            self.target_yaw = math.atan2(target_vec[1], target_vec[0])
+                            if  np.linalg.norm(target_vec)<0.1:
+                                self.target_yaw=0
+                            # else:
+                            #     self.target_yaw = 0
+                            #     control.distance = -100
+                            #     control.target_yaw = self.yaw_to_target_yaw_angle(0,self.current_yaw)
+                            #     control.header.stamp = rospy.Time.now()
+                            #     control.robot_state = 1
+                            #     self.control_pub.publish(control)
+                            #     time.sleep(0.05)
+                            #     control.header.stamp = rospy.Time.now()
+                            #     control.robot_state = 2 
+                            #     self.control_pub.publish(control)
+                            #     self.control_seq += 1
+                            #     time.sleep(0.5)
                                 
 
                                 return 
