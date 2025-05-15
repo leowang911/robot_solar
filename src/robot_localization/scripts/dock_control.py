@@ -1584,6 +1584,9 @@ class ArucoDockingController:
                         pass
                     if self.complete_state == 4:
                         self.in_dock_flag = True
+                        self.out_dock_flag = False
+                        # self.auto_cleaning_flag = False
+                        # self.corner_finding_flag = False
                         self.count  = 0
                         while self.rc_control !=2:
                             if self.rc_control == 0:
@@ -1628,8 +1631,6 @@ class ArucoDockingController:
                     control.header.stamp = rospy.Time.now()
                     control.header.seq = self.control_seq
                     self.control_pub.publish(control)
-                    self.latitude_drone = self.latitude
-                    self.longitude_drone = self.longitude
                     time.sleep(0.1)
                         # self.count = 1
                     control = controlData()
