@@ -1,52 +1,19 @@
+#broker:
+#  host: broker.emqx.io 
+#  port: 1883
+#broker:
+#  host: pec81f9f.ala.cn-hangzhou.emqxsl.cn
+#  port: 8883
+#  user: "admin"
+#  pass: "admin"
+# tls:
+#    enabled: true
+#    ca_certificate: /etc/ssl/certs/emqxsl-ca.crt
 broker:
-  host: pec81f9f.ala.cn-hangzhou.emqxsl.cn
-  port: 8883
-  user: "admin"
-  pass: "admin"
-  tls:
-    enabled: true
-    ca_certificate: /etc/ssl/certs/emqxsl-ca.crt
-client:
-  id: "pec81f9f"                          # Unique ID, empty will let broker automatically generate one
-#   buffer:
-#     size: 1000                     # Maximum number of messages buffered when not connected (example default)
-#     directory: "buffer"            # Directory used to store buffered messages (relative to ROS_HOME)
-#   last_will:
-#     topic: "last_will/topic"       # Topic for the last-will message
-#     message: "offline"             # Last-will message content
-#     qos: 0                         # QoS level (0 = At most once)
-#     retained: false                # Whether to retain the last-will message
-#   clean_session: true              # Use a clean session (true means the broker will not store subscriptions)
-#   keep_alive_interval: 60.0        # Keep-alive interval in seconds
-#   max_inflight: 65535              # Maximum number of inflight messages
-#   tls:
-#     certificate: /etc/ssl/certs/emqxsl-ca.crt                # Client certificate file (relative to ROS_HOME, if required)
-#     key: ""                         # Client private key file (relative to ROS_HOME, if required)
-#     password: ""                    # Password for the client private key (if needed)
-#     version: "TLSv1.2"              # TLS version, e.g., "TLSv1.2"
-#     verify: true                    # Verify the client's identity post-connect (true/false)
-#     alpn_protos: ["h2", "http/1.1"] # ALPN protocols (example default)
-
-# bridge:
-#   ros2mqtt:
-#     - ros_topic: /rosmsg
-#       mqtt_topic: device/860065077034033/upload
-#       primitive: true
-
-#   mqtt2ros:
-#     - mqtt_topic: device/860065077034033/upload
-#       ros_topic: /mqttmsg
-#       primitive: true
-
-
-# broker:
-#   host: 106.12.23.8
-#   port: 13234
-#   user: 'jifeng'
-#   pass: '8dY9hE5FVF2GEIi'
-# broker:
-#   host: broker.emqx.io
-#   port: 1883
+  host: 106.12.23.8
+  port: 13234
+  user: 'jifeng'
+  pass: '8dY9hE5FVF2GEIi'
 bridge:
   ros2mqtt:
     - ros_topic: /ping/ros
@@ -54,19 +21,16 @@ bridge:
     - ros_topic: /ping/primitive
       mqtt_topic: pingpong/primitive
       primitive: true
+    - ros_topic: /rosmsg
+      mqtt_topic: device/860065077034033/upload
+      primitive: true
+
   mqtt2ros:
     - mqtt_topic: pingpong/ros
       ros_topic: /pong/ros
     - mqtt_topic: pingpong/primitive
       ros_topic: /pong/primitive
       primitive: true
-  ros2mqtt:
-    - ros_topic: /rosmsg
-      mqtt_topic: device/860065077034033/upload
-      primitive: true
-  mqtt2ros:
     - mqtt_topic: device/860065077034033/upload
       ros_topic: /mqttmsg
       primitive: true
-
-      

@@ -112,9 +112,9 @@ class ArucoDockingController:
         rospy.Subscriber("/base_status", baseStatus, self.base_cb)
         rospy.Subscriber("/gps/raw", GPSData, self.drone_gps_cb)
 
-        rospy.Subscriber("/camera/aruco_100/pose", PointStamped, self.leftedge_cb)
-        rospy.Subscriber("/camera/aruco_101/pose", PointStamped, self.rightedge_cb)
-        rospy.Subscriber("/camera/aruco_103/pose", PointStamped, self.left_cb)
+        rospy.Subscriber("/camera/aruco_100/pose", PoseStamped, self.leftedge_cb)
+        rospy.Subscriber("/camera/aruco_101/pose", PoseStamped, self.rightedge_cb)
+        rospy.Subscriber("/camera/aruco_103/pose", PoseStamped, self.left_cb)
 
         # rospy.Subscriber("/camera/aruco_100/pixel", PointStamped, self.left_cb)
         # rospy.Subscriber("/camera/aruco_101/pixel", PointStamped, self.right_cb)
@@ -134,6 +134,8 @@ class ArucoDockingController:
         # self.pose2_pub = rospy.Publisher("/marker_pose2", PoseStamped, queue_size=1)
         # self.pose3_pub = rospy.Publisher("/marker_pose3", PoseStamped, queue_size=1)
         # self.status_pub = rospy.Publisher("/robot_status", Int16, queue_size=1)
+        self.target_pub = rospy.Publisher("/virsual_1", PoseStamped, queue_size=1)
+
 
         #rospy.Timer(rospy.Duration(0.01), self.control_loop)
         rospy.Timer(rospy.Duration(0.1), self.control_loop)
@@ -167,31 +169,32 @@ class ArucoDockingController:
         Y = (v - cy) * z / fy
         return np.array([X, Y, z])
 
-    def transform_to_base(self, pose):
-    # """将位姿转换到机器人基坐标系"""
-        try:
-            # 获取坐标系变换关系
-            transform = self.tf_buffer.lookup_transform(
-                'base_link',
-                pose.header.frame_id,
-                pose.header.stamp,  # 使用原始消息的时间戳
-                rospy.Duration(0.1)
-            )
-            transformed = do_transform_pose(pose, transform)
+    # def transform_to_base(self, pose):
+    # # """将位姿转换到机器人基坐标系"""
+    #     try:
+    #         # 获取坐标系变换关系
+    #         transform = self.tf_buffer.lookup_transform(
+    #             'base_link',
+    #             pose.header.frame_id,
+    #             pose.header.stamp,  # 使用原始消息的时间戳
+    #             rospy.Duration(0.1)
+    #         )
+    #         transformed = do_transform_pose(pose, transform)
             
-            # 直接使用变换后的坐标（无需手动调整）
-            return {
-                'position': np.array([
-                    transformed.pose.position.x,
-                    transformed.pose.position.y,
-                    transformed.pose.position.z
-                ]),
-                'orientation': transformed.pose.orientation,
-                'pixel': np.array([pose.pixel.x, pose.pixel.y])
-            }
-        except Exception as e:
-            rospy.logwarn(f"坐标转换失败: {str(e)}")
-            return None
+    #         # 直接使用变换后的坐标（无需手动调整）
+    #         return {
+    #             'position': np.array([
+    #                 transformed.pose.position.x,
+    #                 transformed.pose.position.y,
+    #                 transformed.pose.position.z
+    #             ]),
+    #             'orientation': transformed.pose.orientation,
+    #             'pixel': np.array([pose.pixel.x, pose.pixel.y])
+    #         }
+    #     except Exception as e:
+
+    #         rospy.logwarn(f"坐标转换失败: {str(e)}")
+    #         return None
 
     def base_cb(self, msg):
         """处理基坐标系状态数据"""
@@ -235,122 +238,79 @@ class ArucoDockingController:
 
     def back_right_cb(self, msg): self.process_marker(msg, 'back_right')
  
-    def leftedge_cb(self, msg): self.edge_process_marker(msg, 'leftedge')
-    def rightedge_cb(self, msg): self.edge_process_marker(msg, 'rightedge')
+    def leftedge_cb(self, msg):
+        self.pose_callback(msg,"left")
 
+    def rightedge_cb(self, msg):
+        self.pose_callback(msg,"right")
 
-    def edge_process_marker(self, msg, marker_type):
-        """
-        处理ArUco检测数据、计算base_link到标记点左侧或右侧1米处的新标记点的距离与朝向
-        """
+    def pose_callback(self,msg,marker_type):
         try:
-            # 将标记点的位姿从 camera_link 转换到 base_link
-            transform_cam_to_base = self.tf_buffer.lookup_transform(
-                "base_link",  # 目标坐标系
-                msg.header.frame_id,  # 输入坐标系 (camera_link)
-                rospy.Time(0),  # 使用最新的变换
-                rospy.Duration(1.0)  # 超时时间
-            )
-            
-            pose_in_base = do_transform_pose(msg, transform_cam_to_base)
+            #计算四元数pitch
+            q = msg.pose.orientation
 
-            # 获取标记点的位姿
-            marker_position = pose_in_base.pose.position
-            marker_orientation = pose_in_base.pose.orientation
-
-            # 将标记点的朝向转换为欧拉角 (roll, pitch, yaw)
-            _, _, marker_yaw = euler_from_quaternion(
-                [marker_orientation.x, marker_orientation.y, marker_orientation.z, marker_orientation.w]
-            )
-            print(f"marker_yaw: {marker_yaw}")
-            # 判断方向，根据marker_type区分左右
-            if marker_type == 'rightedge':
-                # 计算左侧1米正前方边缘的目标点坐标
-                offset_x = 1.0 * math.cos(marker_yaw - math.pi / 2)  # 左侧是 yaw - 90°
-                offset_y = 1.0 * math.sin(marker_yaw - math.pi / 2)
-            elif marker_type == 'leftedge':
-                # 计算右侧1米正前方边缘的目标点坐标
-                offset_x = 1.0 * math.cos(marker_yaw + math.pi / 2)  # 右侧是 yaw + 90°
-                offset_y = 1.0 * math.sin(marker_yaw + math.pi / 2)
+            quaternion = [q.x, q.y, q.z, q.w]
+            euler = tf.transformations.euler_from_quaternion(quaternion)
+            pitch = euler[1]  # 获取pitch角度
+            rospy.loginfo(f"pitch: {math.degrees(pitch)}")
+            roll = euler[0]  
+            rospy.loginfo(f"roll: {math.degrees(roll)}")
+            #yaw = euler[2]  
+            #rospy.loginfo(f"yaw: {math.degrees(yaw)}")
+            # print("pitch:",pitch)
+            if marker_type == "right":
+            #将当前位姿的平移2米
+                x = msg.pose.position.x - 2 * math.cos(pitch)
+                z = msg.pose.position.z + 2 * math.sin(pitch)
             else:
-                rospy.logwarn(f"Unknown marker type: {marker_type}")
-                return
-
-            # 新标记点的位置
-            new_marker_x = marker_position.x + offset_x
-            new_marker_y = marker_position.y + offset_y
-            new_marker_z = marker_position.z  # 假设z轴位置不变
+                x = msg.pose.position.x + 2 * math.cos(pitch)
+                z = msg.pose.position.z - 2 * math.sin(pitch)
+            y = msg.pose.position.y 
+            #z = msg.pose.position.z
+            #q = msg.pose.orientation
+        
+            # 创建新位姿
+            new_pose = PoseStamped()
+            new_pose.header.frame_id = "camera_link"
+            new_pose.header.stamp = rospy.Time.now()
+            new_pose.pose.position.x = x
+            new_pose.pose.position.y = y
+            new_pose.pose.position.z = z
+            new_pose.pose.orientation = q  # 保持原方向
             
-            # 计算 base_link 到新标记点的距离
-            dx = new_marker_x - pose_in_base.pose.position.x
-            dy = new_marker_y - pose_in_base.pose.position.y
-            dz = new_marker_z - pose_in_base.pose.position.z
-            distance = (dx**2 + dy**2)**0.5  # 欧几里得距离
+            new_pose1 = self.tf_buffer.transform(new_pose, "base_link", rospy.Duration(1.0))
+            self.target_pub.publish(new_pose1)
+            new_pose1 = PoseStamped()
+            new_pose1.pose.position.x = x
+            new_pose1.pose.position.y = y
+            new_pose1.pose.position.z = z
+
+            # 计算距离与朝向
+            distance = (new_pose1.pose.position.x **2 + new_pose1.pose.position.y**2)**0.5  # 欧几里得距离
 
             # 计算朝向 (yaw)
-            yaw = math.atan2(dy, dx)
+            yaw = math.atan2(new_pose1.pose.position.y, new_pose1.pose.position.x)
 
-            rospy.loginfo(f"Distance to new marker ({marker_type}): {distance:.2f} meters, Yaw: {math.degrees(yaw):.2f} degrees")
 
             # 根据距离和朝向发布控制指令
             control = controlData()
             control.distance = distance
-            control.yaw = yaw
+            control.header.stamp = rospy.Time.now()
+
+            control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, yaw)
+            rospy.loginfo(f"Distance to new marker ({marker_type}): {distance:.2f} meters, target_yaw: {(control.target_yaw):.2f} degrees")
+            control.robot_state = 1 
             self.control_pub.publish(control)
-            print(f"Distance: {distance}, Yaw: {yaw}")
-            self.state="SEARCH"
-            time.sleep(0.1)
+            time.sleep(0.01)
+            control.robot_state = 2
+            self.control_pub.publish(control)
+            time.sleep(0.5)
+
 
         except tf2_ros.TransformException as e:
             rospy.logwarn(f"Transform exception: {e}")
-
-    def edge_update_state(self):
-        """侧边状态机更新逻辑"""
-        self.check_data_expiry()  # 先执行数据清理
-        self.valid_center_markers = []
-        valid_target = []
-        left_right=[]
-        current_target = {
-            'position': np.array([0.0, 0.0, 0.0]),
-            'yaw': 0.0,
-            'center': np.array([0.0, 0.0, 0.0]),
-        }  
-        if self.markers['left'] is not None:
-            current_target = self.estimate_edge('left')  
-            self.current_target = current_target
-            # rospy.loginfo(f"left: {valid_target}")
-
-        if self.markers['right'] is not None:
-            current_target = self.estimate_edge('right')  
-            self.current_target = current_target
-        
-        
-        
-        if len(valid_target)>0:
-            for target in valid_target:
-                # rospy.loginfo(f"target: {target}")
-                current_target['position']+= target['position']     
-                current_target['yaw']+= target['yaw']
-                current_target['center']+= target['center']  
-                    
-            current_target['position'] /= len(valid_target)
-            current_target['yaw'] /= len(valid_target)
-            current_target['center'] /= len(valid_target)  
-
-            self.current_target = current_target    
-                        
-            return    
-    def estimate_edge(self, side):
-        """估计边缘点位置（基于单侧标记）"""
-
-
-        return {
-            'position': self.pos_target,
-            'yaw': self.get_marker_yaw(self.pos_target),
-            'center': ''
-            # 'yaw': np.arctan2(marker['position'][1], marker['position'][0]) + np.pi/2
-        }
-        
+            return
 
 
     
