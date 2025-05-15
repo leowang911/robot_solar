@@ -1655,22 +1655,33 @@ class ArucoDockingController:
                         self.latitude_drone = self.latitude
                         self.longitude_drone = self.longitude
 
-
+                    control = self.compose_control(-200,0,self.current_yaw,0,1)
+                    self.control_pub.publish(control)
+                    time.sleep(0.1)
                     control = self.compose_control(-200,0,self.current_yaw,0,2)
                     self.control_pub.publish(control)
                     time.sleep(0.1)
                     while self.complete_state !=2:
                         continue
-                    control = self.compose_control(1000,0,self.current_yaw,math.pi/2,2)
+                    control = self.compose_control(-200,0,self.current_yaw,0,1)
+                    self.control_pub.publish(control)
+                    time.sleep(0.1)
+                    control = self.compose_control(2000,0,self.current_yaw,math.pi/2,2)
                     self.control_pub.publish(control)
                     time.sleep(0.1)
                     while self.complete_state !=2:
                         continue
+                    control = self.compose_control(-200,0,self.current_yaw,0,1)
+                    self.control_pub.publish(control)
+                    time.sleep(0.1)
                     control = self.compose_control(1000,0,self.current_yaw,-math.pi/2,2)
                     self.control_pub.publish(control)
                     time.sleep(0.1)
                     while self.complete_state !=2:
                         continue
+                    control = self.compose_control(-200,0,self.current_yaw,0,1)
+                    self.control_pub.publish(control)
+                    time.sleep(0.1)
                     control = self.compose_control(0,0,self.current_yaw,math.pi/2,2)
                     self.control_pub.publish(control)
                     time.sleep(0.1)
