@@ -99,10 +99,10 @@ class ArucoDockingController:
         self.control_seq = 0
         self.stop_flag = False
         self.out_dock_flag = False
-        self.in_dock_flag = True
+        self.in_dock_flag = False
         self.corner_finding_flag = True
         self.auto_cleaning_flag = True
-        self.docking_flag = False
+        self.docking_flag = True
 
         
 
