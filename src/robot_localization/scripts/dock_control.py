@@ -1199,7 +1199,8 @@ class ArucoDockingController:
                             current_pos = np.array([0, 0])  # 基坐标系原点
                             target_vec = self.side_target['position'][:2] - current_pos
                             yaw_final = self.get_side_center_angle(self.side_target)
-                            rospy.loginfo(f'side!!! target_vec is %%%%%%%%%%% {target_vec}')
+
+                            rospy.loginfo(f'side!!! target_vec is %%%%%%%%%%% {target_vec}, yaw_final: {yaw_final}')
 
                              # if target_vec[0]>0:
                             self.target_distance = np.linalg.norm(target_vec) 
@@ -1245,6 +1246,7 @@ class ArucoDockingController:
                                     continue
                             control.distance = 0
                             control.target_yaw = self.yaw_to_target_yaw_angle(yaw_final,self.current_yaw)
+                            rospy.loginfo(f"side_target_yaw: {control.target_yaw},{self.current_yaw}")
                             control.robot_state = 1
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
