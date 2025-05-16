@@ -1112,8 +1112,9 @@ class ArucoDockingController:
                 outtarget['position']+=item['position']
         outtarget['center']/=5
         outtarget['position']/=5
-        xaxis/=np.linalg.norm(outtarget['position'])
+       
         if id == 'current_target':
+            xaxis/=np.linalg.norm(outtarget['position'])
             outtarget['position']=outtarget['center']-xaxis*self.stop_distance
 
         return outtarget
