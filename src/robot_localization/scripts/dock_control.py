@@ -605,54 +605,54 @@ class ArucoDockingController:
         transformed = do_transform_pose(pose, transform)
         return transformed
 
-    def get_rot(self,pixel):
-        u=int(pixel.x)
-        v=int(pixel.y)
-        u_ax=np.arange(u-10,u+10)
-        v_ax=np.arange(v-10,v+10)
-        if self.depth_image is not None:
-            pt=[]
-            for i in u_ax:
-                for j in v_ax:
-                    if self.depth_image[j,i] is not None:
-                        if abs(self.depth_image[j,i])<2000.0:
-                            pt.append([i,j,self.depth_image[j,i]/1000.0])
-            try:
-                if len(pt)>10:
-                    pt=np.array(pt).T
-                    fx,fy,cx,cy=[612.3629150390625, 637.8858032226562, 612.5785522460938, 362.7610168457031]
-                    point=self.pixel_to_point(pt, fx,fy,cx,cy)
-                    a,b,c,d,centp=self.fit_plane_to_points(point.T)
-                    pose_q= self.get_pose(a,b,c)
-                else:
-                    centp=np.array([0,0,1.0])
-                    pose_q= self.get_pose(0,0,-1)   
-                    return None
+    # def get_rot(self,pixel):
+    #     u=int(pixel.x)
+    #     v=int(pixel.y)
+    #     u_ax=np.arange(u-10,u+10)
+    #     v_ax=np.arange(v-10,v+10)
+    #     if self.depth_image is not None:
+    #         pt=[]
+    #         for i in u_ax:
+    #             for j in v_ax:
+    #                 if self.depth_image[j,i] is not None:
+    #                     if abs(self.depth_image[j,i])<2000.0:
+    #                         pt.append([i,j,self.depth_image[j,i]/1000.0])
+    #         try:
+    #             if len(pt)>10:
+    #                 pt=np.array(pt).T
+    #                 fx,fy,cx,cy=[612.3629150390625, 637.8858032226562, 612.5785522460938, 362.7610168457031]
+    #                 point=self.pixel_to_point(pt, fx,fy,cx,cy)
+    #                 a,b,c,d,centp=self.fit_plane_to_points(point.T)
+    #                 pose_q= self.get_pose(a,b,c)
+    #             else:
+    #                 centp=np.array([0,0,1.0])
+    #                 pose_q= self.get_pose(0,0,-1)   
+    #                 return None
  
-            except Exception as e:  
-                #rospy.logwarn(f"点云拟合失败: {str(e)}")
-                return None
-                # centp=np.array([0,0,1.0])
-                # pose_q= self.get_pose(0,0,-1)       
-        else:
-            centp=np.array([0,0,1])
-            pose_q= self.get_pose(0,0,-1)
-            return None
-        pose= PoseStamped()
-        pose.header.frame_id = "camera_link"
-        pose.header.stamp = rospy.Time.now()
-        pose.pose.position.x = centp[0]
-        pose.pose.position.y = centp[1]
-        pose.pose.position.z = centp[2]
-        pose.pose.orientation = pose_q
-        transform = self.tf_buffer.lookup_transform(
-                'base_link',
-                pose.header.frame_id,
-                pose.header.stamp,  # 使用原始消息的时间戳
-                rospy.Duration(0.1)
-            )
-        transformed = do_transform_pose(pose, transform)
-        return transformed
+    #         except Exception as e:  
+    #             #rospy.logwarn(f"点云拟合失败: {str(e)}")
+    #             return None
+    #             # centp=np.array([0,0,1.0])
+    #             # pose_q= self.get_pose(0,0,-1)       
+    #     else:
+    #         centp=np.array([0,0,1])
+    #         pose_q= self.get_pose(0,0,-1)
+    #         return None
+    #     pose= PoseStamped()
+    #     pose.header.frame_id = "camera_link"
+    #     pose.header.stamp = rospy.Time.now()
+    #     pose.pose.position.x = centp[0]
+    #     pose.pose.position.y = centp[1]
+    #     pose.pose.position.z = centp[2]
+    #     pose.pose.orientation = pose_q
+    #     transform = self.tf_buffer.lookup_transform(
+    #             'base_link',
+    #             pose.header.frame_id,
+    #             pose.header.stamp,  # 使用原始消息的时间戳
+    #             rospy.Duration(0.1)
+    #         )
+    #     transformed = do_transform_pose(pose, transform)
+    #     return transformed
 
     def get_rot_uv(self,pixel):
         u=int(pixel.x)
