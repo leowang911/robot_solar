@@ -416,11 +416,11 @@
         <param name="serial_timeout" value="0.1"/>
         </node> -->
 
-    <node pkg="robot_localization" type="inspva_serial_node.py" name="imu_node2">
+    <!-- <node pkg="robot_localization" type="inspva_serial_node.py" name="imu_node2">
         <param name="serial_port" value="/dev/rtkSerial"/>
         <param name="baudrate" value="460800"/>
         <param name="serial_timeout" value="0.1"/>
-        </node>
+        </node> -->
 
     <!-- <node pkg="robot_localization" type="dock_control.py" name="dock_control_node">
         <param name="angle_dir" value="1"/>    
