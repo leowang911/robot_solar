@@ -420,7 +420,7 @@ class ArucoDockingController:
         # pos = marker['position']
         # rot = marker['orientation']
         
-        pose_stamped=self.get_rot(self.markers[side])
+        pose_stamped=self.get_rot(self.markers[side],self.depth_dict[side])
         if pose_stamped is None:
             return None
         pose = pose_stamped.pose
@@ -719,7 +719,7 @@ class ArucoDockingController:
         # marker_distance = math.sqrt(self.markers['center']['position'][0]**2 + self.markers['center']['position'][1]**2)
         #pos = self.markers['center']['position']
         #rot = self.markers['orientation']
-        pose_stamped=self.get_rot(self.markers['center'])
+        pose_stamped=self.get_rot(self.markers['center'],self.depth_dict['center'])
         if pose_stamped is None:    
             return None 
         pose = pose_stamped.pose
@@ -783,14 +783,14 @@ class ArucoDockingController:
         # pos = self.markers[side]['position']
         # rot = self.markers[side]['orientation']
 
-        pose_stamped=self.get_rot(self.markers[side])
+        pose_stamped=self.get_rot(self.markers[side],self.depth_dict[side])
         if pose_stamped is None:
             return None
         pose = pose_stamped.pose
         
         pos=np.array([pose.position.x,pose.position.y,pose.position.z])
         rot=pose.orientation
-        pose=self.get_rot(self.markers[side])
+        # pose=self.get_rot(self.markers[side])
         # pos=np.array([pose.position.x,pose.position.y,pose.position.z])
         # rot=pose.orientation
 
@@ -1208,7 +1208,7 @@ class ArucoDockingController:
                         
                         if self.markers['left'] or self.markers['right'] and not (self.markers['center'] or self.markers['center_left'] or self.markers['center_right']):
                             # self.lock_current=True
-                            time.sleep(0.5)
+                            # time.sleep(0.5)
                             side_target = self.get_five_avg('side_target')
                             # side_target = self.side_target
                             current_pos = np.array([0, 0])  # 基坐标系原点
