@@ -334,7 +334,7 @@ class ArucoDockingController:
 
         if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
             # self.state = "APPROACHING"
-            rospy.loginfo('APPROACHING')
+            # rospy.loginfo('APPROACHING')
             if self.first_look_flag == False:
                 self.first_look_flag = True
                 # control = controlData()
