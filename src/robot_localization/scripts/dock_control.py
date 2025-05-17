@@ -1632,7 +1632,7 @@ class ArucoDockingController:
         time.sleep(0.1)
         # self.count = 1
         
-        control = self.compose_control(0,2800,self.current_yaw,0,1)
+        control = self.compose_control(0,2800,self.current_yaw,0,8)
         time.sleep(0.1)
         while self.complete_state !=8:
             if self.rc_control == 0:
