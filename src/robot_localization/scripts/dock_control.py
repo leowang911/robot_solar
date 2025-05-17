@@ -906,29 +906,17 @@ class ArucoDockingController:
         #找不到旋转180
         if self.distance2drone > 1 or self.distance2drone <=0.1:
             control = self.compose_control(0, 0, self.current_yaw, np.pi/10, 1)
-            # control = controlData()
-            # control.distance = 0 
-            # # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            # # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, np.pi/10)
-            # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            # control.roller_speed = 0
-            # control.robot_state = 1
             self.control_pub.publish(control)
             time.sleep(0.01)
             control.robot_state = 2
             self.control_pub.publish(control)
             time.sleep(0.5)
         else:
+            control = self.compose_control(0, 0, self.current_yaw, np.pi/10, 1)
+            self.control_pub.publish(control)
+            time.sleep(0.01)
             control = self.compose_control(-200, 0, self.current_yaw, 0, 2)
             control = controlData()
-            # control.distance = -200 
-            # # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            # # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-            # control.roller_speed = 0
-            # control.robot_state = 2
             self.control_pub.publish(control)
         return control
 
@@ -1143,7 +1131,7 @@ class ArucoDockingController:
             # 发布控制指令
             control.header.stamp = rospy.Time.now()
             control.header.seq = self.control_seq
-            self.state_prev = self.state
+            
             rospy.loginfo(f'state: {control.robot_state}')
             if self.complete_state==2:
                 control.robot_state = 1
@@ -1164,7 +1152,7 @@ class ArucoDockingController:
             #2.1 执行搜索逻辑,持续20次，1s未检测到marker 进行搜索。
             if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
                 # self.state = "APPROACHING"
-                rospy.loginfo(f'APPROACHING******************* {self.state}')
+                # rospy.loginfo(f'APPROACHING******************* {self.state}')
                 # control = self.compose_control(0, 0, self.current_yaw, 0, 1)
                 # self.control_pub.publish(control)
                 # time.sleep(0.01)
@@ -1215,7 +1203,7 @@ class ArucoDockingController:
                 # 发布控制指令
                 control.header.stamp = rospy.Time.now()
                 control.header.seq = self.control_seq
-                self.state_prev = self.state
+                
                 rospy.loginfo(f'state: {control.robot_state}')
                 
                 if self.complete_state==2:
@@ -1293,7 +1281,6 @@ class ArucoDockingController:
                         # 发布控制指令
                         control.header.stamp = rospy.Time.now()
                         control.header.seq = self.control_seq
-                        self.state_prev = self.state
                         rospy.loginfo(f'state: {control.robot_state}')
                         if self.complete_state==2:
                             control.robot_state = 1
@@ -1356,7 +1343,6 @@ class ArucoDockingController:
                             # 发布控制指令
                             control.header.stamp = rospy.Time.now()
                             control.header.seq = self.control_seq
-                            self.state_prev = self.state
                             rospy.loginfo(f'state: {control.robot_state}')
                             if self.complete_state==2:
                                 control.robot_state = 1
@@ -1673,6 +1659,7 @@ class ArucoDockingController:
         """主控制循环""" 
         
         control = controlData()
+        
         # rospy.loginfo(f"in_dock_flag: {self.in_dock_flag} docking_flag: {self.docking_flag} rc_control: {self.rc_control}")
         if self.stop_flag == False: #是否进入停止状态
             self.control_seq += 1
@@ -1715,7 +1702,6 @@ class ArucoDockingController:
                     if(self.process_cleaning())==1:
                         self.state = "SEARCH"
 
-                
                 # if self.in_dock_flag == False:
                 #     control = controlData()
                 #     control.distance = 0
@@ -1734,15 +1720,16 @@ class ArucoDockingController:
                 #     else:
                 #         self.error = 1
                 #     return
-
+             
             else:
                 control = self.compose_control(0,0,self.current_yaw,0,1)
                 self.control_pub.publish(control)
-                return
+                
         else:
             control = self.compose_control(0,0,self.current_yaw,0,1)
             self.control_pub.publish(control)
-            return
+        
+        self.state_prev = self.state
 
 #---------------------------------------------------------------------------------------------------------------------------------------
 
