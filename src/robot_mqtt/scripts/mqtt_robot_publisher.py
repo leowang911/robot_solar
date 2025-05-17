@@ -340,6 +340,15 @@ class MQTTRobotBridge:
             # 发布任务停止信号
             stop_msg = Bool(False)
             self.mission_pub.publish(stop_msg)
+        elif action == "change state":
+            from std_srvs.srv import Trigger
+            state = command.get('state', '')
+            try:
+                change_state_srv = rospy.ServiceProxy('/change_state', String, state)
+                response = change_state_srv()
+                rospy.loginfo(f"Response: {response.message}")
+            except rospy.ServiceException as e:
+                rospy.logerr(f"Service call failed: {str(e)}")
             
         else:
             rospy.logwarn(f"Unknown mission action: {action}")

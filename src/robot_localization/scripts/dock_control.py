@@ -13,7 +13,7 @@ from geodesy import utm
 from geometry_msgs.msg import PoseStamped, Twist, PoseArray,PointStamped,Quaternion
 from robot_control.msg import controlData 
 from robot_localization.msg import INSPVAE,INSPVA,baseStatus, GPSData
-from std_msgs.msg import Int16, Int32,Header
+from std_msgs.msg import Int16, Int32,Header,String
 from sensor_msgs.msg import Image
 import time
 import copy
@@ -131,6 +131,11 @@ class ArucoDockingController:
         
         # rospy.Subscriber("/virtual_marker_102/pose", PoseStamped, self.center_cb)
         # rospy.Subscriber("/virtual_markers", PoseArray, self.markers_cb)
+        self.state = rospy.Service(
+        '/change_state',  # 服务名称（必须与客户端一致）
+        String,             # 服务类型
+        self.handle_change_state # 处理函数
+        )
         
         # 发布器
         self.control_pub = rospy.Publisher("/control_data", controlData, queue_size=1)
@@ -1626,8 +1631,7 @@ class ArucoDockingController:
             return 1
         else:
             self.error = 1
-        
-    
+          
     def process_cleaning(self):
         control = self.compose_control(0,0,self.current_yaw,0,1)
         self.control_pub.publish(control)
@@ -1660,7 +1664,26 @@ class ArucoDockingController:
         else:
             self.error = 1
 
-
+    def handle_change_state(self, state):
+        """改变状态"""
+        
+        try:
+            # 这里添加你的紧急停止操作代码（例如：停止电机、发送停止指令等）
+            # control = self.compose_control(0,0,self.current_yaw,0,1)
+            # self.control_pub(control)
+            
+            self.state = state
+            # 返回成功响应
+            return TriggerResponse(
+                success=True,
+                message="Emergency stop executed successfully"
+            )
+        except Exception as e:
+            rospy.logerr(f"Emergency stop failed: {str(e)}")
+            return TriggerResponse(
+                success=False,
+                message=f"Error during emergency stop: {str(e)}"
+            )
         
 #------------------------------------CONTROL---------------------------------------------------------------------------------------------------
     # def compose_control(distance,roller_speed,yaw,target_yaw,robot_state):
