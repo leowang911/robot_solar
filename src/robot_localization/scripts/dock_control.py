@@ -1635,6 +1635,7 @@ class ArucoDockingController:
         # self.count = 1
         
         control = self.compose_control(0,2800,self.current_yaw,0,8)
+        self.control_pub.publish(control)
         time.sleep(0.1)
         while self.complete_state !=8:
             if self.rc_control == 0:
