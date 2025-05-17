@@ -148,7 +148,7 @@ class ArucoDockingController:
     def mqtt_cb(self,msg):
         command = json.loads(msg.data)
         if command['command'] == 'mission':
-             if command['mission'] == 'change_state':
+             if command['action'] == 'change_state':
                 self.state = command['state']
     
     
