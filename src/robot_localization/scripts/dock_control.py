@@ -13,10 +13,11 @@ from geodesy import utm
 from geometry_msgs.msg import PoseStamped, Twist, PoseArray,PointStamped,Quaternion
 from robot_control.msg import controlData 
 from robot_localization.msg import INSPVAE,INSPVA,baseStatus, GPSData
-from std_msgs.msg import Int16, Int32,Header
+from std_msgs.msg import Int16, Int32,Header,String
 from sensor_msgs.msg import Image
 import time
 import copy
+import json
 
 class ArucoDockingController:
     def __init__(self):
@@ -128,6 +129,7 @@ class ArucoDockingController:
         rospy.Subscriber("/camera/aruco_103/pixel", PointStamped, self.center_left_cb)
         rospy.Subscriber("/camera/aruco_104/pixel", PointStamped, self.center_right_cb)
         rospy.Subscriber("/camera/depth/image_raw", Image, self.depth_cb)
+        rospy.Subscriber("/mqtt_received",String, self.mqtt_cb)
         
         # rospy.Subscriber("/virtual_marker_102/pose", PoseStamped, self.center_cb)
         # rospy.Subscriber("/virtual_markers", PoseArray, self.markers_cb)
@@ -143,6 +145,13 @@ class ArucoDockingController:
         rospy.Timer(rospy.Duration(0.1), self.control_loop)
 
 #------------------------------------CALLBACK---------------------------------------------------------------------------------------------------
+    def mqtt_cb(self,msg):
+        command = json.loads(msg.data)
+        if command['command'] == 'mission':
+             if command['mission'] == 'change_state':
+                self.state = command['state']
+    
+    
     def depth_cb(self, msg):
         data = np.frombuffer(msg.data, dtype=np.uint16 if msg.is_bigendian else '<u2')
         self.depth_image = data.reshape(msg.height, msg.width)
