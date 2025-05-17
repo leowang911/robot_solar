@@ -791,7 +791,7 @@ class ArucoDockingController:
         
         pos=np.array([pose.position.x,pose.position.y,pose.position.z])
         rot=pose.orientation
-        pose=self.get_rot(self.markers[side])
+        # pose=self.get_rot(self.markers[side],self.depth_dict[side])
         # pos=np.array([pose.position.x,pose.position.y,pose.position.z])
         # rot=pose.orientation
 
