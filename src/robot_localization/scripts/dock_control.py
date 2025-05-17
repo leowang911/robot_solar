@@ -79,8 +79,10 @@ class ArucoDockingController:
 
 
         # 状态变量
-        self.state = "SEARCH"
-        self.state_prev = "SEARCH"
+        # self.state = "SEARCH"
+        # self.state_prev = "SEARCH"
+        self.state = "AUTO_CLEANING"
+        self.state_prev = "AUTO_CLEANING"
         self.estimated_center = None
         self.current_target = {
             'position': np.array([0.0, 0.0, 0.0]),
