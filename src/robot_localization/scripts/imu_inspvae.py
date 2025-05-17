@@ -76,6 +76,7 @@ class IMUParser:
         recv_crc = data[-2:]
         calc_crc = self.calculate_crc(data[:-2])
         if recv_crc != calc_crc:
+            rospy.logwarn("CRC check failed")
             return None
         
         # 解析角度数据
