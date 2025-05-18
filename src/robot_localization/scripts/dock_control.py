@@ -1282,7 +1282,7 @@ class ArucoDockingController:
                             control.robot_state = 2 
                             self.control_pub.publish(control)
                             self.control_seq += 1
-                            time.sleep(0.5)
+                            time.sleep(0.05)
                             self.lock_current=False
                             return 0
                             
@@ -1302,6 +1302,14 @@ class ArucoDockingController:
                             control.robot_state = 2 
                             control.header.stamp = rospy.Time.now()
                         self.control_pub.publish(control)
+                        while self.complete_state!=2:
+                            if self.rc_control == 0:
+                                break
+                        
+                            control.distance = 0    
+                            control.target_yaw = -control.target_yaw
+                            self.control_pub.publish(control)
+                            continue
                         self.control_seq += 1
                         
 
@@ -1314,11 +1322,11 @@ class ArucoDockingController:
                             control.header.seq = self.control_seq
                             self.control_pub.publish(control)
                             time.sleep(0.05)
-                            control.header.stamp = rospy.Time.now()
-                            self.control_pub.publish(control)
-                            self.control_seq += 1
+                            # control.header.stamp = rospy.Time.now()
+                            # self.control_pub.publish(control)
+                            # self.control_seq += 1
                             self.align_num=True
-                            time.sleep(0.5)
+                            time.sleep(0.05)
                             self.lock_current=False
                             return 0
                     # 2.2.3 对齐align_num 为真,执行对齐动作
@@ -1334,9 +1342,9 @@ class ArucoDockingController:
                                 control.header.stamp = rospy.Time.now()
                                 self.control_pub.publish(control)
                                 time.sleep(0.05)
-                                control.header.stamp = rospy.Time.now()
-                                self.control_pub.publish(control)
-                                time.sleep(0.5)
+                                # control.header.stamp = rospy.Time.now()
+                                # self.control_pub.publish(control)
+                                # time.sleep(0.01)
                                 control.robot_state = 2
                                 self.control_seq += 1
                                 self.control_pub.publish(control)
@@ -1411,6 +1419,7 @@ class ArucoDockingController:
                                 self.control_seq += 1 
                                 # time.sleep(1000)
                                 self.refine_align==False
+                                self.align_num==False
                                 self.docking_flag=True
                                 self.in_dock_flag=False     
                                 self.lock_current=False                          
