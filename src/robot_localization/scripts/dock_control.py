@@ -1410,6 +1410,7 @@ class ArucoDockingController:
                                 self.control_pub.publish(control)
                                 self.control_seq += 1 
                                 # time.sleep(1000)
+                                self.refine_align==True
                                 self.docking_flag=True
                                 self.in_dock_flag=False     
                                 self.lock_current=False                          
