@@ -1133,7 +1133,9 @@ class ArucoDockingController:
         # rospy.loginfo(f"gps_calculation: {gps_calculation}")
         if self.distance2drone > 1 and self.current_target is None: #gps距离大于2米,通过gps数据大致导航
             gps_move_flag = True
-            control.distance = np.uint16((self.distance2drone)*1000)
+            drone_distance=np.clip(self.distance2drone,0,2)
+            control.distance = np.uint16((drone_distance)*1000)
+            
             # rospy.loginfo(f"gps_yaw: {self.yaw_to_target_yaw_angle(self.yaw2drone, 0)}")
             # rospy.loginfo(f"gps_distance: {self.distance2drone}")
             # control.target_yaw = self.yaw_to_target_yaw_angle(self.yaw2drone, 0)
