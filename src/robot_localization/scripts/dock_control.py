@@ -30,6 +30,8 @@ class ArucoDockingController:
         self.stop_distance = rospy.get_param('~stop_distance', 0.8)  # 中间标记前停止距离
         self.stop_distance_threshold = rospy.get_param('stop_distance_threshold', 0.1)  # 停止距离阈值
         self.angle_dir = rospy.get_param('~angle_dir', 1)  # 角度方向（1表示顺时针，-1表示逆时针）
+        self.offset = rospy.get_param('~offset', 0.45)  # 偏移量（米）
+
         self.target_distance = 1 # 目标距离（米）
         self.stop_refine_pose_dlt_y=0.04
         self.align_threshold = math.radians(1)  # 航向对准阈值
@@ -445,7 +447,7 @@ class ArucoDockingController:
         R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
         sign = 1 if side == 'center_right' else -1
         # 计算中间位置 * sign
-        offset = self.marker_side_spacing/2 *sign+0.055
+        offset = self.marker_side_spacing/2 *sign+self.offset
         self.pos_target = R@np.array([-offset, 0,self.stop_distance]) + pos
         pos_center = R@np.array([-offset,0, 0]) + pos
         # rospy.loginfo(f"pos: {pos}")
