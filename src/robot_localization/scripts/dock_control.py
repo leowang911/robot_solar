@@ -254,7 +254,8 @@ class ArucoDockingController:
         # self.markers_pixel[marker_type] = msg.pose.pixel
         self.depth_dict[marker_type] =copy.deepcopy(self.depth_image)
         # 记录更新时间
-        self.update_state()
+        # self.update_state()
+        self.check_data_expiry()
 
     def update_state(self):
         """状态机更新（增加数据有效性检查）"""
