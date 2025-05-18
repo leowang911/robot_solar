@@ -1302,14 +1302,14 @@ class ArucoDockingController:
                             control.robot_state = 2 
                             control.header.stamp = rospy.Time.now()
                         self.control_pub.publish(control)
-                        while self.complete_state!=2:
-                            if self.rc_control == 0:
-                                break
+                        # while self.complete_state!=2:
+                        #     if self.rc_control == 0:
+                        #         break
                         
-                            control.distance = 0    
-                            control.target_yaw = -control.target_yaw
-                            self.control_pub.publish(control)
-                            continue
+                        #     control.distance = 0    
+                        #     control.target_yaw = -control.target_yaw
+                        #     self.control_pub.publish(control)
+                        #     continue
                         self.control_seq += 1
                         
 
