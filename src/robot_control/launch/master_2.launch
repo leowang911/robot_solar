@@ -435,7 +435,7 @@
         <param name="mqtt_port" value="13234"/>
         <param name="mqtt_user" value="jifeng"/>
         <param name="mqtt_password" value="8dY9hE5FVF2GEIi"/>
-        <param name="robot_id" value="GFSTJM120250101"/>
+        <param name="robot_id" value="GFSTJM120250201"/>
         </node>
 
     <!-- <node pkg="robot_mqtt" type="test_data_publisher.py" name="mqtt_pub_node">

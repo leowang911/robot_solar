@@ -1416,12 +1416,12 @@ class ArucoDockingController:
                                 control.robot_state = 1
                                 rospy.loginfo(f'************GOOD start final docking**************')
                                 # rospy.loginfo(f)
+                                self.refine_align==False
+                                self.align_num==False
                                 control.header.stamp = rospy.Time.now()
                                 self.control_pub.publish(control)
                                 self.control_seq += 1 
                                 # time.sleep(1000)
-                                self.refine_align==False
-                                self.align_num==False
                                 self.docking_flag=True
                                 self.in_dock_flag=False     
                                 self.lock_current=False                          
