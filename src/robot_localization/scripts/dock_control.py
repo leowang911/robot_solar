@@ -1126,6 +1126,7 @@ class ArucoDockingController:
         return control
 
     def process_searching(self):
+        self.control_seq += 1
         gps_move_flag = False
         self.update_state()
         control = controlData()
@@ -1133,7 +1134,7 @@ class ArucoDockingController:
         #1.计算gps距离
         self.gps_calculation(self.latitude, self.longitude, self.latitude_drone, self.longitude_drone)
         # rospy.loginfo(f"gps_calculation: {gps_calculation}")
-        if self.distance2drone > 1 and self.current_target is None: #gps距离大于2米,通过gps数据大致导航
+        if self.distance2drone > 1 and self.current_target is None: #gps距离大于1米,通过gps数据大致导航
             gps_move_flag = True
             drone_distance=np.clip(self.distance2drone,0,2)
             control.distance = np.uint16((drone_distance)*1000)
@@ -1156,14 +1157,14 @@ class ArucoDockingController:
                 time.sleep(0.05)
             self.control_pub.publish(control)
         
-            self.control_seq += 1
+
 
 
         else: #gps距离小于2米,通过aruco数据导航
             if gps_move_flag == True:
                 control = self.compose_control(0, 0, self.current_yaw, 0, 1)
                 self.control_pub.publish(control)
-                time.sleep(0.01)
+                time.sleep(0.05)
             #rospy.loginfo(f'state {self.state}')
             #2.1 执行搜索逻辑,持续20次，1s未检测到marker 进行搜索。
             if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
@@ -1207,7 +1208,7 @@ class ArucoDockingController:
                     control.robot_state = 2 
                     self.control_pub.publish(control)
                     self.control_seq += 1
-                    time.sleep(0.5)
+                    time.sleep(0.1)
                     
 
                     return 0
@@ -1231,6 +1232,8 @@ class ArucoDockingController:
                     control.header.stamp = rospy.Time.now()
                 self.control_pub.publish(control)
                 while self.complete_state!=2:
+                        if self.rc_control == 0:
+                            break
                         continue
                 control.distance = 0
                 control.target_yaw = self.yaw_to_target_yaw_angle(yaw_final,self.current_yaw)
@@ -1442,6 +1445,8 @@ class ArucoDockingController:
                             time.sleep(0.5)
                             rospy.loginfo(f'等待回退结束 ')
                             while self.complete_state != 2:
+                                if self.rc_control == 0:
+                                    break
                                 # time.sleep(0.1)
                                 pass
                             rospy.loginfo(f'成功回退！！ ')
@@ -1461,6 +1466,8 @@ class ArucoDockingController:
                             time.sleep(0.1)
                             rospy.loginfo(f'等待回正结束 ')     
                             while self.complete_state != 2:
+                                if self.rc_control == 0:
+                                    break
                                 pass
                             rospy.loginfo(f'step1 成功回正！ ')
                             #执行结束
@@ -1489,6 +1496,8 @@ class ArucoDockingController:
                             time.sleep(1.0)
                             rospy.loginfo(f'等待前进结束 ')
                             while self.complete_state != 2:
+                                if self.rc_control == 0:
+                                    break   
                                 #time.sleep(0.1)
                                 pass
                             rospy.loginfo(f'step2 成功前进！！ ')
