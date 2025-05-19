@@ -424,7 +424,7 @@
 
     <node pkg="robot_localization" type="dock_control.py" name="dock_control_node">
         <param name="angle_dir" value="1"/> 
-        <param name="offset" value="0.045"/>    
+        <param name="offset" value="0.055"/>    
         </node>
 
     <!-- <node pkg="rviz_sim" type="virtual_actuator.py" name="virtual_actuator"> 
