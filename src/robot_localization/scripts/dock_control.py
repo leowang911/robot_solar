@@ -82,8 +82,8 @@ class ArucoDockingController:
 
 
         # 状态变量
-        self.state = "SEARCH"
-        self.state_prev = "SEARCH"
+        self.state = "LOADING"
+        self.state_prev = "LOADING"
         # self.state = "AUTO_CLEANING"
         # self.state_prev = "AUTO_CLEANING"
         self.estimated_center = None
