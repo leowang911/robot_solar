@@ -3,16 +3,26 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <sstream>
 
-void send_message(ros::Publisher& pub, int& counter, const std::vector<std::string>& messages)
+void send_message(ros::Publisher& pub, int& counter, const std::vector<std::string>& messages, int group_size)
 {
     std_msgs::String msg;
     
-    // 如果计数器超出了信息列表的范围，重新从头开始发布
-    int index = counter % messages.size();
-    msg.data = messages[index];
-
+    // 计算当前组的起始位置
+    int start_index = (counter * group_size) % messages.size();
+    
+    // 将接下来的group_size行组合成一个字符串
+    std::stringstream combined_msg;
+    for (int i = 0; i < group_size && (start_index + i) < messages.size(); ++i)
+    {
+        combined_msg << messages[start_index + i] << "\n";
+    }
+    
+    msg.data = combined_msg.str();
     pub.publish(msg);
+    
+    // 更新计数器，表示已发送的组数
     counter++;
 }
 
@@ -43,10 +53,9 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "serial_publisher");
     ros::NodeHandle nh;
     ros::Publisher pub = nh.advertise<std_msgs::String>("rosmsg", 1000);
-    ros::Rate loop_rate(100); // 10 Hz
+    ros::Rate loop_rate(10); // 10 Hz, 发布频率可以根据需要调整
 
     // 从文件中加载消息
-    // std::vector<std::string> messages = load_messages_from_file("/home/orangepi/ros_ws/src/gps/rtkmsgs/bd1.txt");
     std::vector<std::string> messages = load_messages_from_file("/home/rosubuntu/robot_solar/src/gps/rtkmsgs/bd1.txt");
     if (messages.empty())
     {
@@ -55,15 +64,88 @@ int main(int argc, char** argv)
     }
 
     int counter = 0;
+    int group_size = 10; // 每组包含10行消息
     while (ros::ok())
     {
-        send_message(pub, counter, messages);
+        send_message(pub, counter, messages, group_size);
         ros::spinOnce();
         loop_rate.sleep();
     }
 
     return 0;
 }
+
+
+
+
+
+
+// #include <ros/ros.h>
+// #include <std_msgs/String.h>
+// #include <fstream>
+// #include <vector>
+// #include <string>
+
+// void send_message(ros::Publisher& pub, int& counter, const std::vector<std::string>& messages)
+// {
+//     std_msgs::String msg;
+    
+//     // 如果计数器超出了信息列表的范围，重新从头开始发布
+//     int index = counter % messages.size();
+//     msg.data = messages[index];
+
+//     pub.publish(msg);
+//     counter++;
+// }
+
+// std::vector<std::string> load_messages_from_file(const std::string& file_path)
+// {
+//     std::vector<std::string> messages;
+//     std::ifstream file(file_path);
+
+//     if (!file.is_open())
+//     {
+//         ROS_ERROR("Failed to open file: %s", file_path.c_str());
+//         return messages;
+//     }
+
+//     std::string line;
+//     while (std::getline(file, line))
+//     {
+//         // 添加读取的每一行到消息列表
+//         messages.push_back(line);
+//     }
+
+//     file.close();
+//     return messages;
+// }
+
+// int main(int argc, char** argv)
+// {
+//     ros::init(argc, argv, "serial_publisher");
+//     ros::NodeHandle nh;
+//     ros::Publisher pub = nh.advertise<std_msgs::String>("rosmsg", 1000);
+//     ros::Rate loop_rate(100); // 10 Hz
+
+//     // 从文件中加载消息
+//     // std::vector<std::string> messages = load_messages_from_file("/home/orangepi/ros_ws/src/gps/rtkmsgs/bd1.txt");
+//     std::vector<std::string> messages = load_messages_from_file("/home/rosubuntu/robot_solar/src/gps/rtkmsgs/bd1.txt");
+//     if (messages.empty())
+//     {
+//         ROS_ERROR("No messages loaded from the file.");
+//         return 1;
+//     }
+
+//     int counter = 0;
+//     while (ros::ok())
+//     {
+//         send_message(pub, counter, messages);
+//         ros::spinOnce();
+//         loop_rate.sleep();
+//     }
+
+//     return 0;
+// }
 
 // BD1:gps->latitude:30.32101833, gps->longitude:120.07105000, gps->qual:4, gps->direction:0.00000000"
 

@@ -27,12 +27,12 @@ public:
     SerialProcessor() {
         // 初始化ROS节点和订阅者
         ros::NodeHandle nh;
-        // sub_ = nh.subscribe("/serial_topic", 1000, &SerialProcessor::serialCallback, this);//调试文本消息
-        sub_ = nh.subscribe("/mqttmsg", 1000, &SerialProcessor::serialCallback, this);
+        sub_ = nh.subscribe("/rosmsg", 1000, &SerialProcessor::serialCallback, this);//调试文本消息
+        // sub_ = nh.subscribe("/mqttmsg", 1000, &SerialProcessor::serialCallback, this);
         // 初始化数据缓冲区和标志
         // gps_tau1201_num = 0;
         // gps_tau1201_flag = 0;
-        printf("Processor node initialized.\n");
+        printf("Processor node initialized.\n" );
     }
 
 void serialCallback(const std_msgs::String::ConstPtr& msg) {
@@ -60,7 +60,7 @@ for (char dat : data) {
         gps_tau1201_buffer2[gps_tau1201_num++] = dat;
 
         // 检查是否到达行尾
-        if (dat == '\r' || dat == '\n') {
+        if (dat == '\n') {
         // if ((dat == '\r' || dat == '\n') && gps_tau1201_num > 1) {
             gps_tau1201_buffer2[gps_tau1201_num] = '\0';  // 在末尾添加 null 终止符
             gps_tau1201_num++;
@@ -74,6 +74,8 @@ for (char dat : data) {
 
             // 打印接收到的完整消息
             std::string message(gps_tau1201_buffer1);
+            // std::cout << "serialCallback: " << gps_tau1201_buffer1 << std::endl;
+
                         // 在 serialCallback 中
             // std::cout << "gps_data_parse - : " << gps_tau1201_buffer1 << std::endl;
                 // ROS_INFO("Received complete message: %s", message.c_str());
@@ -121,7 +123,7 @@ void gps_data_parse(void) {
     if (gps_tau1201_flag) {
         gps_tau1201_flag = 0;
         
-        // std::cout << "gps_tau1201_buffer1: " << gps_tau1201_buffer1[0] << std::endl;
+        // std::cout << "gps_data_parse: " << gps_tau1201_buffer1 << std::endl;
         // 确保 gps_tau1201_buffer1 以 null 终止符结尾
         std::string buffer_str(reinterpret_cast<char*>(gps_tau1201_buffer1));
         // std::cout << "Received buffer: " << buffer_str << std::endl;
@@ -130,7 +132,7 @@ void gps_data_parse(void) {
 if (buffer_str.length() >= 6) {
     // 检查前缀是否为 "#UNIHEADINGA"
     if (std::strncmp(buffer_str.c_str(), "#UNIHEADINGA", 12) == 0) {
-        std::cout << "UNIHEADINGA的Buffer长度: " << buffer_str.length() << std::endl;
+        // std::cout << "UNIHEADINGA的Buffer长度: " << buffer_str.length() << std::endl;
         // 确保缓冲区大小足够
         size_t buffer_length = std::strlen(reinterpret_cast<char*>(gps_tau1201_buffer1));
         if (buffer_length >= 70) {
@@ -581,15 +583,15 @@ static void utc_to_btc (gps_time_struct *time)
     // 解析 pitch 和 heading
     uint8_t pitch_index = get_parameter_index(11, buf); // pitch 的索引
     uint8_t heading_index = get_parameter_index(12, buf); // heading 的索引
-    std::cout << "state: " << state << std::endl;
+    // std::cout << "gps_heading_parse, state: " << state << std::endl;
     if (state == 'F') {
-        ROS_INFO("State: FINE");
+        // ROS_INFO("State: FINE");
         if (pitch_index > 0) {
             gps->pitch = get_float_number(&buf[pitch_index]); // 解析 pitch
-            printf("gps->pitch: %lf\n", gps->pitch);
+            // printf("gps->pitch: %lf\n", gps->pitch);
         } else {
             gps->pitch = 0.0;
-            printf("gps->pitch: Not available\n");
+            // printf("gps->pitch: Not available\n");
         }
 
         if (heading_index > 0) {
@@ -658,13 +660,15 @@ static uint8_t gps_gngga_parse (char *line, gps_info_struct *gps)
 int main(int argc, char** argv) {
     ros::init(argc, argv, "serial_processor_node");
     ros::Time::init();
-    ros::Rate r(1); // 10Hz
+    
+    // 设定两个不同的频率：一个是10Hz用来解析GPS数据，另一个是1Hz用来发布数据
+    ros::Rate gps_parse_rate(10); // GPS数据解析频率为10Hz
+    ros::Rate publish_rate(1);    // 发布频率为1Hz
+    double last_publish_time = 0.0; // 上次发布的时间
     SerialProcessor processor;
 
     ros::NodeHandle nh;
-    // ros::Publisher gps_pub = nh.advertise<std_msgs::String>("gps_data", 1000);
     ros::Publisher gps_pub = nh.advertise<std_msgs::String>("gps/raw", 1000);
-    ros::Rate loop_rate(0.1);
     bool has_valid_data = false; // 添加标志位，表示是否接收到有效数据
 
     while (ros::ok()) {
@@ -672,60 +676,56 @@ int main(int argc, char** argv) {
 
         std_msgs::String msg;
 
-   // qual:  0-无效,1-定位有效,2-差分定位有效,3-PPS模式,定位有效,4-RTK模式,5-浮动RTK,6-估算模式,7-手动输入模式,8-模拟器模式
+        // 检查GPS数据的有效性
+        if (gps_tau1201.latitude != 0 && gps_tau1201.longitude != 0 && gps_tau1201.heading != 0 ) {
+            has_valid_data = true; // 设置标志位为 true
+
+            std::ostringstream latitude_stream;
+            latitude_stream << std::fixed << std::setprecision(8) << gps_tau1201.latitude;
+        
+            std::ostringstream longitude_stream;
+            longitude_stream << std::fixed << std::setprecision(8) << gps_tau1201.longitude;
+        
+            std::ostringstream heading_stream;
+            heading_stream << std::fixed << std::setprecision(8) << gps_tau1201.heading;
+        
+            std::ostringstream pitch_stream;
+            pitch_stream << std::fixed << std::setprecision(8) << gps_tau1201.pitch;
+            // qual:  0-无效,1-定位有效,2-差分定位有效,3-PPS模式,定位有效,4-RTK模式,5-浮动RTK,6-估算模式,7-手动输入模式,8-模拟器模式
             // heading: 航向 ( 0 到 360.0 ) 航向是主天线至从天线方向间基线向量逆时针方向与真北的夹角
             // pitch: 俯仰( ± 90 ) 
-            std::stringstream ss;
-            // qual:  0-无效,1-定位有效,2-差分定位有效,3-PPS模式,定位有效,4-RTK模式,5-浮动RTK,6-估算模式,7-手动输入模式,8-模拟器模式
-    if (gps_tau1201.latitude != 0 && gps_tau1201.longitude != 0) {
-                has_valid_data = true; // 设置标志位为 true
-                // json gps_data;
+            json gps_data = {
+                {"timestamp", ros::Time::now().toSec()},
+                {"latitude", latitude_stream.str()},
+                {"longitude", longitude_stream.str()},
+                {"qual", gps_tau1201.qual},
+                {"heading", heading_stream.str()},
+                {"pitch", pitch_stream.str()}
+            };                 
+            msg.data = gps_data.dump(4); // 格式化输出，缩进 4 空格
+        } else if (has_valid_data) {
+            // 如果之前接收到过有效数据，但当前数据无效，输出无效数据提示
+            json error_data = {{"error", "Invalid GPS data: latitude or longitude is 0."}};
+            msg.data = error_data.dump();
+        } else {
+            // 如果从未接收到有效数据，则不输出任何内容
+            gps_parse_rate.sleep(); // 等待下次GPS数据解析周期
+            ros::spinOnce();
+            continue;
+        }
 
-                // 设置高精度（保留 8 位小数）
-                std::ostringstream latitude_stream;
-                latitude_stream << std::fixed << std::setprecision(8) << gps_tau1201.latitude;
-            
-                std::ostringstream longitude_stream;
-                longitude_stream << std::fixed << std::setprecision(8) << gps_tau1201.longitude;
-            
-                std::ostringstream heading_stream;
-                heading_stream << std::fixed << std::setprecision(8) << gps_tau1201.heading;
-            
-                std::ostringstream pitch_stream;
-                pitch_stream << std::fixed << std::setprecision(8) << gps_tau1201.pitch;
-            
-                // 使用 JSON 库生成消息
-                json gps_data = {
-                    {"timestamp", ros::Time::now().toSec()},
-                    {"latitude", latitude_stream.str()},
-                    {"longitude", longitude_stream.str()},
-                    {"qual", gps_tau1201.qual},
-                    {"heading", heading_stream.str()},
-                    {"pitch", pitch_stream.str()}
-                };
-                   
-                
+        // 发布频率控制在1Hz
+        if (ros::Time::now().toSec() - last_publish_time >= 1.0) {
+            ROS_INFO("%s", msg.data.c_str());
+            gps_pub.publish(msg);
+            last_publish_time = ros::Time::now().toSec();
+        }
 
-                // 将 JSON 转换为字符串
-                msg.data = gps_data.dump(4); // 格式化输出，缩进 4 空格
-            } else if (has_valid_data) {
-                // 如果之前接收到过有效数据，但当前数据无效，输出无效数据提示
-                json error_data = {{"error", "Invalid GPS data: latitude or longitude is 0."}};
-                msg.data = error_data.dump();
-            } else {
-                // 如果从未接收到有效数据，则不输出任何内容
-                r.sleep();
-                ros::spinOnce();
-                continue;
-            }
-
-        ROS_INFO("%s", msg.data.c_str());
-        gps_pub.publish(msg);
-        r.sleep();
+        gps_parse_rate.sleep();  // 持续解析GPS数据
         ros::spinOnce();
     }
-    return 0;
 }
+
 
 // [INFO] [1725170394.934803]: Publishing: $GNGGA,055955.00,2140.83906234,N,11055.09795115,E,1,25,0.6,63.8438,M,-13.4265,M,,*63
 

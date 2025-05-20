@@ -13,11 +13,10 @@ from geodesy import utm
 from geometry_msgs.msg import PoseStamped, Twist, PoseArray,PointStamped,Quaternion
 from robot_control.msg import controlData 
 from robot_localization.msg import INSPVAE,INSPVA,baseStatus, GPSData
-from std_msgs.msg import Int16, Int32, Header, String
+from std_msgs.msg import Int16, Int32,Header
 from sensor_msgs.msg import Image
 import time
 import copy
-import json
 class ArucoDockingController:
     def __init__(self):
         
@@ -34,10 +33,8 @@ class ArucoDockingController:
         self.align_threshold = math.radians(1)  # 航向对准阈值
         self.current_yaw = 0 # 当前航向角
         self.target_yaw = 0# 目标航向角
-        # self.latitude = 30.32101833   
-        # self.longitude = 120.07105   
-        self.latitude = 30.32098151262    #test
-        self.longitude = 120.07004749195  #test
+        self.latitude = 30.32098151262
+        self.longitude = 120.07004749195
         self.latitude_drone = 30.32098151262
         # self.longitude_drone = -74.123339
         self.longitude_drone = 120.07004749195
@@ -52,9 +49,8 @@ class ArucoDockingController:
         self.align_num=False
         self.lock_current=False
         self.lock_refine=False
-        self.rc_control = 1   # 遥控器控制状态 默认0，调试loop_control时暂缓为1
+        self.rc_control = 0
         self.search_count = 0
-
 
         # TF配置
         self.tf_buffer = tf2_ros.Buffer()
@@ -74,9 +70,12 @@ class ArucoDockingController:
             'left': None, 
             'right': None,
             'center': None,
+            'center_left': None,
+            'center_right': None,
+            'back_left': None,
+            'back_right': None,
         }
-        # self.depth_dict={}
-        self.markers_orientation = {}
+        self.depth_dict={}
 
 
         # 状态变量
@@ -96,21 +95,46 @@ class ArucoDockingController:
         self.corner_finding_flag = True
         self.auto_cleaning_flag = True
         self.docking_flag = False
-     
+
+        
+
+        #  # 新增滤波参数
+        # self.filter_enabled = True          # 滤波开关
+        # self.filter_time_constant = 0.2     # 低通滤波时间常数（秒）
+        # self.ema_alpha = 0.3                # EMA平滑系数（0-1）
+        
+        # # 滤波状态变量
+        # self.filtered_yaw = 0.0             # 滤波后航向角
+        # self.last_filter_time = None        # 上次滤波时间
+        
         # 订阅器
         rospy.Subscriber("/inspvae_data", INSPVAE, self.inspvae_cb)
         rospy.Subscriber("/inspva_data", INSPVA, self.inspva_cb)
         rospy.Subscriber("/base_status", baseStatus, self.base_cb)
-        rospy.Subscriber("/gps/raw", String, self.drone_gps_cb)
+        rospy.Subscriber("/gps/raw", GPSData, self.drone_gps_cb)
 
-        rospy.Subscriber("/camera/aruco_102/pose", PoseStamped, self.leftedge_cb)
-        rospy.Subscriber("/camera/aruco_103/pose", PoseStamped, self.rightedge_cb)
-        rospy.Subscriber("/camera/aruco_104/pose", PoseStamped, self.center_cb)
+        rospy.Subscriber("/camera/aruco_100/pose", PoseStamped, self.leftedge_cb)
+        rospy.Subscriber("/camera/aruco_101/pose", PoseStamped, self.rightedge_cb)
+        #rospy.Subscriber("/camera/aruco_103/pose", PoseStamped, self.left_cb)
 
+        # rospy.Subscriber("/camera/aruco_100/pixel", PointStamped, self.left_cb)
+        # rospy.Subscriber("/camera/aruco_101/pixel", PointStamped, self.right_cb)
+        # rospy.Subscriber("/camera/aruco_102/pixel", PointStamped, self.center_cb)
+        # rospy.Subscriber("/camera/aruco_103/pixel", PointStamped, self.center_left_cb)
+        # rospy.Subscriber("/camera/aruco_104/pixel", PointStamped, self.center_right_cb)
+        # rospy.Subscriber("/camera/aruco_111/pixel", PointStamped, self.back_left_cb)
+        # rospy.Subscriber("/camera/aruco_112/pixel", PointStamped, self.back_right_cb)
+        # rospy.Subscriber("/camera/depth/image_raw", Image, self.depth_cb)
+        
+        # rospy.Subscriber("/virtual_marker_102/pose", PoseStamped, self.center_cb)
+        # rospy.Subscriber("/virtual_markers", PoseArray, self.markers_cb)
         
         # 发布器
         self.control_pub = rospy.Publisher("/control_data", controlData, queue_size=1)
-
+        # self.pose1_pub = rospy.Publisher("/marker_pose1", PoseStamped, queue_size=1)
+        # self.pose2_pub = rospy.Publisher("/marker_pose2", PoseStamped, queue_size=1)
+        # self.pose3_pub = rospy.Publisher("/marker_pose3", PoseStamped, queue_size=1)
+        # self.status_pub = rospy.Publisher("/robot_status", Int16, queue_size=1)
         self.target_pub = rospy.Publisher("/virsual_1", PoseStamped, queue_size=1)
 
 
@@ -118,7 +142,61 @@ class ArucoDockingController:
         rospy.Timer(rospy.Duration(0.1), self.control_loop)
 
 #------------------------------------CALLBACK---------------------------------------------------------------------------------------------------
-   
+    def depth_cb(self, msg):
+        data = np.frombuffer(msg.data, dtype=np.uint16 if msg.is_bigendian else '<u2')
+        self.depth_image = data.reshape(msg.height, msg.width)
+
+    def markers_cb(self, msg):
+        """处理虚拟标记数据"""
+        for i, pose in enumerate(msg.poses):
+            marker_id = 100 + i  # ID对应100,101,102
+            ps = PoseStamped()
+            ps.pose = pose
+            ps.header = msg.header
+            self.process_marker(ps, ['left', 'right', 'center'][i])
+
+    def pixel_to_point(self,uvz, fx, fy, cx, cy):
+        """将单个像素坐标+深度转换为三维坐标"""
+        u,v,z=uvz
+
+        # 过滤无效深度值
+        valid_mask = (z > 0)
+        u = u[valid_mask]
+        v = v[valid_mask]
+        z = z[valid_mask]
+
+
+        X = (u - cx) * z / fx
+        Y = (v - cy) * z / fy
+        return np.array([X, Y, z])
+
+    # def transform_to_base(self, pose):
+    # # """将位姿转换到机器人基坐标系"""
+    #     try:
+    #         # 获取坐标系变换关系
+    #         transform = self.tf_buffer.lookup_transform(
+    #             'base_link',
+    #             pose.header.frame_id,
+    #             pose.header.stamp,  # 使用原始消息的时间戳
+    #             rospy.Duration(0.1)
+    #         )
+    #         transformed = do_transform_pose(pose, transform)
+            
+    #         # 直接使用变换后的坐标（无需手动调整）
+    #         return {
+    #             'position': np.array([
+    #                 transformed.pose.position.x,
+    #                 transformed.pose.position.y,
+    #                 transformed.pose.position.z
+    #             ]),
+    #             'orientation': transformed.pose.orientation,
+    #             'pixel': np.array([pose.pixel.x, pose.pixel.y])
+    #         }
+    #     except Exception as e:
+
+    #         rospy.logwarn(f"坐标转换失败: {str(e)}")
+    #         return None
+
     def base_cb(self, msg):
         """处理基坐标系状态数据"""
         # 处理IMU数据
@@ -131,31 +209,10 @@ class ArucoDockingController:
 
     def drone_gps_cb(self, msg):
         """处理无人机GPS数据"""
-        try:
-            # 将JSON格式的字符串解析为Python字典
-            gps_data = json.loads(msg.data)
-            
-            # 输出GPS数据为8位浮点数
-            # 从gps_data中提取latitude和longitude
-            latitude_str = gps_data.get("latitude", "N/A")
-            longitude_str = gps_data.get("longitude", "N/A")
-
-            # 确保将其转换为浮动类型，如果是有效值（不是"N/A"），否则使用默认值0.0
-            self.latitude_drone = float(latitude_str) if latitude_str != "N/A" else 0.0
-            self.longitude_drone = float(longitude_str) if longitude_str != "N/A" else 0.0
-
-            # 保留8位小数，确保数据格式正确
-            self.latitude_drone = round(self.latitude_drone, 8)
-            self.longitude_drone = round(self.longitude_drone, 8)
-
-            # 输出保留8位小数的经纬度
-            rospy.loginfo("Latitude: %.8f, Longitude: %.8f, Yaw_drone: %.8f", self.latitude_drone, self.longitude_drone, self.yaw_drone)
-
-        except json.JSONDecodeError:
-            rospy.logerr("Received invalid JSON data")
+        # # 处理GPS数据
         # self.latitude_drone = msg.latitude
         # self.longitude_drone = msg.longitude
-        # self.yaw_drone = msg.yaw
+        self.yaw_drone = msg.yaw
 
     def inspvae_cb(self, msg):
         # self.latitude = msg.latitude
@@ -168,6 +225,19 @@ class ArucoDockingController:
         self.gps_yaw = math.radians(msg.yaw)
         
 
+    def left_cb(self, msg): self.process_marker(msg, 'left')
+
+    def right_cb(self, msg): self.process_marker(msg, 'right')
+
+    def center_cb(self, msg): self.process_marker(msg, 'center')
+
+    def center_left_cb(self, msg): self.process_marker(msg, 'center_left')
+
+    def center_right_cb(self, msg): self.process_marker(msg, 'center_right')
+
+    def back_left_cb(self, msg): self.process_marker(msg, 'back_left')
+
+    def back_right_cb(self, msg): self.process_marker(msg, 'back_right')
  
     def leftedge_cb(self, msg):
         self.pose_callback(msg,"left")
@@ -175,9 +245,97 @@ class ArucoDockingController:
     def rightedge_cb(self, msg):
         self.pose_callback(msg,"right")
 
-    def center_cb(self, msg):
-        self.pose_callback(msg,"center")
+    def pose_callback(self,msg,marker_type):
+        try:
+            self.lock_current=True     
+            #计算四元数pitch
+            q = msg.pose.orientation
 
+            quaternion = [q.x, q.y, q.z, q.w]
+            euler = tf.transformations.euler_from_quaternion(quaternion)
+            pitch = euler[1]  # 获取pitch角度
+            rospy.loginfo(f"pitch: {math.degrees(pitch)}")
+            roll = euler[0]  
+            rospy.loginfo(f"roll: {math.degrees(roll)}")
+            #yaw = euler[2]  
+            #rospy.loginfo(f"yaw: {math.degrees(yaw)}")
+            # print("pitch:",pitch)
+            if marker_type == "right":
+            #将当前位姿的平移2米
+                x = msg.pose.position.x - 2 * math.cos(pitch)
+                z = msg.pose.position.z + 2 * math.sin(pitch)
+            else:
+                x = msg.pose.position.x + 2 * math.cos(pitch)
+                z = msg.pose.position.z - 2 * math.sin(pitch)
+            y = msg.pose.position.y 
+            #z = msg.pose.position.z
+            #q = msg.pose.orientation
+        
+            # 创建新位姿
+            new_pose = PoseStamped()
+            new_pose.header.frame_id = "camera_link"
+            new_pose.header.stamp = rospy.Time.now()
+            new_pose.pose.position.x = x
+            new_pose.pose.position.y = y
+            new_pose.pose.position.z = z
+            new_pose.pose.orientation = q  # 保持原方向
+            
+            new_pose = self.tf_buffer.transform(new_pose, "base_link", rospy.Duration(1.0))
+            self.target_pub.publish(new_pose)
+            #打印位姿x,y
+
+
+
+            print("x:",new_pose.pose.position.x)
+            print("y:",new_pose.pose.position.y)
+            # 计算距离与朝向
+            distance = (new_pose.pose.position.x **2 + new_pose.pose.position.y**2)**0.5  # 欧几里得距离
+
+            # 计算朝向 (yaw)
+            yaw = math.atan2(new_pose.pose.position.y, new_pose.pose.position.x)
+            print("yaw to degree:",math.degrees(yaw))
+            print("current degree:",math.degrees(self.current_yaw))
+            control = controlData()
+            control.robot_state = 2
+            control.distance = 0
+            # 发布控制指令
+            control.header.stamp = rospy.Time.now()
+            control.header.seq = self.control_seq
+            self.state_prev = self.state
+            rospy.loginfo(f'state: {control.robot_state}')
+            control.distance = distance
+
+            control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+            control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, yaw)
+            rospy.loginfo(f"Distance to new marker ({marker_type}): {distance:.2f} meters, target_yaw: {(control.target_yaw):.2f} degrees")
+            control.robot_state = 2 
+
+            if self.complete_state==2:
+                control.robot_state = 1
+                self.control_pub.publish(control)
+                time.sleep(0.05)
+                control.robot_state = 2 
+                time.sleep(0.5)
+            self.control_pub.publish(control)
+        
+            self.control_seq += 1
+            
+        except tf2_ros.TransformException as e:
+            rospy.logwarn(f"Transform exception: {e}")
+            return
+
+
+    
+    def process_marker(self, msg, marker_type):
+        """处理ArUco检测数据（增加时间戳）"""
+        # base_data = self.transform_to_base(msg)
+        # if base_data:
+        self.markers[marker_type] = msg.point
+        self.marker_time[marker_type] = msg.header.stamp # 记录时间戳
+        # self.markers_pixel[marker_type] = msg.pose.pixel
+        self.depth_dict[marker_type] =copy.deepcopy(self.depth_image)
+        # 记录更新时间
+        self.update_state()
 
     def update_state(self):
         """状态机更新（增加数据有效性检查）"""
@@ -191,34 +349,87 @@ class ArucoDockingController:
             'center': np.array([0.0, 0.0, 0.0]),
         }
 
+        # 检查是否有有效数据
+        valid_left = self.markers['left'] is not None
+        valid_right = self.markers['right'] is not None
+        valid_center = self.markers['center'] is not None
+        valid_center_left = self.markers['center_left'] is not None
+        valid_center_right = self.markers['center_right'] is not None
+        # rospy.loginfo(f"有效数据: left={valid_left}, right={valid_right}, center={valid_center}")
+
+        # 状态优先级更新
+        # if self.state == "FINAL_DOCKING":
+        #     self.state = "FINAL_DOCKING"
+        # else:
+
         if self.markers['center'] is not None: 
             # self.state = "FINAL_APPROACH"
             
             self.valid_center_markers.append(self.markers['center'])
-
+            # if valid_center_left:
+            #     self.valid_center_markers.append(self.markers['center_left'])
+            # if valid_center_right:
+            #     self.valid_center_markers.append(self.markers['center_right'])
             ct1=self.calculate_center_target()
             if ct1 is not None:
                 valid_target.append(ct1)
- 
-        if self.markers['left'] is not None:
-            left_target = self.calculate_center_side_target('left')  
+            #rospy.loginfo(f"center: {valid_target}")
+
+
+        # if self.markers['left'] is not None:
+        #     current_target = self.estimate_center('left')  
+        #     self.current_target = current_target
+        #     # rospy.loginfo(f"left: {valid_target}")
+
+        # if self.markers['right'] is not None:
+        #     current_target = self.estimate_center('right')  
+        #     self.current_target = current_target
+
+
+        if self.markers['center_left'] is not None:
+            left_target = self.calculate_center_side_target('center_left')  
             if left_target is not None: 
                 valid_target.append(left_target)
                 left_right.append(left_target)
+            # rospy.loginfo(f"left: {valid_target}")
 
         
-        if self.markers['right'] is not None:
-            right_target = self.calculate_center_side_target('right')    
+        if self.markers['center_right'] is not None:
+            right_target = self.calculate_center_side_target('center_right')    
+            if right_target is not None:    
+                valid_target.append(right_target)   
+                left_right.append(right_target)
+            #valid_target.append(self.calculate_center_side_target('center_right'))
+            # rospy.loginfo(f"right: {valid_target}")
+
+        if self.markers['back_left'] is not None:
+            left_target = self.calculate_back_side_target('back_left')    
+            if left_target is not None:    
+                valid_target.append(left_target)   
+                left_right.append(left_target)
+
+        if self.markers['back_right'] is not None:
+            right_target = self.calculate_back_side_target('back_right')    
             if right_target is not None:    
                 valid_target.append(right_target)   
                 left_right.append(right_target)
 
+        # for marker_type in ['left', 'right', 'center', 'center_left', 'center_right']:
+        #     rospy.loginfo(f"{marker_type} marker_time: {self.marker_time[marker_type]}")
 
-        if self.markers['left'] or self.markers['right'] or self.markers['center']:
+        if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
             self.state = "APPROACHING"
             if self.first_look_flag == False:
                 self.first_look_flag = True
-               
+                # control = controlData()
+                # control.distance = 0 
+                # # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                # # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                # control.roller_speed = 0
+                # control.robot_state = 1
+                # self.control_pub.publish(control)
                 time.sleep(0.1)
                     
         else:
@@ -226,7 +437,17 @@ class ArucoDockingController:
             self.first_look_flag = False
             if self.lock_current==False:
                 self.current_target = None  # 清空目标
-
+        # if len(left_right)==2:
+        #     # rospy.loginfo(f"left_right: {left_right}")
+        #     left_target = left_right[0]
+        #     right_target = left_right[1]
+        #     # rospy.loginfo(f"left_target: {left_target} right_target: {right_target}")
+        #     # 计算中间目标点
+        #     current_target['position'] = (left_target['position'] + right_target['position']) / 2
+        #     current_target['yaw'] = (left_target['yaw'] + right_target['yaw']) / 2
+        #     current_target['center'] = (left_target['center'] + right_target['center']) / 2
+        #     self.current_target = current_target
+        #     return
 
         if len(valid_target)>0:
             for target in valid_target:
@@ -241,31 +462,24 @@ class ArucoDockingController:
 
             self.current_target = current_target    
                         
-            return      
-    
-    
-    
-    def pose_callback(self,msg,marker_type):
-        try:
-            self.lock_current = True  #??
-            self.markers[marker_type] = msg.pose.position
-            self.marker_time[marker_type] = msg.header.stamp # 记录时间戳
-            # self.markers_pixel[marker_type] = msg.pose.pixel
-            # self.depth_dict[marker_type] =msg.pose.position.z
-            self.markers_orientation[marker_type] = msg.pose.orientation
-            #仅更新状态，不发布控制
-            self.update_state()
-            # self.compose_control(0,0,self.current_yaw,0,1)
+            return    
         
+
+        # if valid_left:
+        #     # self.current_target = self.estimate_center('left')
+        # if valid_right:
+            # self.current_target = self.estimate_center('right')
+
             
-        except tf2_ros.TransformException as e:
-            rospy.logwarn(f"Transform exception: {e}")
-            return
-
-
-
-  
+        # elif valid_left:
+        #     self.state = "ESTIMATED_APPROACH"
+        #     self.current_target = self.estimate_center('left')
+        # elif valid_right:
+        #     self.state = "ESTIMATED_APPROACH"
+        #     self.current_target = self.estimate_center('right')
         
+
+        # rospy.loginfo(f"当前状态: {self.state}")
 
     def check_data_expiry(self):
         """清除过期数据"""
@@ -284,23 +498,21 @@ class ArucoDockingController:
 
     def calculate_center_side_target(self, side):
         """计算中间标记前的目标点（基于单侧标记）"""
-        # pose_stamped=self.markers_orientation[side]
-        # rospy.loginfo(f"pose_stamped: {self.markers_orientation[side]}")
-        # if self.markers_orientation[side] is None:
-        #     return None
-        # pose = self.markers[side]
-        # rospy.loginfo(f"pose: {pose}")
-        if self.markers_orientation[side] is None or self.markers[side] is None:
+        marker = self.markers[side]
+        # pos = marker['position']
+        # rot = marker['orientation']
+        
+        pose_stamped=self.get_rot(self.markers[side])
+        if pose_stamped is None:
             return None
-
-        # 从 PoseStamped 中提取位置和方向
-        pose = self.markers[side]
-        orientation = self.markers_orientation[side]
-        # rospy.loginfo(f"pose: {pose}")
-
+        pose = pose_stamped.pose
+        if side == 'center_left':
+            self.pose2_pub.publish(pose_stamped)
+        else:
+            self.pose3_pub.publish(pose_stamped)
             
-        pos=np.array([pose.x,pose.y,pose.z])
-        rot=orientation
+        pos=np.array([pose.position.x,pose.position.y,pose.position.z])
+        rot=pose.orientation
         R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
         sign = 1 if side == 'center_right' else -1
         # 计算中间位置 * sign
@@ -350,6 +562,30 @@ class ArucoDockingController:
             # 'yaw': np.arctan2(marker['position'][1], marker['position'][0]) + np.pi/2
         }
 
+    def fit_plane_to_points(self,points):
+        """
+        用NumPy拟合点云所在平面
+        :param points: Nx3的NumPy数组，输入点云
+        :return: (A, B, C, D) 平面方程系数，法向量为(A, B, C)
+        """
+        # 1. 计算质心
+        centroid = np.mean(points, axis=0)
+        
+        # 2. 去中心化
+        centered = points - centroid
+        
+        # 3. 计算协方差矩阵
+        cov_matrix = np.cov(centered, rowvar=False)  # 输入为Nx3，rowvar=False表示列代表变量
+        
+        # 4. 特征分解，求最小特征值对应的特征向量（法向量）
+        eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
+        normal = eigenvectors[:, np.argmin(eigenvalues)]  # 最小特征值对应的特征向量
+        
+        # 5. 计算D：Ax0 + By0 + Cz0 + D = 0 => D = -(A*x0 + B*y0 + C*z0)
+        A, B, C = normal
+        D = -np.dot(normal, centroid)
+        
+        return A, B, C, D,centroid
     
     def rotation_matrix_to_quaternion(self,R):
         # 旋转矩阵转欧拉角（弧度）
@@ -420,31 +656,225 @@ class ArucoDockingController:
         quaternion_msg.w = q[3]
         return quaternion_msg
 
+    def get_pose(self, a, b, c):
+        yaxis=np.array([0,-1.0,0.0])
+        zaxis=np.array([a,b,c])
+        # 计算v2在e1方向的投影
+        proj = np.dot(zaxis, yaxis) * yaxis
+        
+        # 计算正交分量并归一化
+        u2 = zaxis - proj
+        norm_u2 = np.linalg.norm(u2)
+        if norm_u2 < 1e-10:
+            raise ValueError("Vectors are parallel or invalid input")
+        zaxis = u2 / norm_u2
+        
+        if zaxis[2]>0:
+            zaxis=-zaxis
+        xaxis=np.cross(yaxis,zaxis)
+        qua=self.axes_to_quaternion(xaxis, yaxis, zaxis)
+        return qua
+
+    def get_rot(self,pixel,depth_image):
+        u=int(pixel.x)
+        v=int(pixel.y)
+        u_ax=np.arange(u-5,u+5)
+        v_ax=np.arange(v-5,v+5)
+        if depth_image is not None:
+            pt=[]
+            for i in u_ax:
+                for j in v_ax:
+                    if depth_image[j,i] is not None:
+                        if abs(depth_image[j,i])<3000.0:
+                            pt.append([i,j,depth_image[j,i]/1000.0])
+           
+            if len(pt)>10:
+                try:
+                    pt=np.array(pt).T
+                    fx,fy,cx,cy=[612.3629150390625, 637.8858032226562, 612.5785522460938, 362.7610168457031]
+                    point=self.pixel_to_point(pt, fx,fy,cx,cy)
+                    a,b,c,d,centp=self.fit_plane_to_points(point.T)
+                    pose_q= self.get_pose(a,b,c)
+                except Exception as e:  
+                    # #rospy.logwarn(f"点云拟合失败: {str(e)}")
+                    pt=np.array(pt).T
+                    centp = np.mean(pt, axis=0)
+                    pose_q= self.get_pose(0,0,-1)   
+            else:
+                return None
+        else:
+            return None
+        pose= PoseStamped()
+        pose.header.frame_id = "camera_link"
+        pose.header.stamp = rospy.Time.now()
+        pose.pose.position.x = centp[0]
+        pose.pose.position.y = centp[1]
+        pose.pose.position.z = centp[2]
+        pose.pose.orientation = pose_q
+        transform = self.tf_buffer.lookup_transform(
+                'base_link',
+                pose.header.frame_id,
+                pose.header.stamp,  # 使用原始消息的时间戳
+                rospy.Duration(0.1)
+            )
+        transformed = do_transform_pose(pose, transform)
+        return transformed
+
+    def get_rot(self,pixel):
+        u=int(pixel.x)
+        v=int(pixel.y)
+        u_ax=np.arange(u-10,u+10)
+        v_ax=np.arange(v-10,v+10)
+        if self.depth_image is not None:
+            pt=[]
+            for i in u_ax:
+                for j in v_ax:
+                    if self.depth_image[j,i] is not None:
+                        if abs(self.depth_image[j,i])<2000.0:
+                            pt.append([i,j,self.depth_image[j,i]/1000.0])
+            try:
+                if len(pt)>10:
+                    pt=np.array(pt).T
+                    fx,fy,cx,cy=[612.3629150390625, 637.8858032226562, 612.5785522460938, 362.7610168457031]
+                    point=self.pixel_to_point(pt, fx,fy,cx,cy)
+                    a,b,c,d,centp=self.fit_plane_to_points(point.T)
+                    pose_q= self.get_pose(a,b,c)
+                else:
+                    centp=np.array([0,0,1.0])
+                    pose_q= self.get_pose(0,0,-1)   
+                    return None
+ 
+            except Exception as e:  
+                #rospy.logwarn(f"点云拟合失败: {str(e)}")
+                return None
+                # centp=np.array([0,0,1.0])
+                # pose_q= self.get_pose(0,0,-1)       
+        else:
+            centp=np.array([0,0,1])
+            pose_q= self.get_pose(0,0,-1)
+            return None
+        pose= PoseStamped()
+        pose.header.frame_id = "camera_link"
+        pose.header.stamp = rospy.Time.now()
+        pose.pose.position.x = centp[0]
+        pose.pose.position.y = centp[1]
+        pose.pose.position.z = centp[2]
+        pose.pose.orientation = pose_q
+        transform = self.tf_buffer.lookup_transform(
+                'base_link',
+                pose.header.frame_id,
+                pose.header.stamp,  # 使用原始消息的时间戳
+                rospy.Duration(0.1)
+            )
+        transformed = do_transform_pose(pose, transform)
+        return transformed
+
+    def get_rot_uv(self,pixel):
+        u=int(pixel.x)
+        v=int(pixel.y)
+        u_ax=np.arange(u-8,u+8)
+        v_ax=np.arange(v-8,v+8)
+        if self.depth_image is not None:
+            pt=[]
+            for i in u_ax:
+                for j in v_ax:
+                    if self.depth_image[j,i] is not None:
+                        if abs(self.depth_image[j,i])<2000.0:
+                            pt.append([i,j,self.depth_image[j,i]/1000.0])
+            try:
+                if len(pt)>10:
+                    pt=np.array(pt).T
+                    fx,fy,cx,cy=[612.3629150390625, 637.8858032226562, 612.5785522460938, 362.7610168457031]
+                    point=self.pixel_to_point(pt, fx,fy,cx,cy)
+                    a,b,c,d,centp=self.fit_plane_to_points(point.T)
+                    pose_q= self.get_pose(a,b,c)
+                else:
+                    centp=np.array([0,0,1.0])
+                    pose_q= self.get_pose(0,0,-1)   
+                    return None
+ 
+            except Exception as e:  
+                #rospy.logwarn(f"点云拟合失败: {str(e)}")
+                return None
+                # centp=np.array([0,0,1.0])
+                # pose_q= self.get_pose(0,0,-1)       
+        else:
+            centp=np.array([0,0,1])
+            pose_q= self.get_pose(0,0,-1)
+            return None
+        
+
+        pose= PoseStamped()
+        pose.header.frame_id = "camera_link"
+        pose.header.stamp = rospy.Time.now()
+        pose.pose.position.x = centp[0]
+        pose.pose.position.y = centp[1]
+        pose.pose.position.z = centp[2]
+        pose.pose.orientation = pose_q
+        transform = self.tf_buffer.lookup_transform(
+                'base_link',
+                pose.header.frame_id,
+                pose.header.stamp,  # 使用原始消息的时间戳
+                rospy.Duration(0.1)
+            )
+        transformed = do_transform_pose(pose, transform)
+        return transformed
     
-   
     def calculate_center_target(self):
         """计算中间标记前的目标点"""
 
-        # pose_stamped=self.get_rot(self.markers['center'])
-        # if pose_stamped is None:    
-        #     return None 
-        # pose = pose_stamped.pose
-        # self.pose1_pub.publish(pose_stamped)
-        # pos=np.array([pose.position.x,pose.position.y,pose.position.z])
-        # rot=pose.orientation
-        if self.markers['center'] is None:
-            return None
-        pose = self.markers['center']
-        pos=np.array([pose.x,pose.y,pose.z])
-        rot=self.markers_orientation['center']
+        # if self.current_target is None:
+        #     control = controlData()
+        #     control.distance = 0
+        #     control.target_yaw = 0
+        #     control.robot_state = 1
+        #     self.control_pub.publish(control)
+        #     return
 
+        # marker_distance = math.sqrt(self.markers['center']['position'][0]**2 + self.markers['center']['position'][1]**2)
+        #pos = self.markers['center']['position']
+        #rot = self.markers['orientation']
+        pose_stamped=self.get_rot(self.markers['center'])
+        if pose_stamped is None:    
+            return None 
+        pose = pose_stamped.pose
+        self.pose1_pub.publish(pose_stamped)
+        pos=np.array([pose.position.x,pose.position.y,pose.position.z])
+        rot=pose.orientation
+        # sum_q = np.zeros(4)
+        # for p in self.valid_center_markers:
+        #     q = p['orientation']
+        #     sum_q += np.array([q.x, q.y, q.z, q.w])
+        # norm = np.linalg.norm(sum_q)
+        # if norm < 1e-6:
+        #     avg_q = np.array([0.0, 0.0, 0.0, 1.0])  # 单位四元数
+        # else:
+        #     avg_q = sum_q / norm
+        
+        # rot = avg_q
+
+
+        # rot = self.markers['center']['orientation']
+
+        # # # 大于目标距离时，先走到目标点前1m
+        # if abs(marker_distance - self.stop_distance) > self.stop_distance_threshold:
 
         R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
         self.pos_target = R@[-self.center_side_offset[1],0 , self.stop_distance] + pos
 
+        # else:
+        #     # pos = self.markers['center']['position']
+        #     # rot = self.markers['center']['orientation']
+        # R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
         pos =  R@[-0.05,0 ,0] + pos
 
-    
+        #     self.pos_target = [0,0,0]
+
+        # if self.get_marker_yaw(self.markers['center']) is None:
+        #         rospy.logwarn("无法获取航向角")
+        #         return None
+        
+        
         return {
             'position': self.pos_target,
             'yaw': self.get_marker_yaw(self.pos_target),
@@ -565,7 +995,37 @@ class ArucoDockingController:
         # 计算无人机相对于基坐标系的坐标
         self.distance2drone = math.sqrt(easting_diff**2 + northing_diff**2)
         self.yaw2drone = math.atan2(easting_diff, northing_diff)
-     
+        
+    # def search(self):
+    #     #找不到旋转180
+    #     if self.distance2drone > 1 or self.distance2drone <=0.1:
+    #         control = self.compose_control(0, 0, self.current_yaw, np.pi/10, 1)
+    #         # control = controlData()
+    #         # control.distance = 0 
+    #         # # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+    #         # # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+    #         # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, np.pi/10)
+    #         # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+    #         # control.roller_speed = 0
+    #         # control.robot_state = 1
+    #         self.control_pub.publish(control)
+    #         time.sleep(0.01)
+    #         control.robot_state = 2
+    #         self.control_pub.publish(control)
+    #         time.sleep(0.5)
+    #     else:
+    #         control = self.compose_control(-200, 0, self.current_yaw, 0, 2)
+    #         control = controlData()
+    #         # control.distance = -200 
+    #         # # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+    #         # # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+    #         # control.target_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+    #         # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+    #         # control.roller_speed = 0
+    #         # control.robot_state = 2
+    #         self.control_pub.publish(control)
+    #     return control
+
     def search(self):
         #找不到，基于与无人机朝向，左右旋转np.pi/20弧度。
         self.current_target=None
@@ -744,7 +1204,6 @@ class ArucoDockingController:
         control.robot_state = robot_state
         control.header.stamp = rospy.Time.now()
         control.header.seq = self.control_seq
-        rospy.loginfo(f"compose_control robot_state: {(control.robot_state)} ")
         # control.header.stampd
         return control
 
@@ -798,7 +1257,7 @@ class ArucoDockingController:
 
                         #rospy.loginfo(f'state {self.state}')
                         #2.1 执行搜索逻辑,持续20次，1s未检测到marker 进行搜索。
-                        if self.markers['left'] or self.markers['right'] or self.markers['center']:
+                        if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
                             self.state = "APPROACHING"
                             self.search_count=0
                         else:
@@ -1125,13 +1584,27 @@ class ArucoDockingController:
                                 rospy.logwarn("rc_control == 0")
                                 return
                             control = self.compose_control(0,0,self.current_yaw,0,1)
-              
+                            # control = controlData()
+                            # control.distance = 0
+                            # control.target_yaw = 0
+                            # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                            # control.roller_speed = 0
+                            # control.robot_state = 1
+                            # control.header.stamp = rospy.Time.now()
+                            # control.header.seq = self.control_seq
                             self.control_pub.publish(control)
                             time.sleep(0.1)
                     else:
                         self.error = 1
                         control = self.compose_control(0,0,self.current_yaw,0,1)
-                      
+                        # control = controlData()
+                        # control.distance = 0
+                        # control.target_yaw = 0
+                        # control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                        # control.roller_speed = 0
+                        # control.robot_state = 1
+                        # control.header.stamp = rospy.Time.now()
+                        # control.header.seq = self.control_seq
                         self.control_pub.publish(control)
             
             elif self.rc_control == 2:  
@@ -1265,6 +1738,27 @@ class ArucoDockingController:
                         self.error = 1
 
                     return
+
+                
+                # if self.in_dock_flag == False:
+                #     control = controlData()
+                #     control.distance = 0
+                #     control.target_yaw = 0
+                #     control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
+                #     control.roller_speed = 0
+                #     control.robot_state = 4
+                #     self.control_pub.publish(control)
+                #     time.sleep(0.01)
+                #     time_current = rospy.Time.now()
+                #     while self.complete_state !=1 and (rospy.Time.now()-time_current).to_sec()<10*60:
+                #         pass
+                #     if self.complete_state == 1:
+                #         self.in_dock_flag = True
+                #         self.count  = 0
+                #     else:
+                #         self.error = 1
+                #     return
+
             else:
                 control = self.compose_control(0,0,self.current_yaw,0,1)
                 self.control_pub.publish(control)
