@@ -1629,6 +1629,7 @@ class ArucoDockingController:
 
         if self.latitude_drone != 0 and self.longitude_drone != 0:
             time.sleep(0.5)
+            rospy.logwarn(f"out_dock_flag:{self.latitude_drone} {self.longitude_drone}")
             self.latitude_drone = self.latitude
             self.longitude_drone = self.longitude
         self.count = 0
