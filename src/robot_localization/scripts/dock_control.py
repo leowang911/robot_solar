@@ -48,11 +48,11 @@ class ArucoDockingController:
         self.yaw2drone = 0.0
         self.depth_image = None
         self.back=False
-        self.refine_align=False
-        self.align_num=False
+        self.refine_align=False   # 调试精确对正标志位 调试位True
+        self.align_num=False  # False  调试loop_control时暂为True
         self.lock_current=False
         self.lock_refine=False
-        self.rc_control = 1   # 遥控器控制状态 默认0，调试loop_control时暂缓为1
+        self.rc_control = 0   # 遥控器控制状态 默认0，调试loop_control时暂为1
         self.search_count = 0
 
 
@@ -65,7 +65,7 @@ class ArucoDockingController:
         self.marker_time = {'left': None, 'right': None, 'center': None, 'center_left': None, 'center_right': None}
         self.valid_center_markers = []
         self.center_side_offset = [ 0.37608,-0.01905,-0.42418]
-        self.complete_state = 0
+        self.complete_state = 0   #默认0 , 调试loop_control时为2
         self.first_look_flag = False
         self.count = 0
 
@@ -143,11 +143,12 @@ class ArucoDockingController:
             # 确保将其转换为浮动类型，如果是有效值（不是"N/A"），否则使用默认值0.0
             self.latitude_drone = float(latitude_str) if latitude_str != "N/A" else 0.0
             self.longitude_drone = float(longitude_str) if longitude_str != "N/A" else 0.0
-
+            self.yaw_drone = float(gps_data.get("heading", "N/A")) if gps_data.get("heading", "N/A") != "N/A" else 0.0
             # 保留8位小数，确保数据格式正确
             self.latitude_drone = round(self.latitude_drone, 8)
             self.longitude_drone = round(self.longitude_drone, 8)
-
+            self.yaw_drone = math.radians(round(self.yaw_drone, 8))  # 转换为弧度
+            # 航向 ( 0 到 360.0 ) 航向是主天线至从天线方向间基线向量逆时针方向与真北的夹角
             # 输出保留8位小数的经纬度
             rospy.loginfo("Latitude: %.8f, Longitude: %.8f, Yaw_drone: %.8f", self.latitude_drone, self.longitude_drone, self.yaw_drone)
 
@@ -205,6 +206,7 @@ class ArucoDockingController:
             if left_target is not None: 
                 valid_target.append(left_target)
                 left_right.append(left_target)
+                # rospy.loginfo(f"valid_target: {valid_target}")
 
         
         if self.markers['right'] is not None:
@@ -239,7 +241,8 @@ class ArucoDockingController:
             current_target['yaw'] /= len(valid_target)
             current_target['center'] /= len(valid_target)  
 
-            self.current_target = current_target    
+            self.current_target = current_target   
+            # rospy.loginfo(f"current_target: {self.current_target}") 
                         
             return      
     
@@ -282,6 +285,27 @@ class ArucoDockingController:
 
 #------------------------------------CALCULATION---------------------------------------------------------------------------------------------------
 
+    def test_side(self, side):
+        pose = self.markers[side]
+        orientiation = self.markers_orientation[side]
+        pos = np.array([pose.x, pose.y, pose.z])
+        rot = orientiation
+        #计算转换到基坐标系下的旋转矩阵
+        R = tf.transformations.quaternion_matrix(rot.x, rot.y, rot.z, rot.w)[:3, :3]
+        # 计算中间位置 * sign
+        sign = 1 if side == 'right' else -1
+        offset = self.marker_side_spacing/2 *sign+0.03
+        #计算目标点---中心点前面stop_distance的点
+        self.pos_target = R @ np.array([-offset, 0, self.stop_distance]) + pos
+        #计算中间点
+        pos_center = R @ np.array([-offset, 0, 0]) + pos
+        return {
+            'position': self.pos_target,
+            'yaw': self.get_marker_yaw(self.pos_target),
+            'center': pos_center
+        }
+
+    
     def calculate_center_side_target(self, side):
         """计算中间标记前的目标点（基于单侧标记）"""
         # pose_stamped=self.markers_orientation[side]
@@ -302,9 +326,10 @@ class ArucoDockingController:
         pos=np.array([pose.x,pose.y,pose.z])
         rot=orientation
         R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
-        sign = 1 if side == 'center_right' else -1
+        sign = 1 if side == 'right' else -1
         # 计算中间位置 * sign
         offset = self.marker_side_spacing/2 *sign+0.03
+        #计算目标点---中心点前面stop_distance的点
         self.pos_target = R@np.array([-offset, 0,self.stop_distance]) + pos
         pos_center = R@np.array([-offset,0, 0]) + pos
         # rospy.loginfo(f"pos: {pos}")
@@ -440,6 +465,7 @@ class ArucoDockingController:
 
 
         R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
+        #计算目标点---中心点前面stop_distance的点
         self.pos_target = R@[-self.center_side_offset[1],0 , self.stop_distance] + pos
 
         pos =  R@[-0.05,0 ,0] + pos
@@ -699,7 +725,7 @@ class ArucoDockingController:
         
         return distance,theta1,theta2    
 
-    def get_five_avg(self,):
+    def get_five_avg(self):
         target_list=[]
         y_list=[]
         for i in range(11):
@@ -823,15 +849,17 @@ class ArucoDockingController:
                                 #2.2.1位置靠近
                                 if np.linalg.norm(target_vec) >0.6:
                                     self.align_num=False
-
+                                    # pass
                                 if np.linalg.norm(target_vec) > self.stop_distance_threshold and self.align_num==False:
                                     rospy.loginfo(f"未到达目标位置: {self.current_target['position']},{self.get_marker_yaw(self.current_target['position'])}")
                                     rospy.loginfo(f"complete_state: {self.complete_state}")
                                     if target_vec[0]>0:
                                         self.target_distance = np.linalg.norm(target_vec) 
                                         self.target_distance=np.clip(self.target_distance,0,0.2)
+                                        # rospy.loginfo(f"target_distance: {self.target_distance}")
                                         self.target_yaw = math.atan2(target_vec[1], target_vec[0])
                                         self.target_yaw =np.clip(self.target_yaw,-0.2,0.2)
+                                        # rospy.loginfo(f"target_yaw: {self.target_yaw}")
                                         if  np.linalg.norm(target_vec)<0.1:
                                             self.target_yaw=0
                                     else:
@@ -894,7 +922,9 @@ class ArucoDockingController:
 
                                     if abs(self.get_marker_yaw(self.current_target['center'])) < 0.015:
                                             rospy.logwarn(f"完成对正 TTTTTT:  {target_vec[0]} {target_vec[1]}")
+
                                             self.refine_align=True
+                                            
                                             control.robot_state = 1
                                             control.header.stamp = rospy.Time.now()
                                             self.control_pub.publish(control)
@@ -916,7 +946,7 @@ class ArucoDockingController:
                                             c_yaw=-0.1
                                         control.target_yaw = self.yaw_to_target_yaw_angle(c_yaw,self.current_yaw)
                                         control.robot_state = 2
-                                        rospy.loginfo(f"real_taget_yaw:{ control.target_yaw}, ￥￥￥￥￥￥curent_yaw: {self.current_yaw}")
+                                        rospy.loginfo(f"real_target_yaw:{ control.target_yaw}, ￥￥￥￥￥￥curent_yaw: {self.current_yaw}")
                                         # 发布控制指令
                                         control.header.stamp = rospy.Time.now()
                                         control.header.seq = self.control_seq
@@ -949,7 +979,9 @@ class ArucoDockingController:
                                         target_vec = current_pose_state['position'][:2]
                                         rospy.loginfo(f'target_vec_refine: {target_vec}')
                                         if np.linalg.norm(target_vec) >1.0:
+
                                             self.refine_align=False 
+
                                             self.lock_current=False
                                             return 
 
@@ -970,6 +1002,7 @@ class ArucoDockingController:
 
                                         #3.1 step1 
                                         d1,yaw1,yaw2=self.get_step1_robot_pose(current_pose_state)
+                                        # 目标距离（d1）目标的全局偏航角（yaw1）和需要的相对回正角度（yaw2）
                                         #d1,yaw1,yaw2=self.direct_back()
                                         rospy.loginfo(f'robot pose1: {d1} {yaw1} {yaw2}')
                                         control.distance = int(d1*1000)

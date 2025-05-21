@@ -9,12 +9,21 @@ def gps_callback(msg):
         # 将JSON格式的字符串解析为Python字典
         gps_data = json.loads(msg.data)
         
-        # 输出GPS数据
-        latitude = gps_data.get("latitude", "N/A")
-        longitude = gps_data.get("longitude", "N/A")
-        heading = gps_data.get("heading", "N/A")
-        pitch = gps_data.get("pitch", "N/A")
-        rospy.loginfo("Latitude: %s, Longitude: %s, Heading: %s, Pitch: %s", latitude, longitude, heading, pitch)
+        # 输出GPS数据为8位浮点数
+        # 从gps_data中提取latitude和longitude
+        latitude_str = gps_data.get("latitude", "N/A")
+        longitude_str = gps_data.get("longitude", "N/A")
+
+        # 确保将其转换为浮动类型，如果是有效值（不是"N/A"），否则使用默认值0.0
+        latitude_drone = float(latitude_str) if latitude_str != "N/A" else 0.0
+        longitude_drone = float(longitude_str) if longitude_str != "N/A" else 0.0
+
+        # 保留8位小数，确保数据格式正确
+        latitude_drone = round(latitude_drone, 8)
+        longitude_drone = round(longitude_drone, 8)
+
+        # 输出保留8位小数的经纬度
+        rospy.loginfo("Latitude: %.8f, Longitude: %.8f, Yaw_drone: %.8f", latitude_drone, longitude_drone, yaw_drone)
 
     except json.JSONDecodeError:
         rospy.logerr("Received invalid JSON data")
