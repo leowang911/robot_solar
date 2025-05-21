@@ -1630,17 +1630,19 @@ class ArucoDockingController:
         self.in_dock_flag = True
         self.docking_flag = False
 
-        if self.latitude != 0 and self.longitude != 0:
-            time.sleep(0.5)
-            for i in range(10):
-                latitude_drone_array[i] = self.latitude
-                longitude_drone_array[i] = self.longitude
-                time.sleep(0.05)
-            self.latitude_drone = np.mean(latitude_drone_array)
-            self.longitude_drone = np.mean(longitude_drone_array)
-            # self.latitude_drone = self.latitude
-            # self.longitude_drone = self.longitude
-            rospy.logwarn(f"out_dock_flag:{self.latitude_drone} {self.longitude_drone}")
+        # if self.latitude != 0 and self.longitude != 0:
+        control = self.compose_control(0,0,self.current_yaw,0,1)
+        self.control_pub.publish(control)
+        time.sleep(0.1)
+        for i in range(10):
+            latitude_drone_array[i] = self.latitude
+            longitude_drone_array[i] = self.longitude
+            time.sleep(0.1)
+        self.latitude_drone = np.mean(latitude_drone_array)
+        self.longitude_drone = np.mean(longitude_drone_array)
+        # self.latitude_drone = self.latitude
+        # self.longitude_drone = self.longitude
+        rospy.logwarn(f"out_dock_flag:{self.latitude_drone} {self.longitude_drone}")
         self.count = 0
         
         # else:
