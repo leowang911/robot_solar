@@ -1620,9 +1620,10 @@ class ArucoDockingController:
         self.in_dock_flag = True
         self.docking_flag = False
 
-        if self.latitude_drone != 0 and self.longitude_drone != 0:
+        if self.latitude != 0 and self.longitude != 0:
             self.latitude_drone = self.latitude
             self.longitude_drone = self.longitude
+            rospy.logwarn(f"latitude_drone: {self.latitude_drone} longitude_drone: {self.longitude_drone}")
         self.count = 0
         
         # else:
@@ -1723,6 +1724,9 @@ class ArucoDockingController:
                     # if self.count == 0:
                     rospy.logwarn("UNLOADING")
                     if (self.process_unloading())==1:
+                        self.latitude_drone = self.latitude
+                        self.longitude_drone = self.longitude
+                        rospy.logwarn(f"latitude_drone: {self.latitude_drone} longitude_drone: {self.longitude_drone}")
                         self.state = "CORNER_FINDING"
                 
                 if self.state == "CORNER_FINDING":
