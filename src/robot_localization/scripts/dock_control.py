@@ -40,8 +40,8 @@ class ArucoDockingController:
         self.latitude = 30.32098151262
         self.longitude = 120.07004749195
         # self.latitude_drone =30.32098566702 
-        self.latitude_drone = 32.80058896814
-        self.longitude_drone =118.98396218793
+        self.latitude_drone = 32.7999839884
+        self.longitude_drone =118.98431610918
         # self.longitude_drone = 120.07102795217
         self.gps_yaw = 0.0
         self.yaw_drone = 0.0
