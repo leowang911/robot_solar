@@ -1626,14 +1626,14 @@ class ArucoDockingController:
                 return 0
             pass
         # if self.complete_state == 3:
-        self.out_dock_flag = True
-        self.in_dock_flag = True
-        self.docking_flag = False
+        # self.out_dock_flag = True
+        # self.in_dock_flag = True
+        # self.docking_flag = False
 
         # if self.latitude != 0 and self.longitude != 0:
-        control = self.compose_control(0,0,self.current_yaw,0,1)
-        self.control_pub.publish(control)
-        time.sleep(0.1)
+        # control = self.compose_control(0,0,self.current_yaw,0,1)
+        # self.control_pub.publish(control)
+        # time.sleep(0.1)
         for i in range(10):
             latitude_drone_array[i] = self.latitude
             longitude_drone_array[i] = self.longitude
@@ -1712,6 +1712,8 @@ class ArucoDockingController:
     # def compose_control(distance,roller_speed,yaw,target_yaw,robot_state):
 
     def control_loop(self, event):
+        latitude_drone_array = np.zeros(10)
+        longitude_drone_array = np.zeros(10)
         """主控制循环""" 
         
         control = controlData()
@@ -1743,6 +1745,15 @@ class ArucoDockingController:
                     # if self.count == 0:
                     rospy.logwarn("UNLOADING")
                     if (self.process_unloading())==1:
+                        for i in range(10):
+                            latitude_drone_array[i] = self.latitude
+                            longitude_drone_array[i] = self.longitude
+                            time.sleep(0.1)
+                        self.latitude_drone = np.mean(latitude_drone_array)
+                        self.longitude_drone = np.mean(longitude_drone_array)
+                        # self.latitude_drone = self.latitude
+                        # self.longitude_drone = self.longitude
+                        rospy.logwarn(f"out_dock_flag:{self.latitude_drone} {self.longitude_drone}")
                         self.state = "CORNER_FINDING"
                 
                 if self.state == "CORNER_FINDING":
