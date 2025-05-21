@@ -37,11 +37,11 @@ class ArucoDockingController:
         self.align_threshold = math.radians(1)  # 航向对准阈值
         self.current_yaw = 0 # 当前航向角
         self.target_yaw = 0# 目标航向角
-        self.latitude = 30.32098151262
-        self.longitude = 120.07004749195
+        self.latitude = 0.0
+        self.longitude = 0.0
         # self.latitude_drone =30.32098566702 
-        self.latitude_drone = 30.32098151262
-        self.longitude_drone =120.07004749195
+        self.latitude_drone = 0.0
+        self.longitude_drone =0.0
         # self.longitude_drone = 120.07102795217
         self.gps_yaw = 0.0
         self.yaw_drone = 0.0
