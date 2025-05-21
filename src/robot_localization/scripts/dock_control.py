@@ -1628,6 +1628,7 @@ class ArucoDockingController:
         self.docking_flag = False
 
         if self.latitude_drone != 0 and self.longitude_drone != 0:
+            time.sleep(0.5)
             self.latitude_drone = self.latitude
             self.longitude_drone = self.longitude
         self.count = 0
