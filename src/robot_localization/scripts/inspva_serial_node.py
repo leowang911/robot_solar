@@ -63,9 +63,9 @@ def parse_inspvae_enhanced(line):
         computed_checksum ^= ord(c)
     computed_checksum = f"{computed_checksum:02X}"
     
-    # if computed_checksum != received_checksum:
-    #     rospy.logwarn(f"校验失败：计算值={computed_checksum} 接收值={received_checksum}")
-        # return None
+    if computed_checksum != received_checksum:
+        rospy.logwarn(f"校验失败：计算值={computed_checksum} 接收值={received_checksum}")
+        return None
 
     # 动态字段解析
     parts = data_part.split(',')
@@ -120,8 +120,8 @@ def parse_inspvae_enhanced(line):
 def inspvae_serial_node():
     rospy.init_node('inspva_enhanced_node')
     
-    port = rospy.get_param('~port', '/dev/ttyUSB0')
-    baudrate = rospy.get_param('~baudrate', 115200)
+    port = rospy.get_param('~serial_port', '/dev/rtkSerial')
+    baudrate = rospy.get_param('~baudrate', 460800)
     
     pub = rospy.Publisher('inspva', INSPVA, queue_size=10)
     buffer = EnhancedDataBuffer()
