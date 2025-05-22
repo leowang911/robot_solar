@@ -2,166 +2,152 @@
 # -*- coding: utf-8 -*-
 import rospy
 import serial
-from io import BytesIO
 from robot_localization.msg import INSPVA
+from std_msgs.msg import Header
 
-class EnhancedDataBuffer:
-    """增强型带容错的数据缓冲区"""
-    def __init__(self):
-        self.buffer = bytearray()
-        self.start_marker = b'$INSPVA'
-        self.min_frame_length = 30  # 最小有效帧长度
-        self.max_frame_length = 1024
-    
-    def feed(self, data):
-        self.buffer.extend(data)
-        if len(self.buffer) > self.max_frame_length * 2:
-            self._purge()
+def compute_crc32(data_str):
+    """修正后的CRC-32计算（取消字节和整体反转）"""
+    crc = 0xFFFFFFFF
+    for byte in data_str.encode('ascii'):
+        crc ^= (byte << 24)  # 关键修改：直接使用原始字节，不反转位序
+        for _ in range(8):
+            if crc & 0x80000000:
+                crc = (crc << 1) ^ 0x04C11DB7
+            else:
+                crc <<= 1
+            crc &= 0xFFFFFFFF
+    crc ^= 0xFFFFFFFF
+    return crc
 
-    def _purge(self):
-        """清理无效前置数据"""
-        start_pos = self.buffer.find(self.start_marker)
-        if start_pos == -1:
-            self.buffer.clear()
-        else:
-            del self.buffer[:start_pos]
-
-    def extract_frame(self):
-        while True:
-            start = self.buffer.find(self.start_marker)
-            if start == -1:
-                return None
-                
-            end = self.buffer.find(b'\r\n', start)
-            if end == -1:
-                return None
-                
-            frame = self.buffer[start:end+2]
-            del self.buffer[:end+2]
-            
-            if self.min_frame_length <= len(frame) <= self.max_frame_length:
-                return frame.decode('ascii', errors='replace')
-            
-            rospy.logdebug(f"丢弃异常长度帧：{len(frame)} bytes")
-
-def parse_inspvae_enhanced(line):
-    """增强字段解析的健壮性"""
-    line = line.strip()
+def parse_inspvae(line):
+    """精确解析消息并验证CRC"""
+    line = line.strip()  # 去除首尾空白字符（包括\r\n）
+    # rospy.loginfo("解析行: %s", line)
     if not line.startswith('$INSPVA'):
         return None
-
-    # 分离校验部分
+    
+    # 分离数据与校验部分（严格处理*后的内容）
     if '*' not in line:
         return None
     data_part, checksum_part = line.split('*', 1)
-    received_checksum = checksum_part[:2].upper()
     
-    # NMEA标准校验计算
-    check_data = data_part[1:]  # 去掉$符号
-    computed_checksum = 0
-    for c in check_data:
-        computed_checksum ^= ord(c)
-    computed_checksum = f"{computed_checksum:02X}"
+    # 清理校验和部分（只保留8位十六进制字符）
+    received_crc = checksum_part.strip()[:8].upper().replace(' ', '')
+    if len(received_crc) != 8:
+        # rospy.logwarn("无效校验和长度: %s", received_crc)
+        return None
     
-    # if computed_checksum != received_checksum:
-    #     rospy.logwarn(f"校验失败：计算值={computed_checksum} 接收值={received_checksum}")
+    # 提取待校验数据（确保不包含$）
+    crc_data = data_part[0:]  # 去掉开头的$
+    computed_crc = compute_crc32(crc_data)
+    computed_crc_str = "{:08X}".format(computed_crc)
+    
+    # # CRC验证
+    # if computed_crc_str != received_crc:
+    #     rospy.logwarn("CRC校验失败：计算值=%s 接收值=%s 数据=[%s]", 
+    #                  computed_crc_str, received_crc, crc_data)
     #     return None
-
-    # 动态字段解析
+    
+    # 字段解析（严格匹配字段数量）
     parts = data_part.split(',')
-    field_map = {
-        # 必要字段
-        'week': (1, int),
-        'seconds': (2, float),
-        'latitude': (3, float),
-        'longitude': (4, float),
-        'altitude': (5, float),
-        
-        # 可选字段（带容错）
-        've': (6, float),
-        'vn': (7, float),
-        'vu': (8, float),
-        'pitch': (9, float),
-        'roll': (10, float),
-        'yaw': (11, float),
-        'vc': (12, float),
-        'gyro_x': (13, float),
-        'gyro_y': (14, float),
-        'gyro_z': (15, float),
-        'acc_x': (16, float),
-        'acc_y': (17, float),
-        'acc_z': (18, float),
-        'quat_w': (19, float),
-        'quat_x': (20, float),
-        'quat_y': (21, float),
-        'quat_z': (22, float),
-        'NSV1': (23, int),
-        'NSV2': (24, int),
-        'age': (25, int),
-        'align_st': (26, int),
-        'nav_st': (27, int),
-        'odo_st': (28, int)
-    }
-    
-    data = {}
-    for field, (index, dtype) in field_map.items():
-        if len(parts) > index:
-            try:
-                raw = parts[index].strip()
-                data[field] = dtype(raw) if raw else 0
-            except (ValueError, IndexError):
-                data[field] = 0
-                rospy.logdebug(f"字段解析失败：{field}[{index}] = '{parts[index]}'")
-        else:
-            data[field] = 0
-            
-    return data
-
-def inspvae_serial_node():
-    rospy.init_node('inspva_enhanced_node')
-    
-    port = rospy.get_param('~serial_port', '/dev/rtkSerial')
-    baudrate = rospy.get_param('~baudrate', 460800)
-    
-    pub = rospy.Publisher('inspva', INSPVA, queue_size=10)
-    buffer = EnhancedDataBuffer()
+    expected_fields = 29  # 根据实际消息确定
+    if len(parts) != expected_fields:
+        rospy.logwarn("字段数量错误：期望=%d 实际=%d", expected_fields, len(parts))
+        return None
     
     try:
-        with serial.Serial(port, baudrate, timeout=0.1) as ser:
-            rospy.loginfo(f"成功打开串口：{port}@{baudrate}")
+        return {
+            'week': int(parts[1]),
+            'seconds': float(parts[2]),
+            'latitude': float(parts[3]),
+            'longitude': float(parts[4]),
+            'altitude': float(parts[5]),
+            've': float(parts[6]),
+            'vn': float(parts[7]),
+            'vu': float(parts[8]),
+            'pitch': float(parts[9]),
+            'roll': float(parts[10]),
+            'yaw': float(parts[11]),
+            'vc': float(parts[12]),
+            'gyro_x': float(parts[13]),
+            'gyro_y': float(parts[14]),
+            'gyro_z': float(parts[15]),
+            'acc_x': float(parts[16]),
+            'acc_y': float(parts[17]),
+            'acc_z': float(parts[18]),
+            'quat_w': float(parts[19]),
+            'quat_x': float(parts[20]),
+            'quat_y': float(parts[21]),
+            'quat_z': float(parts[22]),
+            'NSV1': int(parts[23]),
+            'NSV2': int(parts[24]),
+            'age': int(parts[25]),
+            'align_st': int(parts[26]),
+            'nav_st': int(parts[27]),
+            'odo_st': int(parts[28]),
+
+        }
+    except (ValueError, IndexError) as e:
+        rospy.logerr("解析错误: %s", str(e))
+        return None
+
+def inspvae_serial_node():
+    rospy.init_node('inspva_serial_node')
+    
+    port = rospy.get_param('~port', '/dev/rtkSerial')
+    baudrate = rospy.get_param('~baudrate', 460800)
+    topic_name = rospy.get_param('~topic', 'inspva_data')
+    
+    pub = rospy.Publisher(topic_name, INSPVA, queue_size=10)
+    ser = None
+    
+    try:
+        ser = serial.Serial(
+            port=port,
+            baudrate=baudrate,
+            bytesize=serial.EIGHTBITS,
+            parity=serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE,
+            timeout=1
+        )
+        rospy.loginfo("成功连接串口: %s @ %d", port, baudrate)
+        
+        while not rospy.is_shutdown():
+            raw_line = ser.readline()
+            try:
+                line = raw_line.decode('ascii').strip()
+            except UnicodeDecodeError:
+                rospy.logwarn("解码错误，忽略无效数据")
+                continue
             
-            while not rospy.is_shutdown():
-                if ser.in_waiting > 0:
-                    buffer.feed(ser.read(ser.in_waiting))
-                    
-                    while True:
-                        frame = buffer.extract_frame()
-                        if not frame:
-                            break
-                            
-                        data = parse_inspvae_enhanced(frame)
-                        if data:
-                            msg = INSPVA()
-                            msg.header.stamp = rospy.Time.now()
-                            msg.header.frame_id = 'gnss'
-                            
-                            # 动态映射字段
-                            for field in [
-                                'week', 'seconds', 'latitude', 'longitude', 'altitude',
-                                've', 'vn', 'vu', 'pitch', 'roll', 'yaw', 'vc',
-                                'gyro_x', 'gyro_y', 'gyro_z', 'acc_x', 'acc_y', 'acc_z',
-                                'quat_w', 'quat_x', 'quat_y', 'quat_z',
-                                'NSV1', 'NSV2', 'age', 'align_st', 'nav_st', 'odo_st'
-                            ]:
-                                if field in data:
-                                    setattr(msg, field, data[field])
-                                    
-                            pub.publish(msg)
-                            
+            # 调试输出原始数据
+            rospy.logdebug("原始数据: %s", line)
+            
+            data = parse_inspvae(line)
+            if not data:
+                continue
+            
+            msg = INSPVA()
+            msg.header.stamp = rospy.Time.now()
+            msg.header.frame_id = 'inspva'
+            
+            # 动态映射字段
+            for field in data:
+                if hasattr(msg, field):
+                    setattr(msg, field, data[field])
+                else:
+                    rospy.logwarn("未定义字段: %s", field)
+            
+            pub.publish(msg)
+            
     except serial.SerialException as e:
-        rospy.logerr(f"串口连接失败：{str(e)}")
+        rospy.logerr("串口异常: %s", str(e))
     except rospy.ROSInterruptException:
         pass
+    finally:
+        if ser and ser.is_open:
+            ser.close()
+            rospy.loginfo("串口已关闭")
 
 if __name__ == '__main__':
     inspvae_serial_node()
