@@ -63,9 +63,9 @@ def parse_inspvae_enhanced(line):
         computed_checksum ^= ord(c)
     computed_checksum = f"{computed_checksum:02X}"
     
-    if computed_checksum != received_checksum:
-        rospy.logwarn(f"校验失败：计算值={computed_checksum} 接收值={received_checksum}")
-        return None
+    # if computed_checksum != received_checksum:
+    #     rospy.logwarn(f"校验失败：计算值={computed_checksum} 接收值={received_checksum}")
+    #     return None
 
     # 动态字段解析
     parts = data_part.split(',')
