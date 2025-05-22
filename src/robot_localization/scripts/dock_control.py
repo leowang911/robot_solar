@@ -1731,6 +1731,9 @@ class ArucoDockingController:
                 
                 if self.state == "CORNER_FINDING":
                     # if self.count == 0:
+                    self.latitude_drone = self.latitude
+                    self.longitude_drone = self.longitude
+                    rospy.logwarn(f"latitude_drone: {self.latitude_drone} longitude_drone: {self.longitude_drone}")
                     rospy.logwarn("CORNER_FINDING")
                     if(self.process_corner_finding())==1:
                         self.state = "AUTO_CLEANING"
