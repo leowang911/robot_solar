@@ -26,11 +26,11 @@ class ArucoDockingController:
         # 坐标系参数
         self.marker_spacing = rospy.get_param('~marker_spacing', 1.0)  # 左右标记间距（米）
         self.marker_side_spacing   = rospy.get_param('~marker_side_spacing', 0.78)  # 中间标记与侧标记间距（米）
-        self.stop_distance = rospy.get_param('~stop_distance', 0.8)  # 中间标记前停止距离
+        self.stop_distance = rospy.get_param('~stop_distance', 0.7)  # 中间标记前停止距离
         self.stop_distance_threshold = rospy.get_param('stop_distance_threshold', 0.1)  # 停止距离阈值
         self.angle_dir = rospy.get_param('~angle_dir', 1)  # 角度方向（1表示顺时针，-1表示逆时针）
         self.target_distance = 1 # 目标距离（米）
-        self.stop_refine_pose_dlt_y=0.03
+        self.stop_refine_pose_dlt_y=0.06
         self.align_threshold = math.radians(1)  # 航向对准阈值
         self.current_yaw = 0 # 当前航向角
         self.target_yaw = 0# 目标航向角
@@ -40,7 +40,6 @@ class ArucoDockingController:
         self.longitude = 120.07004748195  #test
 
         self.latitude_drone = 30.32098151262
-        # self.longitude_drone = -74.123339
         self.longitude_drone = 120.07004749195
         self.gps_yaw = 0.0
         self.yaw_drone = 0.0
@@ -75,6 +74,8 @@ class ArucoDockingController:
             'left': None, 
             'right': None,
             'center': None,
+            'leftside':None,
+            'rightside':None
         }
         # self.depth_dict={}
         self.markers_orientation = {}
@@ -89,6 +90,12 @@ class ArucoDockingController:
             'yaw': 0.0,
             'center': np.array([0.0, 0.0, 0.0]),
         }
+        self.side_target = {
+            'position': np.array([0.0, 0.0, 0.0]),
+            'yaw': 0.0,
+            'center': np.array([0.0, 0.0, 0.0]),
+        }
+
 
         self.control_seq = 0
         self.stop_flag = False
@@ -107,6 +114,8 @@ class ArucoDockingController:
         rospy.Subscriber("/camera/aruco_102/pose", PoseStamped, self.leftedge_cb)
         rospy.Subscriber("/camera/aruco_103/pose", PoseStamped, self.rightedge_cb)
         rospy.Subscriber("/camera/aruco_104/pose", PoseStamped, self.center_cb)
+        rospy.Subscriber("/camera/aruco_100/pose", PoseStamped, self.leftside_cb)
+        rospy.Subscriber("/camera/aruco_101/pose", PoseStamped, self.rightside_cb)
 
         
         # 发布器
@@ -180,6 +189,11 @@ class ArucoDockingController:
     def center_cb(self, msg):
         self.pose_callback(msg,"center")
 
+    def leftside_cb(self, msg):
+        self.pose_callback(msg,"leftside")
+
+    def rightside_cb(self, msg):
+        self.pose_callback(msg,"rightside")
 
     def update_state(self):
         """状态机更新（增加数据有效性检查）"""
@@ -188,6 +202,11 @@ class ArucoDockingController:
         valid_target = []
         left_right=[]
         current_target = {
+            'position': np.array([0.0, 0.0, 0.0]),
+            'yaw': 0.0,
+            'center': np.array([0.0, 0.0, 0.0]),
+        }
+        side_target = {
             'position': np.array([0.0, 0.0, 0.0]),
             'yaw': 0.0,
             'center': np.array([0.0, 0.0, 0.0]),
@@ -203,7 +222,7 @@ class ArucoDockingController:
                 valid_target.append(ct1)
  
         if self.markers['left'] is not None:
-            left_target = self.calculate_center_side_target('left')  
+            left_target = self.test_center_side_target('left')  
             if left_target is not None: 
                 valid_target.append(left_target)
                 left_right.append(left_target)
@@ -211,10 +230,20 @@ class ArucoDockingController:
 
         
         if self.markers['right'] is not None:
-            right_target = self.calculate_center_side_target('right')    
+            right_target = self.test_center_side_target('right')    
             if right_target is not None:    
                 valid_target.append(right_target)   
                 left_right.append(right_target)
+        
+        if self.markers['leftside'] is not None:
+            side_target = self.calculate_center_front_target('leftside')
+            if side_target is not None:
+                self.side_target = side_target
+
+        if self.markers['rightside'] is not None:
+            side_target = self.calculate_center_front_target('rightside')
+            if side_target is not None:
+                self.side_target = side_target
 
 
         if self.markers['left'] or self.markers['right'] or self.markers['center']:
@@ -287,13 +316,13 @@ class ArucoDockingController:
 
 #------------------------------------CALCULATION---------------------------------------------------------------------------------------------------
 
-    def test_side(self, side):
+    def test_center_side_target(self, side):
         pose = self.markers[side]
         orientiation = self.markers_orientation[side]
         pos = np.array([pose.x, pose.y, pose.z])
         rot = orientiation
         #计算转换到基坐标系下的旋转矩阵
-        R = tf.transformations.quaternion_matrix(rot.x, rot.y, rot.z, rot.w)[:3, :3]
+        R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
         # 计算中间位置 * sign
         sign = 1 if side == 'right' else -1
         offset = self.marker_side_spacing/2 *sign+0.03
@@ -307,7 +336,47 @@ class ArucoDockingController:
             'center': pos_center
         }
 
-    
+    def calculate_center_front_target(self, side):
+        pose = self.markers[side]
+        rot = self.markers_orientation[side]
+        pos = np.array([pose.x, pose.y, pose.z])
+        R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
+        sign = 1 if side == 'left' else -1
+        offset = self.marker_spacing/2
+        #沿着物体当前坐标系下进行变换(camera_link?)
+        self.pos_target = R @ np.array([-2.5*sign, 0, 0 ]) + pos
+        pos_center =  R @ np.array([0 , 0, -offset]) +pos
+
+        return {
+            'position': self.pos_target,
+            'yaw': self.get_marker_yaw(self.pos_target),
+            'center': pos_center
+        }
+    def get_side_center_angle(self, side_target):
+        #利用余弦定理计算∠(原点, 标记位置, 中心点)的角度
+        #       标记位置 (pos:side_target_pos)
+        #          *
+        #         /-\
+        #        /   \
+         # l1   /     \  l3
+        #      /       \
+        #     /         \
+        #    *-----------*
+        # 原点      中心点 (pos_center)
+        #          l2
+        l1 = np.linalg.norm(side_target['position'][:2])
+        l2 = np.linalg.norm(side_target['center'][:2])
+
+        l3 = np.linalg.norm(side_target['position'][:2]-side_target['center'][:2])
+        # cos_theta = (l1^2 + l3^2 - l2^2)/(2*l1*l3)   # ^---bitwise_xor
+        cos_theta = (l1**2 + l3**2 - l2**2)/(2*l1*l3)
+        theta = np.arccos(cos_theta)
+        #航向角 弧度
+        yaw = np.pi - theta
+        if self.markers['leftside'] is None:
+            yaw = -yaw
+        return yaw
+
     def calculate_center_side_target(self, side):
         """计算中间标记前的目标点（基于单侧标记）"""
         # pose_stamped=self.markers_orientation[side]
@@ -665,12 +734,16 @@ class ArucoDockingController:
         #axis=-axis
         if (prepoint[0]*axis[1]-prepoint[1]*axis[0])<0:
             theta2=-theta2
-        distance=-np.linalg.norm(prepoint)
+        if prepoint[0] < 0 :
+            distance=-np.linalg.norm(prepoint)
+            theta1 = math.atan2(-prepoint[1], -prepoint[0])
+        else:
+            distance=np.linalg.norm(prepoint)
+            theta1 = math.atan2(prepoint[1], prepoint[0])
         # theta1=math.atan(abs(prepoint[1]/prepoint[0]))
 
         # if prepoint[1]>0:
         #     theta1=-theta1
-        theta1 = math.atan2(-prepoint[1], -prepoint[0])
         return distance,theta1,theta2
 
     def direct_back(self):
@@ -796,7 +869,7 @@ class ArucoDockingController:
                     self.gps_calculation(self.latitude, self.longitude, self.latitude_drone, self.longitude_drone)
                     # 返回distance2drone、yaw2drone
                     
-                    if self.distance2drone > 1.0 and self.current_target is not None:
+                    if self.distance2drone > 1.0 and self.current_target is None:
                         # 通过GPS先行走到目标点前1m
                         control.distance = int(self.distance2drone*1000)
                         rospy.loginfo(f"distance: {control.distance}")
@@ -809,28 +882,86 @@ class ArucoDockingController:
                         control.robot_state = 2
                         self.control_pub.publish(control)
                         self.control_seq += 1
-
                     else:
-                        #不断执行搜索
-                        if self.markers['left'] or self.markers['right'] or self.markers['center'] :
-                            # self.state = "APPROACHING"
-                            self.state = "SEARCH"
-                            self.search_count=0
-                            # self.lock_current=True #不允许currentpose改为None，可以进行更新
-                            rospy.loginfo(f"self.lock_current: {self.lock_current}")
-                            current_pos = np.array([0, 0])  # 基坐标系原点
-                            # 计算当前状态,行走到目标点前1m
-                            target_vec = self.current_target['position'][:2] - current_pos
-                            rospy.loginfo(f'--------------target_vec -------------- {target_vec}')
-                            aruco_test = True
-                            self.refine_align = False
-                        else:
                             if self.search_count>0:
                                 self.search_count+=1
                             else:
                                 self.search_count=0
                                 self.search()
-                                rospy.loginfo(f"---------- Search ----------")
+                                # rospy.loginfo(f"---------- Search ----------")
+
+                    #不断执行搜索---先判断前方标记、再判断侧边标记，执行不同动作
+                    if (self.markers['center'] or self.markers['left'] or self.markers['right']) and self.current_target is not None:
+                        
+                        # self.state = "APPROACHING"
+                        self.state = "SEARCH"
+                        self.search_count = 0
+                        rospy.loginfo('-------------front marker test-------------')
+                        # self.lock_current=True #不允许currentpose改为None，可以进行更新
+                        # rospy.loginfo(f"self.lock_current: {self.lock_current}")
+                        current_pos = np.array([0, 0])  # 基坐标系原点
+                        # 计算当前状态,行走到目标点前1m
+                        target_vec = self.current_target['position'][:2] - current_pos
+                        rospy.loginfo(f'--------------target_vec -------------- {target_vec}')
+                        aruco_test = True
+                        self.refine_align = False  
+
+                    elif (self.markers['leftside'] or self.markers['rightside']) and \
+                        not (self.markers['center'] or self.markers['left'] or self.markers['right']):
+                        # if (self.markers['center'] or self.markers['left'] or self.markers['right']):
+                        #     pass
+                        self.state = "SEARCH"
+                        rospy.loginfo('-------------side marker test-------------')
+                        self.search_count=0
+                        # self.lock_current=True #不允许currentpose改为None，可以进行更新
+                        rospy.loginfo(f"self.lock_current: {self.lock_current}")
+                        current_pos = np.array([0, 0])  # 基坐标系原点
+                        # 计算当前状态,行走到目标点前1m
+                        target_vec = self.side_target['position'][:2] - current_pos
+
+                        #计算目标点运动控制
+                        rospy.loginfo(f'--------------target_vec -------------- {target_vec}')
+                        #发布控制由侧标记到目标点
+                        if target_vec[0] > 0:
+                            control.distance = round(np.linalg.norm(target_vec))
+                            rospy.loginfo(f'distance:{control.distance}')
+                            yaw=np.arctan2(target_vec[1],target_vec[0])
+                            control.target_yaw = self.yaw_to_target_yaw_angle(yaw,self.current_yaw)
+                            rospy.loginfo(f'目标点朝向角:{control.target_yaw}')
+                            control.header.stamp = rospy.Time.now()
+                            control.robot_state = 1
+                            self.control_pub.publish(control)
+                            rospy.sleep(0.05)
+                            control.robot_state = 2
+                            self.control_pub.publish(control)
+                            rospy.sleep(0.1)
+                            while self.complete_state != 2:
+                                if self.rc_control == 2:
+                                    break
+                                continue
+                            
+                            #发布对齐中心点朝向角运动控制
+                            control.distance = 0
+                            target_yaw = self.get_side_center_angle(self.side_target)
+                            control.target_yaw = self.yaw_to_target_yaw_angle(target_yaw,self.current_yaw)
+                            rospy.loginfo(f'对齐中心点target_yaw:{control.target_yaw}')
+                            control.header.stamp = rospy.Time.now()
+                            control.robot_state = 1
+                            self.control_pub.publish(control)
+                            rospy.sleep(0.05)
+                            control.robot_state = 2
+                            self.control_pub.publish(control)
+                            rospy.sleep(0.1)
+                            while self.complete_state != 2:
+                                if self.rc_control == 2:
+                                    break
+                                continue
+                            self.lock_current = False
+                            self.control_seq += 1 
+
+                            aruco_test = True
+                            self.refine_align = False
+                    
 
 
                         
@@ -843,7 +974,8 @@ class ArucoDockingController:
                         if np.linalg.norm(target_vec) >0.6:
                             # self.align_num=False
                             pass
-                        if np.linalg.norm(target_vec)> self.stop_distance_threshold and self.align_num==False:
+                        if np.linalg.norm(target_vec)> self.stop_distance_threshold and \
+                            self.align_num==False and self.current_target is not None:
                             rospy.loginfo(f"未到达目标位置: {self.current_target['position']},{self.get_marker_yaw(self.current_target['position'])}")
                             rospy.loginfo(f"complete_state: {self.complete_state}")
                             if target_vec[0]>0:

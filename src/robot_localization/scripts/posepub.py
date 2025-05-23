@@ -26,7 +26,7 @@ def create_pose(pose_type):
         orientation_z = 0.08636290509290838 + random.uniform(-0.1, 0.1)
         orientation_w = 0.3361425345354393 + random.uniform(-0.1, 0.1)
 
-    else: # left
+    elif pose_type == 'left': 
         position_x = 1.4325837662888886
         position_y = 0.047537752292013194
         position_z = 0.5283333659172058
@@ -35,14 +35,15 @@ def create_pose(pose_type):
         orientation_y = -0.025105682264710397 
         orientation_z = 0.08636290509290838 
         orientation_w = 0.3361425345354393
-        # position_x = 1.5325837662888886 - random.uniform(0, 0.2)
-        # position_y = 0.047537752292013194 - random.uniform(0, 0.1)
-        # position_z = 0.5283333659172058 + random.uniform(-0.1, 0.1)
+    else:
+        position_x = 1.5325837662888886 - random.uniform(0, 0.2)
+        position_y = 0.047537752292013194 - random.uniform(0, 0.1)
+        position_z = 0.5283333659172058 + random.uniform(-0.1, 0.1)
         
-        # orientation_x = -0.3173872545667158 + random.uniform(-0.1, 0.1)
-        # orientation_y = -0.5003836154187378 + random.uniform(-0.1, 0.1)
-        # orientation_z = 0.6295694207998966 + random.uniform(-0.1, 0.1)
-        # orientation_w = 0.5025175742725408 + random.uniform(-0.1, 0.1)
+        orientation_x = -0.3173872545667158 + random.uniform(-0.1, 0.1)
+        orientation_y = -0.5003836154187378 + random.uniform(-0.1, 0.1)
+        orientation_z = 0.6295694207998966 + random.uniform(-0.1, 0.1)
+        orientation_w = 0.5025175742725408 + random.uniform(-0.1, 0.1)
 
     pose = Pose()
     pose.position.x = position_x
@@ -61,6 +62,9 @@ def publish_pose():
     pub = rospy.Publisher('/camera/aruco_102/pose', PoseStamped, queue_size=10)
     pub_1 = rospy.Publisher('/camera/aruco_103/pose', PoseStamped, queue_size=10)
     pub_2 = rospy.Publisher('/camera/aruco_104/pose', PoseStamped, queue_size=10)
+    # side
+    pub_3 = rospy.Publisher('/camera/aruco_100/pose', PoseStamped, queue_size=10)
+    pub_4 = rospy.Publisher('/camera/aruco_101/pose', PoseStamped, queue_size=10)
 
     rate = rospy.Rate(1)  # 1 Hz
 
@@ -85,13 +89,26 @@ def publish_pose():
         pose_stamped_2.header = header
         pose_stamped_2.pose = pose_2
 
+        pose_3 = create_pose("leftside")
+        pose_stamped_3 = PoseStamped()
+        pose_stamped_3.header = header
+        pose_stamped_3.pose = pose_3
 
-        pub.publish(pose_stamped)
-        rospy.loginfo(f"Published Pose: {pose_stamped}")
+        pose_4 = create_pose("rightside")
+        pose_stamped_4 = PoseStamped()
+        pose_stamped_4.header = header
+        pose_stamped_4.pose = pose_4
+
+        # pub.publish(pose_stamped)
+        # rospy.loginfo(f"Published Pose: {pose_stamped}")
         # pub_1.publish(pose_stamped_1)
         # rospy.loginfo(f"Published Pose_1: {pose_stamped_1}")
         # pub_2.publish(pose_stamped_2)
         # rospy.loginfo(f"Published Pose_2: {pose_stamped_2}")
+        pub_3.publish(pose_stamped_3)
+        rospy.loginfo(f"Published Pose_3: {pose_stamped_3}")
+        # pub_4.publish(pose_stamped_4)
+        # rospy.loginfo(f"Published Pose_4: {pose_stamped_4}")
         # 休眠以保持发布频率    
         rate.sleep()
 
