@@ -1007,7 +1007,7 @@ class ArucoDockingController:
             theta2=-theta2
         
 
-        if prepoint[0]>0:
+        if prepoint[0]<0:
             distance=-np.linalg.norm(prepoint)
             # theta1=math.atan(abs(prepoint[1]/prepoint[0]))
 
