@@ -1005,12 +1005,22 @@ class ArucoDockingController:
         #axis=-axis
         if (prepoint[0]*axis[1]-prepoint[1]*axis[0])<0:
             theta2=-theta2
-        distance=-np.linalg.norm(prepoint)
-        # theta1=math.atan(abs(prepoint[1]/prepoint[0]))
+        
 
-        # if prepoint[1]>0:
-        #     theta1=-theta1
-        theta1 = math.atan2(-prepoint[1], -prepoint[0])
+        if prepoint[0]>0:
+            distance=-np.linalg.norm(prepoint)
+            # theta1=math.atan(abs(prepoint[1]/prepoint[0]))
+
+            # if prepoint[1]>0:
+            #     theta1=-theta1
+            theta1 = math.atan2(-prepoint[1], -prepoint[0])
+        else:
+            distance=np.linalg.norm(prepoint)
+            # theta1=math.atan(abs(prepoint[1]/prepoint[0]))
+
+            # if prepoint[1]>0:
+            #     theta1=-theta1
+            theta1 = math.atan2(prepoint[1], prepoint[0])
         return distance,theta1,theta2
 
     def direct_back(self):
@@ -1084,7 +1094,7 @@ class ArucoDockingController:
             loc=copy.deepcopy(self.current_target)
             target_list.append(loc)
             y_list.append(loc['center'][1])
-            time.sleep(0.1)
+            time.sleep(0.05)
         
         indexed = list(enumerate(y_list))
         sorted_with_indices = sorted(indexed, key=lambda x: x[1])
@@ -1416,9 +1426,9 @@ class ArucoDockingController:
                                 control.header.stamp = rospy.Time.now()
                                 self.control_pub.publish(control)
 
-                                time.sleep(0.5)
+                                time.sleep(0.1)
                                 control.robot_state = 1
-                                rospy.loginfo(f'************GOOD start final docking**************')
+                                rospy.logwarn(f'************GOOD start final docking**************')
                                 # rospy.loginfo(f)
                                 self.refine_align==False
                                 self.align_num==False
@@ -1724,9 +1734,9 @@ class ArucoDockingController:
                     # if self.count == 0:
                     rospy.logwarn("UNLOADING")
                     if (self.process_unloading())==1:
-                        self.latitude_drone = self.latitude
-                        self.longitude_drone = self.longitude
-                        rospy.logwarn(f"latitude_drone: {self.latitude_drone} longitude_drone: {self.longitude_drone}")
+                        # self.latitude_drone = self.latitude
+                        # self.longitude_drone = self.longitude
+                        # rospy.logwarn(f"latitude_drone: {self.latitude_drone} longitude_drone: {self.longitude_drone}")
                         self.state = "CORNER_FINDING"
                 
                 if self.state == "CORNER_FINDING":
