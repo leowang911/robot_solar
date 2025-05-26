@@ -86,7 +86,7 @@ class MQTTRobotBridge:
         self.init_ros()
         
         # 初始化MQTT客户端
-        self.mqtt_client = mqtt.Client(client_id="robot_bridge",
+        self.mqtt_client = mqtt.Client(client_id=f"{self.robot_id}",
                                         callback_api_version=mqtt.CallbackAPIVersion.VERSION2 )
         self.setup_mqtt()# 初始化ROS发布者和订阅者
         
