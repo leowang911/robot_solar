@@ -434,8 +434,8 @@ class ArucoDockingController:
     def calculate_center_side_target(self, side):
         """计算中间标记前的目标点（基于单侧标记）"""
         marker = self.markers[side]
-        pos = marker['position']
-        rot = marker['orientation']
+        pos = marker.position
+        rot = marker.orientation
         
         # pose_stamped=self.get_rot(self.markers[side],self.depth_dict[side])
         # if pose_stamped is None:
@@ -807,8 +807,8 @@ class ArucoDockingController:
 
     def calculate_midpoint(self):
         """计算左右标记中点"""
-        left = self.markers['left']['position']
-        right = self.markers['right']['position']
+        left = self.markers['left'].position
+        right = self.markers['right'].position
         mid_pos = (left + right) / 2
         return {
             'position': np.array([mid_pos[0] - self.target_distance, mid_pos[1], 0]),
@@ -819,8 +819,8 @@ class ArucoDockingController:
     def estimate_center(self, side):
         """估计中间位置（基于单侧标记）"""
         marker = self.markers[side]
-        pos = self.markers[side]['position']
-        rot = self.markers[side]['orientation']
+        pos = self.markers[side].position
+        rot = self.markers[side].orientation
 
         # pose_stamped=self.get_rot(self.markers[side],self.depth_dict[side])
         # if pose_stamped is None:
