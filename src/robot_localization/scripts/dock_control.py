@@ -452,12 +452,20 @@ class ArucoDockingController:
         self.pos_target = R@np.array([-offset, 0,self.stop_distance]) + pos
         pos_center = R@np.array([-offset,0, 0]) + pos
 
+
+        
+
+
         point_target = PointStamped()
+        point_target.header.frame_id = "base_link"
+        point_target.header.stamp = rospy.Time.now()
         point_target.point.x = self.pos_target[0]
         point_target.point.y = self.pos_target[1]
         point_target.point.z = self.pos_target[2]
         
         point_center = PointStamped()
+        point_center.header.frame_id = "base_link"
+        point_center.header.stamp = rospy.Time.now()
         point_center.point.x = pos_center[0]
         point_center.point.y = pos_center[1]
         point_center.point.z = pos_center[2]
