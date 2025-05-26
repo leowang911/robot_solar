@@ -141,10 +141,10 @@ class ArucoDockingController:
         self.pose1_pub = rospy.Publisher("/marker_pose1", PoseStamped, queue_size=1)
         self.pose2_pub = rospy.Publisher("/marker_pose2", PoseStamped, queue_size=1)
         self.pose3_pub = rospy.Publisher("/marker_pose3", PoseStamped, queue_size=1)
-        self.pose_target1_pub = rospy.Publisher("/target_point1", Point, queue_size=1)
-        self.pose_target2_pub = rospy.Publisher("/target_point2", Point, queue_size=1)
-        self.pose_center1_pub = rospy.Publisher("/center1", Point, queue_size=1)
-        self.pose_center2_pub = rospy.Publisher("/center2", Point, queue_size=1)
+        self.pose_target1_pub = rospy.Publisher("/target_point1", PointStamped, queue_size=1)
+        self.pose_target2_pub = rospy.Publisher("/target_point2", PointStamped, queue_size=1)
+        self.pose_center1_pub = rospy.Publisher("/center1", PointStamped, queue_size=1)
+        self.pose_center2_pub = rospy.Publisher("/center2", PointStamped, queue_size=1)
         # self.status_pub = rospy.Publisher("/robot_status", Int16, queue_size=1)
 
         #rospy.Timer(rospy.Duration(0.01), self.control_loop)
@@ -452,12 +452,12 @@ class ArucoDockingController:
         self.pos_target = R@np.array([-offset, 0,self.stop_distance]) + pos
         pos_center = R@np.array([-offset,0, 0]) + pos
 
-        point_target = Point()
+        point_target = PointStamped()
         point_target.x = self.pos_target[0]
         point_target.y = self.pos_target[1]
         point_target.z = self.pos_target[2]
         
-        point_center = Point()
+        point_center = PointStamped()
         point_center.x = pos_center[0]
         point_center.y = pos_center[1]
         point_center.z = pos_center[2]
