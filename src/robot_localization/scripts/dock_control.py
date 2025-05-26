@@ -125,11 +125,11 @@ class ArucoDockingController:
         rospy.Subscriber("/inspva_data", INSPVA, self.inspva_cb)
         rospy.Subscriber("/base_status", baseStatus, self.base_cb)
         rospy.Subscriber("/gps/raw", GPSData, self.drone_gps_cb)
-        rospy.Subscriber("/camera/aruco_100/pixel", PointStamped, self.left_cb)
-        rospy.Subscriber("/camera/aruco_101/pixel", PointStamped, self.right_cb)
-        rospy.Subscriber("/camera/aruco_102/pixel", PointStamped, self.center_cb)
-        rospy.Subscriber("/camera/aruco_103/pixel", PointStamped, self.center_left_cb)
-        rospy.Subscriber("/camera/aruco_104/pixel", PointStamped, self.center_right_cb)
+        rospy.Subscriber("/camera/aruco_100/pixel", PoseStamped, self.left_cb)
+        rospy.Subscriber("/camera/aruco_101/pixel", PoseStamped, self.right_cb)
+        rospy.Subscriber("/camera/aruco_102/pixel", PoseStamped, self.center_cb)
+        rospy.Subscriber("/camera/aruco_103/pixel", PoseStamped, self.center_left_cb)
+        rospy.Subscriber("/camera/aruco_104/pixel", PoseStamped, self.center_right_cb)
         rospy.Subscriber("/camera/depth/image_raw", Image, self.depth_cb)
         rospy.Subscriber("/mqtt_received",String, self.mqtt_cb)
         
@@ -255,10 +255,10 @@ class ArucoDockingController:
         """处理ArUco检测数据（增加时间戳）"""
         # base_data = self.transform_to_base(msg)
         # if base_data:
-        self.markers[marker_type] = msg.point
+        self.markers[marker_type] = msg.pose
         self.marker_time[marker_type] = msg.header.stamp # 记录时间戳
         # self.markers_pixel[marker_type] = msg.pose.pixel
-        self.depth_dict[marker_type] =copy.deepcopy(self.depth_image)
+        # self.depth_dict[marker_type] =copy.deepcopy(self.depth_image)
         # 记录更新时间
         self.update_state()
         # self.check_data_expiry()
@@ -434,27 +434,23 @@ class ArucoDockingController:
     def calculate_center_side_target(self, side):
         """计算中间标记前的目标点（基于单侧标记）"""
         marker = self.markers[side]
-        # pos = marker['position']
-        # rot = marker['orientation']
+        pos = marker['position']
+        rot = marker['orientation']
         
-        pose_stamped=self.get_rot(self.markers[side],self.depth_dict[side])
-        if pose_stamped is None:
-            return None
-        pose = pose_stamped.pose
+        # pose_stamped=self.get_rot(self.markers[side],self.depth_dict[side])
+        # if pose_stamped is None:
+        #     return None
+        # pose = pose_stamped.pose
         
             
-        pos=np.array([pose.position.x,pose.position.y,pose.position.z])
-        rot=pose.orientation
+        # pos=np.array([pose.position.x,pose.position.y,pose.position.z])
+        # rot=pose.orientation
         R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
         sign = 1 if side == 'center_right' else -1
         # 计算中间位置 * sign
         offset = self.marker_side_spacing/2 *sign+self.offset
         self.pos_target = R@np.array([-offset, 0,self.stop_distance]) + pos
         pos_center = R@np.array([-offset,0, 0]) + pos
-
-
-        
-
 
         point_target = PointStamped()
         point_target.header.frame_id = "base_link"
@@ -472,11 +468,11 @@ class ArucoDockingController:
         
 
         if side == 'center_left':
-            self.pose2_pub.publish(pose_stamped)
+            # self.pose2_pub.publish(pose_stamped)
             self.pose_target1_pub.publish(point_target)
             self.pose_center1_pub.publish(point_center)
         else:
-            self.pose3_pub.publish(pose_stamped)
+            # self.pose3_pub.publish(pose_stamped)
             self.pose_target2_pub.publish(point_target)
             self.pose_center2_pub.publish(point_center)
 
@@ -823,16 +819,16 @@ class ArucoDockingController:
     def estimate_center(self, side):
         """估计中间位置（基于单侧标记）"""
         marker = self.markers[side]
-        # pos = self.markers[side]['position']
-        # rot = self.markers[side]['orientation']
+        pos = self.markers[side]['position']
+        rot = self.markers[side]['orientation']
 
-        pose_stamped=self.get_rot(self.markers[side],self.depth_dict[side])
-        if pose_stamped is None:
-            return None
-        pose = pose_stamped.pose
+        # pose_stamped=self.get_rot(self.markers[side],self.depth_dict[side])
+        # if pose_stamped is None:
+        #     return None
+        # pose = pose_stamped.pose
         
-        pos=np.array([pose.position.x,pose.position.y,pose.position.z])
-        rot=pose.orientation
+        # pos=np.array([pose.position.x,pose.position.y,pose.position.z])
+        # rot=pose.orientation
         # pose=self.get_rot(self.markers[side],self.depth_dict[side])
         # pos=np.array([pose.position.x,pose.position.y,pose.position.z])
         # rot=pose.orientation
