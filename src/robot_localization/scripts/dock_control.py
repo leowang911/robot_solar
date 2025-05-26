@@ -449,8 +449,8 @@ class ArucoDockingController:
         sign = 1 if side == 'center_right' else -1
         # 计算中间位置 * sign
         offset = self.marker_side_spacing/2 *sign+self.offset
-        self.pos_target = R@np.array([-offset, 0,self.stop_distance]) + pos
-        pos_center = R@np.array([-offset,0, 0]) + pos
+        self.pos_target = R@np.array([-offset, 0,self.stop_distance]) + [pos.x, pos.y, pos.z]
+        pos_center = R@np.array([-offset,0, 0]) + [pos.x, pos.y, pos.z]
 
         point_target = PointStamped()
         point_target.header.frame_id = "base_link"
@@ -837,8 +837,8 @@ class ArucoDockingController:
         sign = 1 if side == 'right' else -1
         # 计算中间位置 * sign
         offset = -self.marker_spacing/2
-        self.pos_target = R@[-sign*2.5,0, 0.2] + pos
-        pos_center = R@[0,0, offset] + pos
+        self.pos_target = R@[-sign*2.5,0, 0.2] + [pos.x, pos.y, pos.z]
+        pos_center = R@[0,0, offset] + [pos.x, pos.y, pos.z]
         return {
             'position': self.pos_target,
             'yaw': self.get_marker_yaw(self.pos_target),
