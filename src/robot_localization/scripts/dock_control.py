@@ -453,14 +453,14 @@ class ArucoDockingController:
         pos_center = R@np.array([-offset,0, 0]) + pos
 
         point_target = PointStamped()
-        point_target.x = self.pos_target[0]
-        point_target.y = self.pos_target[1]
-        point_target.z = self.pos_target[2]
+        point_target.point.x = self.pos_target[0]
+        point_target.point.y = self.pos_target[1]
+        point_target.point.z = self.pos_target[2]
         
         point_center = PointStamped()
-        point_center.x = pos_center[0]
-        point_center.y = pos_center[1]
-        point_center.z = pos_center[2]
+        point_center.point.x = pos_center[0]
+        point_center.point.y = pos_center[1]
+        point_center.point.z = pos_center[2]
         
 
         if side == 'center_left':
