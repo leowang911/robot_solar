@@ -10,7 +10,7 @@ import tf.transformations
 from std_srvs.srv import Trigger, TriggerResponse
 from geographic_msgs.msg import GeoPoint
 from geodesy import utm
-from geometry_msgs.msg import PoseStamped, Twist, PoseArray,PointStamped,Quaternion
+from geometry_msgs.msg import PoseStamped, Twist, PoseArray,PointStamped,Quaternion,Point
 from robot_control.msg import controlData 
 from robot_localization.msg import INSPVAE,INSPVA,baseStatus, GPSData
 from std_msgs.msg import Int16, Int32,Header,String
@@ -141,6 +141,10 @@ class ArucoDockingController:
         self.pose1_pub = rospy.Publisher("/marker_pose1", PoseStamped, queue_size=1)
         self.pose2_pub = rospy.Publisher("/marker_pose2", PoseStamped, queue_size=1)
         self.pose3_pub = rospy.Publisher("/marker_pose3", PoseStamped, queue_size=1)
+        self.pose_target1_pub = rospy.Publisher("/target_point1", Point, queue_size=1)
+        self.pose_target2_pub = rospy.Publisher("/target_point2", Point, queue_size=1)
+        self.pose_center1_pub = rospy.Publisher("/center1", Point, queue_size=1)
+        self.pose_center2_pub = rospy.Publisher("/center2", Point, queue_size=1)
         # self.status_pub = rospy.Publisher("/robot_status", Int16, queue_size=1)
 
         #rospy.Timer(rospy.Duration(0.01), self.control_loop)
@@ -437,10 +441,7 @@ class ArucoDockingController:
         if pose_stamped is None:
             return None
         pose = pose_stamped.pose
-        if side == 'center_left':
-            self.pose2_pub.publish(pose_stamped)
-        else:
-            self.pose3_pub.publish(pose_stamped)
+        
             
         pos=np.array([pose.position.x,pose.position.y,pose.position.z])
         rot=pose.orientation
@@ -450,6 +451,27 @@ class ArucoDockingController:
         offset = self.marker_side_spacing/2 *sign+self.offset
         self.pos_target = R@np.array([-offset, 0,self.stop_distance]) + pos
         pos_center = R@np.array([-offset,0, 0]) + pos
+
+        point_target = Point()
+        point_target.x = self.pos_target[0]
+        point_target.y = self.pos_target[1]
+        point_target.z = self.pos_target[2]
+        
+        point_center = Point()
+        point_center.x = pos_center[0]
+        point_center.y = pos_center[1]
+        point_center.z = pos_center[2]
+        
+
+        if side == 'center_left':
+            self.pose2_pub.publish(pose_stamped)
+            self.pose_target1_pub.publish(point_target)
+            self.pose_center1_pub.publish(point_center)
+        else:
+            self.pose3_pub.publish(pose_stamped)
+            self.pose_target2_pub.publish(point_target)
+            self.pose_center2_pub.publish(point_center)
+
         # rospy.loginfo(f"pos: {pos}")
         # rospy.loginfo(f"self.pos_target : {self.pos_target }")
 
