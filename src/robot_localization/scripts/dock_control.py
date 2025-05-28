@@ -130,6 +130,12 @@ class ArucoDockingController:
         rospy.Subscriber("/camera/aruco_102/pose", PoseStamped, self.center_cb)
         rospy.Subscriber("/camera/aruco_103/pose", PoseStamped, self.center_left_cb)
         rospy.Subscriber("/camera/aruco_104/pose", PoseStamped, self.center_right_cb)
+        rospy.Subscriber("/camera/aruco_123/pose", PoseStamped, self.center_left1_cb)
+        rospy.Subscriber("/camera/aruco_124/pose", PoseStamped, self.center_left2_cb)
+        rospy.Subscriber("/camera/aruco_125/pose", PoseStamped, self.center_right1_cb)
+        rospy.Subscriber("/camera/aruco_126/pose", PoseStamped, self.center_right2_cb)
+        rospy.Subscriber("/camera/aruco_121/pose", PoseStamped, self.left_mini_cb)
+        rospy.Subscriber("/camera/aruco_122/pose", PoseStamped, self.right_mini_cb)
         rospy.Subscriber("/camera/depth/image_raw", Image, self.depth_cb)
         rospy.Subscriber("/mqtt_received",String, self.mqtt_cb)
         
@@ -251,6 +257,14 @@ class ArucoDockingController:
 
     def center_right_cb(self, msg): self.process_marker(msg, 'center_right')
 
+    def center_left1_cb(self, msg): self.process_marker(msg, 'center_left1')
+
+    def center_left2_cb(self, msg): self.process_marker(msg, 'center_left2')
+
+    def center_right1_cb(self, msg): self.process_marker(msg, 'center_right1')
+
+    def center_right2_cb(self, msg): self.process_marker(msg, 'center_right2')
+
     def process_marker(self, msg, marker_type):
         """处理ArUco检测数据（增加时间戳）"""
         # base_data = self.transform_to_base(msg)
@@ -331,21 +345,24 @@ class ArucoDockingController:
                 self.markers['right'] = None
                 self.side_target = side_target
 
-        if self.markers['center_left'] is not None:
-            left_target = self.calculate_center_side_target('center_left')  
-            if left_target is not None: 
-                valid_target.append(left_target)
-                left_right.append(left_target)
-            # rospy.loginfo(f"left: {valid_target}")
+        for marker_type in ['center_left', 'center_left1','center_left2']:
+            if self.markers[marker_type] is not None:
+                # rospy.loginfo(f"marker_type: {marker_type}")
+                left_target = self.calculate_center_side_target(marker_type)  
+                if left_target is not None: 
+                    valid_target.append(left_target)
+                    left_right.append(left_target)
+                # rospy.loginfo(f"left: {valid_target}")
 
-        
-        if self.markers['center_right'] is not None:
-            right_target = self.calculate_center_side_target('center_right')    
-            if right_target is not None:    
-                valid_target.append(right_target)   
-                left_right.append(right_target)
-            #valid_target.append(self.calculate_center_side_target('center_right'))
-            # rospy.loginfo(f"right: {valid_target}")
+        for marker_type in ['center_right', 'center_right1','center_right2']:
+            if self.markers[marker_type] is not None:
+                # rospy.loginfo(f"marker_type: {marker_type}")
+                right_target = self.calculate_center_side_target(marker_type)  
+                if right_target is not None: 
+                    valid_target.append(right_target)
+                    left_right.append(right_target)
+                # rospy.loginfo(f"right: {valid_target}")
+
 
         # for marker_type in ['left', 'right', 'center', 'center_left', 'center_right']:
         #     rospy.loginfo(f"{marker_type} marker_time: {self.marker_time[marker_type]}")
@@ -419,7 +436,7 @@ class ArucoDockingController:
     def check_data_expiry(self):
         """清除过期数据"""
         current_time = rospy.Time.now()
-        for marker_type in ['left', 'right', 'center', 'center_left', 'center_right']:
+        for marker_type in ['left', 'right', 'center', 'center_left', 'center_right', 'center_left1', 'center_left2', 'center_right1', 'center_right2']:
             # rospy.loginfo(f"{marker_type} current_time: {current_time} marker_time: {self.marker_time[marker_type]}")
                 
             if self.marker_time[marker_type] and \
@@ -436,6 +453,16 @@ class ArucoDockingController:
         marker = self.markers[side]
         pos = marker.position
         rot = marker.orientation
+        side_mini = 0
+
+        if side == 'center_left' or side == 'center_left1' or side == 'center_left2':
+            marker_side = 'left'
+            if side != 'center_left':
+                side_mini == 1
+        elif side == 'center_right' or side == 'center_right1' or side == 'center_right2':
+            marker_side = 'right'
+            if side != 'center_right':
+                side_mini == 1
         
         # pose_stamped=self.get_rot(self.markers[side],self.depth_dict[side])
         # if pose_stamped is None:
@@ -446,9 +473,9 @@ class ArucoDockingController:
         # pos=np.array([pose.position.x,pose.position.y,pose.position.z])
         # rot=pose.orientation
         R = tf.transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])[:3, :3]
-        sign = 1 if side == 'center_right' else -1
+        sign = 1 if marker_side == 'right' else -1
         # 计算中间位置 * sign
-        offset = self.marker_side_spacing/2 *sign+self.offset
+        offset = self.marker_side_spacing/2 *sign+self.offset-side_mini*sign*0.095
         self.pos_target = R@np.array([-offset, 0,self.stop_distance]) + [pos.x, pos.y, pos.z]
         pos_center = R@np.array([-offset,0, 0]) + [pos.x, pos.y, pos.z]
 
@@ -839,6 +866,10 @@ class ArucoDockingController:
         offset = -self.marker_spacing/2
         self.pos_target = R@[-sign*2,0, 0.2] + [pos.x, pos.y, pos.z]
         pos_center = R@[0,0, offset] + [pos.x, pos.y, pos.z]
+
+        
+
+
         return {
             'position': self.pos_target,
             'yaw': self.get_marker_yaw(self.pos_target),
@@ -1193,7 +1224,6 @@ class ArucoDockingController:
                 control.robot_state = 2 
                 time.sleep(0.05)
             self.control_pub.publish(control)
-        
             self.control_seq += 1
 
 
@@ -1246,8 +1276,6 @@ class ArucoDockingController:
                     self.control_pub.publish(control)
                     self.control_seq += 1
                     time.sleep(0.5)
-                    
-
                     return 0
                 
                 control.distance = int(self.target_distance*1000)
@@ -1689,8 +1717,7 @@ class ArucoDockingController:
             return 1
         else:
             self.error = 1
-        
-    
+            
     def process_cleaning(self):
         control = self.compose_control(0,0,self.current_yaw,0,1)
         self.control_pub.publish(control)
