@@ -99,16 +99,16 @@ def publish_pose():
         pose_stamped_4.header = header
         pose_stamped_4.pose = pose_4
 
-        # pub.publish(pose_stamped)
-        # rospy.loginfo(f"Published Pose: {pose_stamped}")
-        # pub_1.publish(pose_stamped_1)
-        # rospy.loginfo(f"Published Pose_1: {pose_stamped_1}")
-        # pub_2.publish(pose_stamped_2)
-        # rospy.loginfo(f"Published Pose_2: {pose_stamped_2}")
+        pub.publish(pose_stamped)
+        rospy.loginfo(f"Published Pose: {pose_stamped}")
+        pub_1.publish(pose_stamped_1)
+        rospy.loginfo(f"Published Pose_1: {pose_stamped_1}")
+        pub_2.publish(pose_stamped_2)
+        rospy.loginfo(f"Published Pose_2: {pose_stamped_2}")
         pub_3.publish(pose_stamped_3)
         rospy.loginfo(f"Published Pose_3: {pose_stamped_3}")
-        # pub_4.publish(pose_stamped_4)
-        # rospy.loginfo(f"Published Pose_4: {pose_stamped_4}")
+        pub_4.publish(pose_stamped_4)
+        rospy.loginfo(f"Published Pose_4: {pose_stamped_4}")
         # 休眠以保持发布频率    
         rate.sleep()
 

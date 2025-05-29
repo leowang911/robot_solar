@@ -10,26 +10,27 @@ from geometry_msgs.msg import Twist
 from robot_localization.msg import INSPVAE,INSPVA, baseStatus, GPSData
 from robot_control.msg import controlData  # 根据实际包名调整
 import uuid
+import time
 class MQTTRobotBridge:
     def __init__(self):
         rospy.init_node('mqtt_robot_bridge', anonymous=True)
         
         # 初始化MQTT参数
-        self.mqtt_broker = rospy.get_param('~mqtt_broker', '106.12.23.8')
-        self.mqtt_port = rospy.get_param('~mqtt_port', 13234)
-        # self.mqtt_broker = rospy.get_param('~mqtt_broker', 'broker.emqx.io')
-        # self.mqtt_port = rospy.get_param('~mqtt_port', 1883)
-        self.mqtt_user = rospy.get_param('~mqtt_user', "jifeng")
-        self.mqtt_password = rospy.get_param('~mqtt_password', "8dY9hE5FVF2GEIi")
+        # self.mqtt_broker = rospy.get_param('~mqtt_broker', '106.12.23.8')
+        # self.mqtt_port = rospy.get_param('~mqtt_port', 13234)
+        self.mqtt_broker = rospy.get_param('~mqtt_broker', 'broker.emqx.io')
+        self.mqtt_port = rospy.get_param('~mqtt_port', 1883)
+        self.mqtt_user = rospy.get_param('~mqtt_user', 'gifeng')
+        self.mqtt_password = rospy.get_param('~mqtt_password', '8dY9hE5FVF2GEIi')
         # self.mqtt_user = rospy.get_param('~mqtt_user', '123')
         # self.mqtt_password = rospy.get_param('~mqtt_password', '123')
         self.robot_id = rospy.get_param('~robot_id', 'GFSTJM120250201')
         self.pub_topic = rospy.get_param('~pub_topic', f'robot/{self.robot_id}/status')
         self.sub_topic = rospy.get_param('~sub_topic', 'robot/commands')
         self.uuid = str(uuid.uuid4())  # 生成唯一ID
-        self.high_8_error_code = 0b00000000  # 高8位错误码初始化为0
+        self.mqtt_connected = False
         self.low_8 = 0b00000000  # 低8位错误码初始化为0
-        # self.error_code_binary = 0b0000000000000000  # 二进制错误码初始化为0
+        
         
         # 存储机器人状态数据
         self.robot_data = {
@@ -85,21 +86,11 @@ class MQTTRobotBridge:
         self.init_ros()
         
         # 初始化MQTT客户端
-        self.mqtt_client = mqtt.Client(client_id="robot_bridge",
+        self.mqtt_client = mqtt.Client(client_id=f"{self.robot_id}",
                                         callback_api_version=mqtt.CallbackAPIVersion.VERSION2 )
         self.setup_mqtt()# 初始化ROS发布者和订阅者
         
-
-    def handle_error(self, error_message, error_code_binary):
-        """处理错误日志并更新错误码"""
-        # 将二进制错误码转换为十进制
-        print(f"Binary Error Code: {error_code_binary}")
-        error_code_decimal = int(error_code_binary, 2)
-        # rospy.logerr(f"{error_message} (Error Code: {error_code_decimal})")
-        self.high_8_bits_value |= error_code_binary
         
-        # 更新 robot_data 的错误码
-        self.robot_data["error"] = (self.high_8_bits_value << 8) | self.low_8
 
     def init_ros(self):
         """初始化ROS组件"""
@@ -115,6 +106,17 @@ class MQTTRobotBridge:
         # 发布者（用于接收的MQTT消息）
         self.cmd_pub = rospy.Publisher('/mqtt_received', String, queue_size=10)
 
+    def handle_error(self, error_message, error_code_binary):
+        """处理错误日志并更新错误码"""
+        # 将二进制错误码转换为十进制
+        print(f"Binary Error Code: {error_code_binary}")
+        # error_code_decimal = int(error_code_binary, 2)
+        # rospy.logerr(f"{error_message} (Error Code: {error_code_decimal})")
+        self.high_8_bits_value |= error_code_binary
+        
+        # 更新 robot_data 的错误码
+        self.robot_data["error"] = (self.high_8_bits_value << 8) | self.low_8
+
     def setup_mqtt(self):
         """配置MQTT连接和回调"""
         self.mqtt_client.on_connect = self.on_mqtt_connect
@@ -124,14 +126,18 @@ class MQTTRobotBridge:
         if self.mqtt_user is not None and self.mqtt_password is not None:
             self.mqtt_client.username_pw_set(self.mqtt_user, self.mqtt_password)
         
-        try:
-            self.mqtt_client.connect(self.mqtt_broker, self.mqtt_port, 60)
-            self.mqtt_client.loop_start()
-            rospy.loginfo(f"Connected to MQTT broker at {self.mqtt_broker}:{self.mqtt_port}")
-        except Exception as e:
-            # rospy.logerr(f"Initial MQTT connection failed: {str(e)}")
-            self.handle_error(f"Initial MQTT connection failed: {str(e)}", "01000000")  # 示例错误码
-            rospy.signal_shutdown("MQTT connection error")
+        while not self.mqtt_connected:
+            try:
+                self.mqtt_client.connect(self.mqtt_broker, self.mqtt_port, 60)
+                self.mqtt_client.loop_start()
+                rospy.loginfo(f"Connected to MQTT broker at {self.mqtt_broker}:{self.mqtt_port}")
+                self.mqtt_connected = True
+            except Exception as e:
+                # rospy.logerr(f"Initial MQTT connection failed: {str(e)}, retrying...")
+                self.handle_error(f"Initial MQTT connection failed: {str(e)}, retrying...", "01000000")  
+
+                time.sleep(5)  # 等待5秒后重试连接
+            # rospy.signal_shutdown("MQTT connection error")
 
     # MQTT回调函数
     def on_mqtt_connect(self, client, userdata, flags, rc,properties=None):
@@ -140,11 +146,13 @@ class MQTTRobotBridge:
             client.subscribe(self.sub_topic)
         else:
             # rospy.logerr(f"MQTT connection failed with code {rc}")
-            self.handle_error(f"MQTT connection failed with {rc}", "00100000")  # 示例错误码
+            self.handle_error(f"MQTT connection failed with {rc}", "00100000")  
+
 
 
     def on_mqtt_disconnect(self, client, userdata, disconnect_flags, rc, properties=None):
         rospy.logwarn(f"MQTT disconnected (rc={rc}), attempting reconnect...")
+        self.mqtt_connected = False
         self.setup_mqtt()
 
     def control_callback(self, msg):
@@ -228,7 +236,9 @@ class MQTTRobotBridge:
             rospy.logdebug("Published to MQTT: %s", payload)
         except Exception as e:
             # rospy.logerr(f"MQTT publish error: {str(e)}")
-            self.handle_error(f"MQTT publish error: {str(e)}", "00010000")  # 示例错误码
+            self.handle_error(f"MQTT publish error: {str(e)}", "00010000")  
+
+
 
     def run(self):
         rate = rospy.Rate(1/5)  # 发布频率5s一次
@@ -278,17 +288,27 @@ class MQTTRobotBridge:
                 self._handle_system_command(command)
             elif cmd_type == "route":
                 self._handle_route_command(command)
+            elif cmd_type == "newID":
+                self._handle_newID_command(command)
             else:
                 rospy.logwarn(f"Unknown command type: {cmd_type}")
 
         except json.JSONDecodeError:
             # rospy.logerr("Failed to parse JSON command")
-            self.handle_error("Failed to parse JSON command", "00001000")  # 示例错误码
+            self.handle_error("Failed to parse JSON command", "00001000")  
+
         except KeyError as e:
             rospy.logwarn(f"Missing required field in command: {str(e)}")
         except Exception as e:
             # rospy.logerr(f"Error processing command: {str(e)}")
-            self.handle_error(f"Error processing command: {str(e)}", "00000100")  # 示例错误码
+            self.handle_error(f"Error processing command: {str(e)}", "00000100")  
+
+    
+    def _handle_newID_command(self, command):
+        """处理新的ID命令"""
+        self.uuid = str(uuid.uuid4())
+        self.robot_data["uuid"] = self.uuid
+
 
     def _handle_control_command(self, command):
         """处理速度控制命令"""
@@ -375,7 +395,8 @@ class MQTTRobotBridge:
                 rospy.loginfo(f"Emergency stop response: {response.message}")
             except rospy.ServiceException as e:
                 # rospy.logerr(f"Service call failed: {str(e)}")
-                self.handle_error(f"Service call failed: {str(e)}", "00000010")  # 示例错误码
+                self.handle_error(f"Service call failed: {str(e)}", "00000010")  
+
         
         elif action == "reboot":
             try:
@@ -385,6 +406,7 @@ class MQTTRobotBridge:
             except rospy.ServiceException as e:
                 # rospy.logerr(f"Service call failed: {str(e)}")
                 self.handle_error(f"Service call failed: {str(e)}", "00000001")
+
             rospy.logwarn("Received reboot command - Implement actual reboot logic here")
             
         else:

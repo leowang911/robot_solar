@@ -236,13 +236,23 @@ class ArucoDockingController:
                 left_right.append(right_target)
         
         if self.markers['leftside'] is not None:
-            side_target = self.calculate_center_front_target('leftside')
-            if side_target is not None:
+            #判断正向标记同时出现的情况
+            if self.markers['left'] is None and self.markers['right'] is None:
+                side_target = self.calculate_center_front_target('leftside')
+                if side_target is not None:
+                    self.side_target = side_target
+            else:
+                side_target = None
                 self.side_target = side_target
 
         if self.markers['rightside'] is not None:
-            side_target = self.calculate_center_front_target('rightside')
-            if side_target is not None:
+            #判断正向标记同时出现的情况
+            if self.markers['left'] is None and self.markers['right'] is None:
+                side_target = self.calculate_center_front_target('rightside')
+                if side_target is not None:
+                    self.side_target = side_target
+            else:
+                side_target = None
                 self.side_target = side_target
 
 
@@ -665,7 +675,7 @@ class ArucoDockingController:
      
     def search(self):
         #找不到，基于与无人机朝向，左右旋转np.pi/20弧度。
-        self.current_target=None
+        self.current_target =None
         self.state="SEARCH"
         if self.distance2drone > 1.0 or self.distance2drone <=0.1:
             control = controlData()
@@ -883,13 +893,14 @@ class ArucoDockingController:
                         self.control_pub.publish(control)
                         self.control_seq += 1
                     else:
-                            if self.search_count>0:
-                                self.search_count+=1
-                            else:
-                                self.search_count=0
-                                self.search()
-                                # rospy.loginfo(f"---------- Search ----------")
-
+                        if self.search_count>0:
+                            self.search_count+=1
+                        else:
+                            self.search_count=0
+                            self.search()
+                            # rospy.loginfo(f"---------- Search ----------")
+                        aruco_test = True
+                        self.refine_align = False 
                     #不断执行搜索---先判断前方标记、再判断侧边标记，执行不同动作
                     if (self.markers['center'] or self.markers['left'] or self.markers['right']) and self.current_target is not None:
                         
@@ -903,8 +914,8 @@ class ArucoDockingController:
                         # 计算当前状态,行走到目标点前1m
                         target_vec = self.current_target['position'][:2] - current_pos
                         rospy.loginfo(f'--------------target_vec -------------- {target_vec}')
-                        aruco_test = True
-                        self.refine_align = False  
+                        # aruco_test = True
+                        # self.refine_align = False  
 
                     elif (self.markers['leftside'] or self.markers['rightside']) and \
                         not (self.markers['center'] or self.markers['left'] or self.markers['right']):
@@ -913,7 +924,7 @@ class ArucoDockingController:
                         self.state = "SEARCH"
                         rospy.loginfo('-------------side marker test-------------')
                         self.search_count=0
-                        # self.lock_current=True #不允许currentpose改为None，可以进行更新
+                        self.lock_current=True #不允许currentpose改为None，可以进行更新
                         rospy.loginfo(f"self.lock_current: {self.lock_current}")
                         current_pos = np.array([0, 0])  # 基坐标系原点
                         # 计算当前状态,行走到目标点前1m
@@ -959,18 +970,19 @@ class ArucoDockingController:
                             self.lock_current = False
                             self.control_seq += 1 
 
-                            aruco_test = True
-                            self.refine_align = False
-                    
-
-
-                        
+                            # aruco_test = True
+                            # self.refine_align = False 
                                         
-                    if aruco_test == True and self.refine_align==False :
+                    if aruco_test == True and self.refine_align==False:
                         """粗定位环节"""
-                        # 考虑
-                        # if self.markers['left'] or self.markers['right'] or self.markers['center']::
-                        #忽略 远距离，测试标记粗定位
+                        current_pos = np.array([0, 0])  # 基坐标系原点
+                        # 判断target_vec是否为空
+                        if self.current_target is not None:
+                            target_vec = self.current_target['position'][:2] - current_pos
+                        else:
+                            target_vec = 0
+                            rospy.logwarn('self.current_target is None!')
+
                         if np.linalg.norm(target_vec) >0.6:
                             # self.align_num=False
                             pass
