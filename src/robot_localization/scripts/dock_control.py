@@ -33,7 +33,7 @@ class ArucoDockingController:
         self.offset = rospy.get_param('~offset', 0.025)  # 偏移量（米）
         # self.offset = 0.055
         self.target_distance = 1 # 目标距离（米）
-        self.stop_refine_pose_dlt_y=0.06
+        self.stop_refine_pose_dlt_y=0.04
         self.align_threshold = math.radians(1)  # 航向对准阈值
         self.current_yaw = 0 # 当前航向角
         self.target_yaw = 0# 目标航向角
@@ -947,17 +947,18 @@ class ArucoDockingController:
         if self.distance2drone > 1 or self.distance2drone <=0.1:
             control = self.compose_control(0, 0, self.current_yaw, np.pi/10, 1)
             self.control_pub.publish(control)
-            time.sleep(0.01)
+            time.sleep(0.1)
             control.robot_state = 2
             self.control_pub.publish(control)
-            time.sleep(0.5)
+            time.sleep(0.1)
         else:
             control = self.compose_control(0, 0, self.current_yaw, np.pi/10, 1)
             self.control_pub.publish(control)
-            time.sleep(0.01)
+            time.sleep(0.1)
             control = self.compose_control(-200, 0, self.current_yaw, 0, 2)
             control = controlData()
             self.control_pub.publish(control)
+            time.sleep(0.1)
         return control
 
     # def search(self):
