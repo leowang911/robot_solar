@@ -1690,7 +1690,7 @@ class ArucoDockingController:
         
         # else:
         #     self.error = 1
-            
+        
         return 1
 
     def process_corner_finding(self):
@@ -1765,13 +1765,13 @@ class ArucoDockingController:
         # rospy.loginfo(f"in_dock_flag: {self.in_dock_flag} docking_flag: {self.docking_flag} rc_control: {self.rc_control}")
         if self.stop_flag == False: #是否进入停止状态
             self.control_seq += 1
-            self.state_pub.publish(self.state)
+            
             if self.rc_control != 0:
                 # self.out_dock_flag = False
                 # self.corner_finding_flag = False
                 # self.auto_cleaning_flag = False
                 if self.state == "SEARCH":
-                    
+                    self.state_pub.publish(self.state)
                     if self.state_prev != "SEARCH":
                         rospy.logwarn("SEARCH")
                     if(self.process_searching()) == 1:
@@ -1780,6 +1780,7 @@ class ArucoDockingController:
                 # if self.docking_flag ==False : #todo 
                     
                 if self.state == "LOADING":
+                    self.state_pub.publish(self.state)
                     rospy.logwarn("LOADING")
                     if(self.process_loading()) == 1:
                         self.state = "IN_DOCK"
@@ -1787,6 +1788,7 @@ class ArucoDockingController:
                 if self.state == "IN_DOCK" or self.state == "FINISHED_CLEANING":
                     control = self.compose_control(0,0,self.current_yaw,0,1)
                     self.control_pub.publish(control)
+                    self.state_pub.publish(self.state)
                     time.sleep(0.1)
                     rospy.logwarn("WAITING")
 
@@ -1794,6 +1796,7 @@ class ArucoDockingController:
                 
                 if self.state == 'UNLOADING':
                     # if self.count == 0:
+                    self.state_pub.publish(self.state)
                     rospy.logwarn("UNLOADING")
                     if (self.process_unloading())==1:
                         # self.latitude_drone = self.latitude
@@ -1803,6 +1806,7 @@ class ArucoDockingController:
                 
                 if self.state == "CORNER_FINDING":
                     # if self.count == 0:
+                    self.state_pub.publish(self.state)
                     self.latitude_drone = self.latitude
                     self.longitude_drone = self.longitude
                     rospy.logwarn(f"latitude_drone: {self.latitude_drone} longitude_drone: {self.longitude_drone}")
@@ -1813,6 +1817,7 @@ class ArucoDockingController:
                 
                 if self.state == "AUTO_CLEANING":
                     # if self.count == 0:
+                    self.state_pub.publish(self.state)
                     rospy.logwarn("AUTO CLEANING")
                     if(self.process_cleaning())==1:
                         self.state = "FINISHED_CLEANING"
@@ -1843,6 +1848,7 @@ class ArucoDockingController:
         else:
             control = self.compose_control(0,0,self.current_yaw,0,1)
             self.control_pub.publish(control)
+        
         
         self.state_prev = self.state
 
