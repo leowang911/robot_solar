@@ -26,7 +26,7 @@ class MQTTRobotBridge:
         # self.mqtt_password = rospy.get_param('~mqtt_password', '123')
         self.robot_id = rospy.get_param('~robot_id', 'GFSTJM120250201')
         self.pub_topic = rospy.get_param('~pub_topic', f'robot/{self.robot_id}/status')
-        self.sub_topic = rospy.get_param('~sub_topic', 'robot/commands')
+        self.sub_topic = rospy.get_param('~sub_topic', f'robot/{self.robot_id}/commands')
     
         self.uuid = str(uuid.uuid4())  # 生成唯一ID
         self.mqtt_connected = False
