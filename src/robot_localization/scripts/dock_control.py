@@ -157,12 +157,13 @@ class ArucoDockingController:
         command = json.loads(msg.data)
         if command['command'] == 'mission':
              if command['action'] == 'change_state':
-                self.state_change_flag = True
-                self.state_prev = self.state
-                self.state = command['state']
-                control = self.compose_control(0, 0, self.current_yaw, np.pi/10, 1)
+                control = self.compose_control(0, 0, self.current_yaw, 0, 1)
                 self.control_pub.publish(control)
                 time.sleep(0.1)
+                self.state_prev = self.state
+                self.state = command['state']
+                self.state_change_flag = True
+                
                 self.state_pub.publish(self.state)
                 
     
