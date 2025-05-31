@@ -1279,7 +1279,7 @@ class ArucoDockingController:
                     control.header.stamp = rospy.Time.now()
                 self.control_pub.publish(control)
                 while self.complete_state!=2:
-                    if self.rc_control == 0 or self.change_state_flag==True:
+                    if self.rc_control == 0 or self.state_change_flag==True:
                         rospy.logwarn("interrupted")
                         return 0
                     pass
@@ -1292,7 +1292,7 @@ class ArucoDockingController:
                 control.robot_state = 2
                 self.control_pub.publish(control)
                 while self.complete_state!=2:
-                    if self.rc_control == 0 or self.change_state_flag==True:
+                    if self.rc_control == 0 or self.state_change_flag==True:
                         rospy.logwarn("interrupted")
                         return 0
                     pass
@@ -1497,7 +1497,7 @@ class ArucoDockingController:
                             rospy.loginfo(f'等待回退结束 ')
                             while self.complete_state != 2:
                                 # time.sleep(0.1)
-                                if self.rc_control == 0 or self.change_state_flag==True:
+                                if self.rc_control == 0 or self.state_change_flag==True:
                                     rospy.logwarn("interrupted")
                                     return 0
                                 pass
@@ -1518,7 +1518,7 @@ class ArucoDockingController:
                             time.sleep(0.1)
                             rospy.loginfo(f'等待回正结束 ')     
                             while self.complete_state != 2:
-                                if self.rc_control == 0 or self.change_state_flag==True:
+                                if self.rc_control == 0 or self.state_change_flag==True:
                                     rospy.logwarn("interrupted")
                                     return 0 
                                 pass
@@ -1550,7 +1550,7 @@ class ArucoDockingController:
                             rospy.loginfo(f'等待前进结束 ')
                             while self.complete_state != 2:
                                 #time.sleep(0.1)
-                                if self.rc_control == 0 or self.change_state_flag==True:
+                                if self.rc_control == 0 or self.state_change_flag==True:
                                     rospy.logwarn("interrupted")
                                     return 0
                                 pass
@@ -1640,7 +1640,7 @@ class ArucoDockingController:
         # time_current = rospy.Time.now()
         while self.complete_state ==0:
         # and (rospy.Time.now()-time_current).to_sec()<10*60:
-            if self.rc_control == 0 or self.change_state_flag==True:
+            if self.rc_control == 0 or self.state_change_flag==True:
                 rospy.logwarn("interrupted")
                 return 0
             pass
@@ -1649,7 +1649,7 @@ class ArucoDockingController:
             self.out_dock_flag = False
             self.count  = 0
             # while self.rc_control !=2:
-            #     if self.rc_control == 0 or self.change_state_flag==True:
+            #     if self.rc_control == 0 or self.state_change_flag==True:
             #         rospy.logwarn("interrupted")
             #         return 1
             control = self.compose_control(0,0,self.current_yaw,0,1)
@@ -1672,7 +1672,7 @@ class ArucoDockingController:
         # time_current = rospy.Time.now()
         while self.complete_state !=3: 
         # and (rospy.Time.now()-time_current).to_sec()<10*60:
-            if self.rc_control == 0 or self.change_state_flag==True:
+            if self.rc_control == 0 or self.state_change_flag==True:
                 rospy.logwarn("interrupted")
                 return 0
             pass
@@ -1703,7 +1703,7 @@ class ArucoDockingController:
         time_current = rospy.Time.now()
         while self.complete_state !=7:
             # and (rospy.Time.now()-time_current).to_sec()<10*60:
-            if self.rc_control == 0 or self.change_state_flag==True:
+            if self.rc_control == 0 or self.state_change_flag==True:
                 rospy.logwarn("interrupted")
                 return 0
             pass
@@ -1726,7 +1726,7 @@ class ArucoDockingController:
         self.control_pub.publish(control)
         time.sleep(0.1)
         while self.complete_state !=8:
-            if self.rc_control == 0 or self.change_state_flag==True:
+            if self.rc_control == 0 or self.state_change_flag==True:
                 rospy.logwarn("interrupted")
                 return 0
         # and (rospy.Time.now()-time_current).to_sec()<10*60:
