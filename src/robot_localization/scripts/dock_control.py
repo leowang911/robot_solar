@@ -138,6 +138,7 @@ class ArucoDockingController:
         
         # 发布器
         self.control_pub = rospy.Publisher("/control_data", controlData, queue_size=1)
+        self.state_pub = rospy.Publisher("/robot_state", String, queue_size=1)
         self.pose1_pub = rospy.Publisher("/marker_pose1", PoseStamped, queue_size=1)
         self.pose2_pub = rospy.Publisher("/marker_pose2", PoseStamped, queue_size=1)
         self.pose3_pub = rospy.Publisher("/marker_pose3", PoseStamped, queue_size=1)
@@ -155,6 +156,9 @@ class ArucoDockingController:
         command = json.loads(msg.data)
         if command['command'] == 'mission':
              if command['action'] == 'change_state':
+                control = self.compose_control(0, 0, self.current_yaw, np.pi/10, 1)
+                self.control_pub.publish(control)
+                time.sleep(0.1)
                 self.state = command['state']
     
     
@@ -1725,6 +1729,8 @@ class ArucoDockingController:
             self.error = 1
 
 
+
+
         
 #------------------------------------CONTROL---------------------------------------------------------------------------------------------------
     # def compose_control(distance,roller_speed,yaw,target_yaw,robot_state):
@@ -1737,12 +1743,15 @@ class ArucoDockingController:
         # rospy.loginfo(f"in_dock_flag: {self.in_dock_flag} docking_flag: {self.docking_flag} rc_control: {self.rc_control}")
         if self.stop_flag == False: #是否进入停止状态
             self.control_seq += 1
-            if self.rc_control == 1:
+            self.state_pub.publish(self.state)
+            if self.rc_control != 0:
                 # self.out_dock_flag = False
                 # self.corner_finding_flag = False
                 # self.auto_cleaning_flag = False
                 if self.state == "SEARCH":
-                    rospy.logwarn("SEARCH")
+                    
+                    if self.state_prev != "SEARCH":
+                        rospy.logwarn("SEARCH")
                     if(self.process_searching()) == 1:
                         self.state = "LOADING"
 
@@ -1751,9 +1760,13 @@ class ArucoDockingController:
                 if self.state == "LOADING":
                     rospy.logwarn("LOADING")
                     if(self.process_loading()) == 1:
-                        self.state = "UNLOADING"
-                    
-            elif self.rc_control == 2:  
+                        self.state = "IN_DOCK"
+                     
+                if self.state == "IN_DOCK" or self.state == "FINISHED_CLEANING":
+                    control = self.compose_control(0,0,self.current_yaw,0,1)
+                    self.control_pub.publish(control)
+                    time.sleep(0.1)
+                    rospy.logwarn("WAITING")
 
                 # self.in_dock_flag = False
                 
@@ -1780,7 +1793,7 @@ class ArucoDockingController:
                     # if self.count == 0:
                     rospy.logwarn("AUTO CLEANING")
                     if(self.process_cleaning())==1:
-                        self.state = "SEARCH"
+                        self.state = "FINISHED_CLEANING"
 
                 # if self.in_dock_flag == False:
                 #     control = controlData()

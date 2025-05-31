@@ -27,8 +27,10 @@ class MQTTRobotBridge:
         self.robot_id = rospy.get_param('~robot_id', 'GFSTJM120250201')
         self.pub_topic = rospy.get_param('~pub_topic', f'robot/{self.robot_id}/status')
         self.sub_topic = rospy.get_param('~sub_topic', 'robot/commands')
+    
         self.uuid = str(uuid.uuid4())  # 生成唯一ID
         self.mqtt_connected = False
+    
         
         
         
@@ -74,7 +76,7 @@ class MQTTRobotBridge:
             "battery_voltage": 0,  # 电量
         
             # // 任务状态码（0:未开始，1:进行中）
-            "task_status": 0,
+            "task_status": "LOADING",  # 任务状态（字符串格式）
             
             # // 手动录入的航线编号（字符串格式）
             "route_id": "RT001",
@@ -101,8 +103,8 @@ class MQTTRobotBridge:
         # rospy.Subscriber('/base_', Bool, self.task_callback)
         # rospy.Subscriber('/mission/route_id', String, self.route_callback)
         rospy.Subscriber("/base_status", baseStatus, self.base_cb)
-        rospy.Subscriber('/control_data', String, self.control_callback)
-        
+        # rospy.Subscriber('/control_data', String, self.control_callback)
+        rospy.Subscriber('/robot_state', String, self.state_callback)
         # 发布者（用于接收的MQTT消息）
         self.cmd_pub = rospy.Publisher('/mqtt_received', String, queue_size=10)
 
@@ -140,11 +142,14 @@ class MQTTRobotBridge:
         self.mqtt_connected = False
         self.setup_mqtt()
 
-    def control_callback(self, msg):
-        if msg.robot_state != 1:
-            self.robot_data["task_status"] = 0
-        else:
-            self.robot_data["task_status"] = 1
+    # def control_callback(self, msg):
+    #     if msg.robot_state != 1:
+    #         self.robot_data["task_status"] = 0
+    #     else:
+    #         self.robot_data["task_status"] = 1
+
+    def state_callback(self, msg):
+        self.robot_data["task_state"] = msg.data
 
     # ROS回调函数on_m
     def inspvae_cb(self, msg):
