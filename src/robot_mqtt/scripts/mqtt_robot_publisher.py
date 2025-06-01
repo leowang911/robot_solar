@@ -26,16 +26,64 @@ class MQTTRobotBridge:
         # self.mqtt_password = rospy.get_param('~mqtt_password', '123')
         self.robot_id = rospy.get_param('~robot_id', 'GFSTJM120250201')
         self.pub_topic = rospy.get_param('~pub_topic', f'robot/{self.robot_id}/status')
+        self.pub_topic2 = rospy.get_param('~pub_topic2', f'robot/{self.robot_id}/debug')
         self.sub_topic = rospy.get_param('~sub_topic', f'robot/{self.robot_id}/commands')
     
         self.uuid = str(uuid.uuid4())  # 生成唯一ID
         self.mqtt_connected = False
     
         
-        
-        
         # 存储机器人状态数据
         self.robot_data = {
+            # 固定帧头标识（需确认实际值）
+            "header": "GIIFEN",
+            
+            # // Unix时间戳（单位：秒）
+            "time_stamp": 1690000000,
+            "uuid": self.uuid,
+            
+            # // 三轴加速度（单位：m/s²）
+            "acceleration": {
+                "x": 0.12,     
+                "y": -0.05,    
+                "z": 9.81      
+            },
+            
+            # // GPS定位数据（需实际采集）
+            "gps": {
+                "latitude": 22.123456,   
+                "longitude": 113.654321   
+            },
+            
+            # // 三轴角速度（单位：°/s）
+            "angular_velocity": {
+                "x": 1.5,     
+                "y": -0.3,     
+                "z": 0.8       
+            },
+            
+            # // 欧拉角姿态（单位：度） // 俯仰角（绕Y轴旋转）
+            "pose": {
+                "roll": 5.2,   
+                "yaw": 12.7,   
+                "pitch": -3.1  
+            },
+            
+            # // 移动速度（单位：m/s，通过轮速计算）
+            # // 换算公式：速度 = 面积 / 滚刷长度（0.62m）
+            "speed": 0.5,
+            "battery_voltage": 0,  # 电量
+        
+            # // 任务状态码（0:未开始，1:进行中）
+            "task_status": "LOADING",  # 任务状态（字符串格式）
+            
+            # // 手动录入的航线编号（字符串格式）
+            "route_id": "RT001",
+            "error": 0
+            #bitmask
+            }
+
+        self.robot_data_debug = {
             # 固定帧头标识（需确认实际值）
             "header": "GIIFEN",
             
@@ -97,7 +145,7 @@ class MQTTRobotBridge:
     def init_ros(self):
         """初始化ROS组件"""
         # 订阅者
-        # rospy.Subscriber("/inspvae_data", INSPVAE, self.inspvae_cb)
+        rospy.Subscriber("/inspvae_data", INSPVAE, self.inspvae_cb)
         rospy.Subscriber("/inspva_data", INSPVA, self.inspva_cb)
         rospy.Subscriber("/gps/raw", GPSData, self.drone_gps_cb)
         # rospy.Subscriber('/base_', Bool, self.task_callback)
@@ -153,13 +201,13 @@ class MQTTRobotBridge:
 
     # ROS回调函数on_m
     def inspvae_cb(self, msg):
-        self.robot_data["gps"] = {
-            "latitude": msg.latitude,
-            "longitude": msg.longitude
-        }
-        self.robot_data["pose"] = {
-            "roll": msg.roll,
-            "pitch": msg.pitch,
+        # self.robot_data["gps"] = {
+        #     "latitude": msg.latitude,
+        #     "longitude": msg.longitude
+        # }
+        self.robot_data_debug["pose"] = {
+            # "roll": msg.roll,
+            # "pitch": msg.pitch,
             "yaw": msg.yaw
         }
         
@@ -203,11 +251,11 @@ class MQTTRobotBridge:
     def base_cb(self, msg):
         """处理基坐标系状态数据"""
         # 处理IMU数据
-        self.speed = msg.speed
-        self.distance_base = msg.distance
-        self.sensor_state = msg.sensor_state
-        self.complete_state = msg.complete_state
-        self.rc_control = msg.rc_state
+        self.robot_data_debug['speed'] = msg.speed
+        self.robot_data_debug['distance_base'] = msg.distance
+        self.robot_data_debug['sensor_state'] = msg.sensor_state
+        self.robot_data_debug['complete_state']= msg.complete_state
+        self.robot_data_debug['rc_control'] = msg.rc_state
         self.robot_data['battery_voltage'] = msg.voltage # 电池电量(todo)
         self.robot_data['error']= msg.error
 
@@ -221,9 +269,15 @@ class MQTTRobotBridge:
         """发布机器人状态到MQTT"""
         try:
             self.robot_data["time_stamp"] = rospy.Time.now().to_sec()
+            
+            for i in self.robot_data:
+                self.robot_data_debug[i] = self.robot_data[i]
+
             payload = json.dumps(self.robot_data)
+            payload_debug = json.dumps(self.robot_data_debug)
             self.mqtt_client.publish(self.pub_topic, payload, qos=1)
-            rospy.logdebug("Published to MQTT: %s", payload)
+            self.mqtt_client.publish(self.pub_topic2, payload_debug, qos=1)
+            # rospy.logdebug("Published to MQTT: %s", payload)
         except Exception as e:
             rospy.logerr(f"MQTT publish error: {str(e)}")
 
