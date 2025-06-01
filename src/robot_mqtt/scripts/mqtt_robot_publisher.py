@@ -290,7 +290,7 @@ class MQTTRobotBridge:
             for i in self.robot_data:
                 self.robot_data_debug[i] = self.robot_data[i]
 
-            self.robot_data_debug["camera_node"] = self.is_ros_node_process_running(self,'orbbec')
+            self.robot_data_debug["camera_node"] = self.is_ros_node_process_running('orbbec')
 
             payload = json.dumps(self.robot_data)
             payload_debug = json.dumps(self.robot_data_debug)
