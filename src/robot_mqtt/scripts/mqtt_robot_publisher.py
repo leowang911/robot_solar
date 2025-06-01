@@ -13,6 +13,7 @@ import uuid
 import time
 import rosnode
 import psutil
+import socket
 class MQTTRobotBridge:
     def __init__(self):
         rospy.init_node('mqtt_robot_bridge', anonymous=True)
@@ -231,6 +232,22 @@ class MQTTRobotBridge:
                     # return True
                     return False
         return False
+
+    def get_ips(self):
+        """获取本机IP地址"""
+        ips = []
+        try:
+            # 获取所有网络接口的 IP
+            host_name = socket.gethostname()
+            # 排除 IPv6 和回环地址
+            ips = [ip[4][0] for ip in socket.getaddrinfo(host_name, None) 
+                if not ip[4][0].startswith('127.') and ':' not in ip[4][0]]
+            
+            # rospy.loginfo(f"可用 IPs: {ips}")
+            return ips if ips else None
+        except Exception as e:
+            rospy.logerr(f"获取 IP 失败: {str(e)}")
+            return None
     
 
 
@@ -305,7 +322,7 @@ class MQTTRobotBridge:
                 self.robot_data_debug[i] = self.robot_data[i]
 
             self.robot_data_debug["camera_node"] = self.is_ros_node_process_running('orbbec')
-
+            self.robot_data_debug["ips"] = self.get_ips()
             payload = json.dumps(self.robot_data)
             payload_debug = json.dumps(self.robot_data_debug)
             self.mqtt_client.publish(self.pub_topic, payload, qos=1)
