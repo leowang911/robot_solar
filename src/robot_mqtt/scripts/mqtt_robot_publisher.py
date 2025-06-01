@@ -12,6 +12,7 @@ from robot_control.msg import controlData  # 根据实际包名调整
 import uuid
 import time
 import rosnode
+import psutil
 class MQTTRobotBridge:
     def __init__(self):
         rospy.init_node('mqtt_robot_bridge', anonymous=True)
@@ -210,6 +211,14 @@ class MQTTRobotBridge:
         else:
             # print(f"节点 {node_name} 未运行！")
             return False
+        
+
+    def is_ros_node_process_running(self,node_name):
+        for proc in psutil.process_iter(['cmdline', 'name']):
+            cmdline = proc.info['cmdline']
+            if cmdline and (node_name in ' '.join(cmdline)):
+                return True
+        return False
 
     # ROS回调函数on_m
     def inspvae_cb(self, msg):
@@ -281,7 +290,8 @@ class MQTTRobotBridge:
             for i in self.robot_data:
                 self.robot_data_debug[i] = self.robot_data[i]
 
-            self.robot_data_debug["camera_node"] = self.check_node_active('/camera/camera')
+            self.robot_data_debug["camera_node"] = self.is_ros_node_process_running(self,'orbbec')
+
             payload = json.dumps(self.robot_data)
             payload_debug = json.dumps(self.robot_data_debug)
             self.mqtt_client.publish(self.pub_topic, payload, qos=1)
