@@ -205,11 +205,7 @@ class MQTTRobotBridge:
         #     "latitude": msg.latitude,
         #     "longitude": msg.longitude
         # }
-        self.robot_data_debug["pose"] = {
-            # "roll": msg.roll,
-            # "pitch": msg.pitch,
-            "yaw": msg.yaw
-        }
+        self.robot_data_debug["imu_yaw"] = msg.yaw
         
         # self.robot_data["acceleration"] = {
         #     "x": msg.linear_acceleration.x,
