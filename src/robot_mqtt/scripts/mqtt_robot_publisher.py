@@ -11,6 +11,7 @@ from robot_localization.msg import INSPVAE,INSPVA, baseStatus, GPSData
 from robot_control.msg import controlData  # 根据实际包名调整
 import uuid
 import time
+import rosnode
 class MQTTRobotBridge:
     def __init__(self):
         rospy.init_node('mqtt_robot_bridge', anonymous=True)
@@ -199,6 +200,17 @@ class MQTTRobotBridge:
     def state_callback(self, msg):
         self.robot_data["task_status"] = msg.data
 
+    def check_node_active(node_name):
+    # 获取所有活跃节点列表
+        active_nodes = rosnode.get_node_names()
+        # 检查目标节点是否存在（注意：节点名需包含命名空间，如 '/my_node'）
+        if node_name in active_nodes:
+            # print(f"节点 {node_name} 正在运行！")
+            return True
+        else:
+            # print(f"节点 {node_name} 未运行！")
+            return False
+
     # ROS回调函数on_m
     def inspvae_cb(self, msg):
         # self.robot_data["gps"] = {
@@ -269,6 +281,7 @@ class MQTTRobotBridge:
             for i in self.robot_data:
                 self.robot_data_debug[i] = self.robot_data[i]
 
+            self.robot_data_debug["camera_node"] = self.check_node_active('/orbbec_camera_node')
             payload = json.dumps(self.robot_data)
             payload_debug = json.dumps(self.robot_data_debug)
             self.mqtt_client.publish(self.pub_topic, payload, qos=1)
