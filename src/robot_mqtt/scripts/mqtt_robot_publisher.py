@@ -248,7 +248,45 @@ class MQTTRobotBridge:
         except Exception as e:
             rospy.logerr(f"获取 IP 失败: {str(e)}")
             return None
+
+    def get_stable_ip(self):
     
+        try:
+            # 获取主机名
+            host_name = socket.gethostname()
+            
+            # 获取所有地址信息
+            addr_info = socket.getaddrinfo(host_name, None)
+            
+            # 提取唯一IPv4地址
+            ip_set = set()
+            for info in addr_info:
+                ip = info[4][0]
+                # 过滤IPv6和本地IP
+                if '.' in ip and not ip.startswith('127.'):
+                    ip_set.add(ip)
+            
+            # 转换为列表
+            unique_ips = list(ip_set)
+            
+            rospy.loginfo(f"解析到唯一IP: {unique_ips}")
+            
+            if unique_ips:
+                # 选择最可能的有效IP
+                # 优先选择192.168.x.x, 10.x.x.x, 172.16-31.x.x等私有地址
+                for ip in unique_ips:
+                    if ip.startswith('192.168.') or ip.startswith('10.'):
+                        return ip
+                return unique_ips
+            else:
+                rospy.logwarn("未找到有效IP地址")
+                return None
+                
+        except Exception as e:
+            rospy.logerr(f"获取IP失败: {str(e)}")
+            return None
+
+        
 
 
     # ROS回调函数on_m
@@ -322,7 +360,7 @@ class MQTTRobotBridge:
                 self.robot_data_debug[i] = self.robot_data[i]
 
             self.robot_data_debug["camera_node"] = self.is_ros_node_process_running('orbbec')
-            self.robot_data_debug["ips"] = self.get_ips()
+            self.robot_data_debug["ips"] = self.get_stable_ip()
             payload = json.dumps(self.robot_data)
             payload_debug = json.dumps(self.robot_data_debug)
             self.mqtt_client.publish(self.pub_topic, payload, qos=1)
