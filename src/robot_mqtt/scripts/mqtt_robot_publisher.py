@@ -200,7 +200,7 @@ class MQTTRobotBridge:
     def state_callback(self, msg):
         self.robot_data["task_status"] = msg.data
 
-    def check_node_active(node_name):
+    def check_node_active(self,node_name):
     # 获取所有活跃节点列表
         active_nodes = rosnode.get_node_names()
         # 检查目标节点是否存在（注意：节点名需包含命名空间，如 '/my_node'）
