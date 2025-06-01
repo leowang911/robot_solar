@@ -213,12 +213,26 @@ class MQTTRobotBridge:
             return False
         
 
+    def monitor_process_resources(process_name):
+        for proc in psutil.process_iter(['name', 'cpu_percent', 'memory_info']):
+            if proc.info['name'] == process_name:
+                cpu = proc.info['cpu_percent']
+                mem = proc.info['memory_info'].rss / 1024**2  # MB
+                rospy.loginfo(f"进程 {process_name}: CPU={cpu}%, 内存={mem:.2f} MB")
+
     def is_ros_node_process_running(self,node_name):
-        for proc in psutil.process_iter(['cmdline', 'name']):
+        for proc in psutil.process_iter(['cmdline', 'name','cpu_percent']):
             cmdline = proc.info['cmdline']
             if cmdline and (node_name in ' '.join(cmdline)):
-                return True
+                rospy.logwarn(f"ROS节点 {node_name} 正在运行，CPU使用率: {proc.info['cpu_percent']}%")
+                if proc.info['cpu_percent'] > 50:
+                    return True
+                else:
+                    # return True
+                    return False
         return False
+    
+
 
     # ROS回调函数on_m
     def inspvae_cb(self, msg):
