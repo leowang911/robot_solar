@@ -281,7 +281,7 @@ class MQTTRobotBridge:
             for i in self.robot_data:
                 self.robot_data_debug[i] = self.robot_data[i]
 
-            self.robot_data_debug["camera_node"] = self.check_node_active('camera/camera')
+            self.robot_data_debug["camera_node"] = self.check_node_active('/camera/camera')
             payload = json.dumps(self.robot_data)
             payload_debug = json.dumps(self.robot_data_debug)
             self.mqtt_client.publish(self.pub_topic, payload, qos=1)
