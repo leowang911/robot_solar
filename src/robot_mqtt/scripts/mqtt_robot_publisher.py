@@ -197,7 +197,7 @@ class MQTTRobotBridge:
     #         self.robot_data["task_status"] = 1
 
     def state_callback(self, msg):
-        self.robot_data["task_state"] = msg.data
+        self.robot_data["task_status"] = msg.data
 
     # ROS回调函数on_m
     def inspvae_cb(self, msg):
