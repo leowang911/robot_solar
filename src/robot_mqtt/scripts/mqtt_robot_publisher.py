@@ -244,12 +244,12 @@ class MQTTRobotBridge:
             #         return line.split()[1].split('/')[0]
             
             # 方法2：使用ifconfig
-            result = subprocess.check_output(f"ifconfig {interface}", shell=True).decode()
-            for line in result.splitlines():
-                if 'inet ' in line:
-                    return line.split()[1]
+            result = subprocess.check_output("curl ifconfig.me", shell=True).decode()
+            # for line in result.splitlines():
+            #     if 'inet ' in line:
+            #         return line.split()[1]
                     
-            return None
+            return result
         except:
             return None
 
