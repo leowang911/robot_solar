@@ -14,6 +14,7 @@ import time
 import rosnode
 import psutil
 import socket
+import subprocess
 class MQTTRobotBridge:
     def __init__(self):
         rospy.init_node('mqtt_robot_bridge', anonymous=True)
@@ -232,6 +233,25 @@ class MQTTRobotBridge:
                     # return True
                     return False
         return False
+    
+    def get_ppp_ip(self,interface):
+        """获取PPP接口的IP地址"""
+        try:
+            # 方法1：使用ip命令
+            # result = subprocess.check_output(f"ip addr show {interface}", shell=True).decode()
+            # for line in result.splitlines():
+            #     if 'inet ' in line:
+            #         return line.split()[1].split('/')[0]
+            
+            # 方法2：使用ifconfig
+            result = subprocess.check_output(f"ifconfig {interface}", shell=True).decode()
+            for line in result.splitlines():
+                if 'inet ' in line:
+                    return line.split()[1]
+                    
+            return None
+        except:
+            return None
 
     def get_ips(self):
         """获取本机IP地址"""
@@ -360,7 +380,7 @@ class MQTTRobotBridge:
                 self.robot_data_debug[i] = self.robot_data[i]
 
             self.robot_data_debug["camera_node"] = self.is_ros_node_process_running('orbbec')
-            self.robot_data_debug["ips"] = self.get_stable_ip()
+            self.robot_data_debug["ip"] = self.get_ppp_ip('ppp0')
             payload = json.dumps(self.robot_data)
             payload_debug = json.dumps(self.robot_data_debug)
             self.mqtt_client.publish(self.pub_topic, payload, qos=1)
