@@ -156,7 +156,7 @@ class ArucoDockingController:
     def mqtt_cb(self,msg):
         command = json.loads(msg.data)
         if command['command'] == 'mission':
-             if command['action'] == 'change_state':
+            if command['action'] == 'change_state':
                 control = self.compose_control(0, 0, self.current_yaw, 0, 1)
                 self.control_pub.publish(control)
                 time.sleep(0.1)
@@ -165,6 +165,18 @@ class ArucoDockingController:
                 self.state_change_flag = True
                 
                 self.state_pub.publish(self.state)
+
+            elif command['action'] == 'move' and self.state == "REMOTE_CONTROL":
+                # 处理遥控移动命令
+                distance = command.get('distance', 0.0)
+                target_yaw_diff = command.get('angle', self.current_yaw)
+                control = self.compose_control(distance, 0,self.current_yaw, target_yaw_diff, 1)
+                self.control_pub.publish(control)
+                time.sleep(0.1)
+                control = self.compose_control(distance, 0,self.current_yaw, target_yaw_diff, 2)
+                self.control_pub.publish(control)
+
+            
                 
     
     
@@ -1785,7 +1797,7 @@ class ArucoDockingController:
                     if(self.process_loading()) == 1:
                         self.state = "IN_DOCK"
                      
-                if self.state == "IN_DOCK" or self.state == "FINISHED_CLEANING":
+                if self.state == "IN_DOCK" or self.state == "FINISHED_CLEANING" or self.state == "HOLD"
                     control = self.compose_control(0,0,self.current_yaw,0,1)
                     self.control_pub.publish(control)
                     self.state_pub.publish(self.state)
