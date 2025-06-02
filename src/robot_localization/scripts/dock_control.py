@@ -1221,10 +1221,12 @@ class ArucoDockingController:
 
         else: #gps距离小于2米,通过aruco数据导航
             if self.gps_move_flag == True:
-                control = self.compose_control(0, 0, self.current_yaw, 0, 1)
+                self.gps_move_flag = False
+                control = self.compose_control(0,
+                                                0, self.current_yaw, 0, 1)
                 self.control_pub.publish(control)
                 time.sleep(0.01)
-                self.gps_move_flag = False
+               
             #rospy.loginfo(f'state {self.state}')
             #2.1 执行搜索逻辑,持续20次，1s未检测到marker 进行搜索。
             if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
