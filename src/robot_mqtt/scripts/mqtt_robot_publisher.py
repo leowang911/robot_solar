@@ -220,13 +220,13 @@ class MQTTRobotBridge:
             if proc.info['name'] == process_name:
                 cpu = proc.info['cpu_percent']
                 mem = proc.info['memory_info'].rss / 1024**2  # MB
-                rospy.loginfo(f"进程 {process_name}: CPU={cpu}%, 内存={mem:.2f} MB")
+                # rospy.loginfo(f"进程 {process_name}: CPU={cpu}%, 内存={mem:.2f} MB")
 
     def is_ros_node_process_running(self,node_name):
         for proc in psutil.process_iter(['cmdline', 'name','cpu_percent']):
             cmdline = proc.info['cmdline']
             if cmdline and (node_name in ' '.join(cmdline)):
-                rospy.logwarn(f"ROS节点 {node_name} 正在运行，CPU使用率: {proc.info['cpu_percent']}%")
+                # rospy.logwarn(f"ROS节点 {node_name} 正在运行，CPU使用率: {proc.info['cpu_percent']}%")
                 if proc.info['cpu_percent'] > 50:
                     return True
                 else:
