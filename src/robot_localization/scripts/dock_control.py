@@ -1189,6 +1189,7 @@ class ArucoDockingController:
         control = controlData()
         control.distance = 0
         #1.计算gps距离
+        self.gps_move_flag = False
         self.gps_calculation(self.latitude, self.longitude, self.latitude_drone, self.longitude_drone)
         # rospy.loginfo(f"gps_calculation: {gps_calculation}")
         if self.distance2drone > 1 and self.current_target is None: #gps距离大于2米,通过gps数据大致导航
