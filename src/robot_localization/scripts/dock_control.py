@@ -1797,7 +1797,7 @@ class ArucoDockingController:
                     if(self.process_loading()) == 1:
                         self.state = "IN_DOCK"
                      
-                if self.state == "IN_DOCK" or self.state == "FINISHED_CLEANING" or self.state == "HOLD"
+                if self.state == "IN_DOCK" or self.state == "FINISHED_CLEANING" or self.state == "HOLD":
                     control = self.compose_control(0,0,self.current_yaw,0,1)
                     self.control_pub.publish(control)
                     self.state_pub.publish(self.state)
