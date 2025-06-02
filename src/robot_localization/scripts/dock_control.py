@@ -169,7 +169,7 @@ class ArucoDockingController:
             elif command['action'] == 'move' and self.state == "REMOTE_CONTROL":
                 # 处理遥控移动命令
                 distance = command['distance']
-                target_yaw_diff = command['angle']
+                target_yaw_diff = command['angle']/180*np.pi
                 control = self.compose_control(distance, 0,self.current_yaw, target_yaw_diff, 1)
                 self.control_pub.publish(control)
                 time.sleep(0.1)
