@@ -109,6 +109,7 @@ class ArucoDockingController:
         self.auto_cleaning_flag = True
         self.docking_flag = False
         self.state_change_flag = False
+        self.gps_move_flag = False
 
         
 
@@ -1055,7 +1056,6 @@ class ArucoDockingController:
         if (prepoint[0]*axis[1]-prepoint[1]*axis[0])<0:
             theta2=-theta2
         
-
         if prepoint[0]<0:
             distance=-np.linalg.norm(prepoint)
             # theta1=math.atan(abs(prepoint[1]/prepoint[0]))
@@ -1185,7 +1185,6 @@ class ArucoDockingController:
         return control
 
     def process_searching(self):
-        gps_move_flag = False
         self.update_state()
         control = controlData()
         control.distance = 0
@@ -1193,7 +1192,7 @@ class ArucoDockingController:
         self.gps_calculation(self.latitude, self.longitude, self.latitude_drone, self.longitude_drone)
         # rospy.loginfo(f"gps_calculation: {gps_calculation}")
         if self.distance2drone > 1 and self.current_target is None: #gps距离大于2米,通过gps数据大致导航
-            gps_move_flag = True
+            self.gps_move_flag = True
             rospy.logwarn(f"gps_move:drone_distance: {self.distance2drone} yaw: {self.yaw2drone}")
             
             drone_distance=np.clip(self.distance2drone,0,2)
@@ -1213,18 +1212,19 @@ class ArucoDockingController:
             if self.complete_state==2:
                 control.robot_state = 1
                 self.control_pub.publish(control)
+                time.sleep(0.05)
                 control.robot_state = 2 
                 time.sleep(0.05)
             self.control_pub.publish(control)
-        
             self.control_seq += 1
 
 
         else: #gps距离小于2米,通过aruco数据导航
-            if gps_move_flag == True:
+            if self.gps_move_flag == True:
                 control = self.compose_control(0, 0, self.current_yaw, 0, 1)
                 self.control_pub.publish(control)
                 time.sleep(0.01)
+                self.gps_move_flag = False
             #rospy.loginfo(f'state {self.state}')
             #2.1 执行搜索逻辑,持续20次，1s未检测到marker 进行搜索。
             if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
@@ -1342,20 +1342,26 @@ class ArucoDockingController:
                             if  np.linalg.norm(target_vec)<0.1:
                                 self.target_yaw=0
                         else:
-                            self.target_yaw = 0
-                            control.distance = -100
-                            control.target_yaw = self.yaw_to_target_yaw_angle(0,self.current_yaw)
-                            control.header.stamp = rospy.Time.now()
-                            control.robot_state = 1
-                            self.control_pub.publish(control)
-                            time.sleep(0.05)
-                            control.header.stamp = rospy.Time.now()
-                            control.robot_state = 2 
-                            self.control_pub.publish(control)
-                            self.control_seq += 1
-                            time.sleep(0.05)
-                            self.lock_current=False
-                            return 0
+                            self.target_distance = -np.linalg.norm(target_vec) 
+                            self.target_distance=np.clip(self.target_distance,0,0.2)
+                            self.target_yaw = math.atan2(-target_vec[1], -target_vec[0])
+                            self.target_yaw =np.clip(self.target_yaw,-0.2,0.2)
+                            if  np.linalg.norm(target_vec)<0.1:
+                                self.target_yaw=0
+                            # self.target_yaw = 0
+                            # control.distance = -100
+                            # control.target_yaw = self.yaw_to_target_yaw_angle(0,self.current_yaw)
+                            # control.header.stamp = rospy.Time.now()
+                            # control.robot_state = 1
+                            # self.control_pub.publish(control)
+                            # time.sleep(0.05)
+                            # control.header.stamp = rospy.Time.now()
+                            # control.robot_state = 2 
+                            # self.control_pub.publish(control)
+                            # self.control_seq += 1
+                            # time.sleep(0.05)
+                            # self.lock_current=False
+                            # return 0
                             
                         control.distance = int(self.target_distance*1000)
                         control.target_yaw = self.yaw_to_target_yaw_angle(self.target_yaw,self.current_yaw)
@@ -1365,13 +1371,12 @@ class ArucoDockingController:
                         control.header.stamp = rospy.Time.now()
                         control.header.seq = self.control_seq
                         rospy.loginfo(f'state: {control.robot_state}')
-                        if self.complete_state==2:
+                        if self.complete_state!=2:
                             control.robot_state = 1
-                            control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
                             time.sleep(0.05)
                             control.robot_state = 2 
-                            control.header.stamp = rospy.Time.now()
+
                         self.control_pub.publish(control)
                         # while self.complete_state!=2:
                         #     if self.rc_control == 0:
@@ -1416,9 +1421,9 @@ class ArucoDockingController:
                                 # control.header.stamp = rospy.Time.now()
                                 # self.control_pub.publish(control)
                                 # time.sleep(0.01)
-                                control.robot_state = 2
-                                self.control_seq += 1
-                                self.control_pub.publish(control)
+                                # control.robot_state = 2
+                                # self.control_seq += 1
+                                # self.control_pub.publish(control)
 
                             #return
                         else:
