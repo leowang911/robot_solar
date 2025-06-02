@@ -1424,9 +1424,9 @@ class ArucoDockingController:
                                 # control.header.stamp = rospy.Time.now()
                                 # self.control_pub.publish(control)
                                 # time.sleep(0.01)
-                                # control.robot_state = 2
-                                # self.control_seq += 1
-                                # self.control_pub.publish(control)
+                                control.robot_state = 2
+                                self.control_seq += 1
+                                self.control_pub.publish(control)
 
                             #return
                         else:
