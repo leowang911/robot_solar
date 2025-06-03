@@ -33,7 +33,7 @@ class ArucoDockingController:
         self.offset = rospy.get_param('~offset', 0.025)  # 偏移量（米）
         # self.offset = 0.055
         self.target_distance = 1 # 目标距离（米）
-        self.stop_refine_pose_dlt_y=0.025
+        self.stop_refine_pose_dlt_y=0.0
         self.align_threshold = math.radians(1)  # 航向对准阈值
         self.current_yaw = 0 # 当前航向角
         self.target_yaw = 0# 目标航向角
@@ -56,7 +56,7 @@ class ArucoDockingController:
         self.lock_refine=False
         self.rc_control = 0
         self.search_count = 0
-
+        self.control_device = "rc" # 控制设备，默认为遥控器
         # TF配置
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
@@ -69,6 +69,7 @@ class ArucoDockingController:
         self.complete_state = 0
         self.first_look_flag = False
         self.count = 0
+        
 
         # 存储检测数据（基坐标系）
         self.markers = {
@@ -262,6 +263,7 @@ class ArucoDockingController:
             self.latitude = msg.latitude
             self.longitude = msg.longitude
         self.gps_yaw = math.radians(msg.yaw)
+        self.align_st = msg.align_st
         
 
     def left_cb(self, msg): self.process_marker(msg, 'left')
@@ -1785,85 +1787,128 @@ class ArucoDockingController:
         # rospy.loginfo(f"in_dock_flag: {self.in_dock_flag} docking_flag: {self.docking_flag} rc_control: {self.rc_control}")
         if self.stop_flag == False: #是否进入停止状态
             self.control_seq += 1
-            
-            if self.rc_control != 0:
-                # self.out_dock_flag = False
-                # self.corner_finding_flag = False
-                # self.auto_cleaning_flag = False
-                if self.state == "SEARCH":
-                    self.state_pub.publish(self.state)
-                    if self.state_prev != "SEARCH":
-                        rospy.logwarn("SEARCH")
-                    if(self.process_searching()) == 1:
-                        self.state = "LOADING"
+            if self.control_device == "rc":
 
-                # if self.docking_flag ==False : #todo 
-                    
-                if self.state == "LOADING":
-                    self.state_pub.publish(self.state)
-                    rospy.logwarn("LOADING")
-                    if(self.process_loading()) == 1:
-                        self.state = "IN_DOCK"
-                     
                 if self.state == "IN_DOCK" or self.state == "FINISHED_CLEANING" or self.state == "HOLD":
+                        control = self.compose_control(0,0,self.current_yaw,0,1)
+                        self.control_pub.publish(control)
+                        self.state_pub.publish(self.state)
+                        time.sleep(0.1)
+                        rospy.logwarn("WAITING")
+
+                if self.rc_control == 1:
+                    if self.state == "FINISHED_CLEANING":
+                        self.state = "SEARCH"
+
+                    elif self.state == "SEARCH":
+                        self.state_pub.publish(self.state)
+                        if self.state_prev != "SEARCH":
+                            rospy.logwarn("SEARCH")
+                        if(self.process_searching()) == 1:
+                            self.state = "LOADING"
+
+                    elif self.state == "LOADING":
+                        self.state_pub.publish(self.state)
+                        rospy.logwarn("LOADING")
+                        if(self.process_loading()) == 1:
+                            self.state = "IN_DOCK"
+
+                elif self.rc_control == 2:
+                    if self.state == "IN_DOCK":
+                        self.state = "UNLOADING"
+
+                    elif self.state == 'UNLOADING':
+                        self.state_pub.publish(self.state)
+                        rospy.logwarn("UNLOADING")
+                        if (self.process_unloading())==1:
+                            self.state = "CORNER_FINDING"
+                    
+                    elif self.state == "CORNER_FINDING":
+                        self.state_pub.publish(self.state)
+                        while self.align_st != 4:
+                            count += 1
+                            if count > 20:
+                                rospy.logwarn("not fixed solution")
+                                break
+                                count = 0
+                            rospy.logwarn("Waiting 固定解 ")
+                            time.sleep(0.1)
+                        self.latitude_drone = self.latitude
+                        self.longitude_drone = self.longitude
+                        rospy.logwarn(f"latitude_drone: {self.latitude_drone} longitude_drone: {self.longitude_drone}")
+                        rospy.logwarn("CORNER_FINDING")
+                        if(self.process_corner_finding())==1:
+                            self.state = "AUTO_CLEANING"
+
+                    elif self.state == "AUTO_CLEANING":
+                        # if self.count == 0:
+                        self.state_pub.publish(self.state)
+                        rospy.logwarn("AUTO CLEANING")
+                        if(self.process_cleaning())==1:
+                            self.state = "FINISHED_CLEANING"
+                else:
                     control = self.compose_control(0,0,self.current_yaw,0,1)
                     self.control_pub.publish(control)
-                    self.state_pub.publish(self.state)
-                    time.sleep(0.1)
-                    rospy.logwarn("WAITING")
-
-                # self.in_dock_flag = False
-                
-                if self.state == 'UNLOADING':
-                    # if self.count == 0:
-                    self.state_pub.publish(self.state)
-                    rospy.logwarn("UNLOADING")
-                    if (self.process_unloading())==1:
-                        # self.latitude_drone = self.latitude
-                        # self.longitude_drone = self.longitude
-                        # rospy.logwarn(f"latitude_drone: {self.latitude_drone} longitude_drone: {self.longitude_drone}")
-                        self.state = "CORNER_FINDING"
-                
-                if self.state == "CORNER_FINDING":
-                    # if self.count == 0:
-                    self.state_pub.publish(self.state)
-                    self.latitude_drone = self.latitude
-                    self.longitude_drone = self.longitude
-                    rospy.logwarn(f"latitude_drone: {self.latitude_drone} longitude_drone: {self.longitude_drone}")
-                    rospy.logwarn("CORNER_FINDING")
-                    if(self.process_corner_finding())==1:
-                        self.state = "AUTO_CLEANING"
-                    
-                
-                if self.state == "AUTO_CLEANING":
-                    # if self.count == 0:
-                    self.state_pub.publish(self.state)
-                    rospy.logwarn("AUTO CLEANING")
-                    if(self.process_cleaning())==1:
-                        self.state = "FINISHED_CLEANING"
-
-                # if self.in_dock_flag == False:
-                #     control = controlData()
-                #     control.distance = 0
-                #     control.target_yaw = 0
-                #     control.yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
-                #     control.roller_speed = 0
-                #     control.robot_state = 4
-                #     self.control_pub.publish(control)
-                #     time.sleep(0.01)
-                #     time_current = rospy.Time.now()
-                #     while self.complete_state !=1 and (rospy.Time.now()-time_current).to_sec()<10*60:
-                #         pass
-                #     if self.complete_state == 1:
-                #         self.in_dock_flag = True
-                #         self.count  = 0
-                #     else:
-                #         self.error = 1
-                #     return
-             
             else:
-                control = self.compose_control(0,0,self.current_yaw,0,1)
-                self.control_pub.publish(control)
+                if self.rc_control != 0:
+
+                    if self.state == "SEARCH":
+                        self.state_pub.publish(self.state)
+                        if self.state_prev != "SEARCH":
+                            rospy.logwarn("SEARCH")
+                        if(self.process_searching()) == 1:
+                            self.state = "LOADING"
+                        
+                    if self.state == "LOADING":
+                        self.state_pub.publish(self.state)
+                        rospy.logwarn("LOADING")
+                        if(self.process_loading()) == 1:
+                            self.state = "IN_DOCK"
+                        
+                    if self.state == "IN_DOCK" or self.state == "FINISHED_CLEANING" or self.state == "HOLD":
+                        control = self.compose_control(0,0,self.current_yaw,0,1)
+                        self.control_pub.publish(control)
+                        self.state_pub.publish(self.state)
+                        time.sleep(0.1)
+                        rospy.logwarn("WAITING")
+
+                    
+                    if self.state == 'UNLOADING':
+                        # if self.count == 0:
+                        self.state_pub.publish(self.state)
+                        rospy.logwarn("UNLOADING")
+                        if (self.process_unloading())==1:
+                            self.state = "CORNER_FINDING"
+                    
+                    if self.state == "CORNER_FINDING":
+                        count = 0
+                        self.state_pub.publish(self.state)
+                        while self.align_st != 4:
+                            count += 1
+                            if count > 20:
+                                rospy.logwarn("not fixed solution")
+                                break
+                                count = 0
+                            rospy.logwarn("Waiting 固定解 ")
+                            time.sleep(0.1)
+                        self.latitude_drone = self.latitude
+                        self.longitude_drone = self.longitude
+                        rospy.logwarn(f"latitude_drone: {self.latitude_drone} longitude_drone: {self.longitude_drone}")
+                        rospy.logwarn("CORNER_FINDING")
+                        if(self.process_corner_finding())==1:
+                            self.state = "AUTO_CLEANING"
+                        
+                    
+                    if self.state == "AUTO_CLEANING":
+                        # if self.count == 0:
+                        self.state_pub.publish(self.state)
+                        rospy.logwarn("AUTO CLEANING")
+                        if(self.process_cleaning())==1:
+                            self.state = "FINISHED_CLEANING"
+                
+                else:
+                    control = self.compose_control(0,0,self.current_yaw,0,1)
+                    self.control_pub.publish(control)
                 
         else:
             control = self.compose_control(0,0,self.current_yaw,0,1)
