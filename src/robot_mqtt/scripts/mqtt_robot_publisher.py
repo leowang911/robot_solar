@@ -227,7 +227,7 @@ class MQTTRobotBridge:
             cmdline = proc.info['cmdline']
             if cmdline and (node_name in ' '.join(cmdline)):
                 # rospy.logwarn(f"ROS节点 {node_name} 正在运行，CPU使用率: {proc.info['cpu_percent']}%")
-                if proc.info['cpu_percent'] > 50:
+                if proc.info['cpu_percent'] > 30:
                     return True
                 else:
                     # return True
@@ -380,7 +380,7 @@ class MQTTRobotBridge:
                 self.robot_data_debug[i] = self.robot_data[i]
 
             self.robot_data_debug["camera_node"] = self.is_ros_node_process_running('orbbec')
-            self.robot_data_debug["ip"] = self.get_ppp_ip('ppp0')
+            # self.robot_data_debug["ip"] = self.get_ppp_ip('ppp0')
             payload = json.dumps(self.robot_data)
             payload_debug = json.dumps(self.robot_data_debug)
             self.mqtt_client.publish(self.pub_topic, payload, qos=1)
