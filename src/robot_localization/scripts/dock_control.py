@@ -177,10 +177,13 @@ class ArucoDockingController:
                 time.sleep(0.1)
                 control = self.compose_control(distance, 0,self.current_yaw, target_yaw_diff, 2)
                 self.control_pub.publish(control)
-
-            
-                
-    
+        if command['command'] == 'control_mode':
+            if command['mode'] == 'rc':
+                self.control_device = "rc"
+                rospy.loginfo("切换到遥控器控制模式")
+            elif command['mode'] == 'auto':
+                self.control_device = "auto"
+                rospy.loginfo("切换到自动控制模式")
     
     def depth_cb(self, msg):
         data = np.frombuffer(msg.data, dtype=np.uint16 if msg.is_bigendian else '<u2')
