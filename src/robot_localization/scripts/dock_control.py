@@ -267,6 +267,7 @@ class ArucoDockingController:
             self.longitude = msg.longitude
         self.gps_yaw = math.radians(msg.yaw)
         self.align_st = msg.align_st
+        self.nav_st = msg.nav_st
         
 
     def left_cb(self, msg): self.process_marker(msg, 'left')
@@ -1828,7 +1829,7 @@ class ArucoDockingController:
                     
                     elif self.state == "CORNER_FINDING":
                         self.state_pub.publish(self.state)
-                        while self.align_st != 4:
+                        while self.nav_st != 4:
                             count += 1
                             if count > 20:
                                 rospy.logwarn("not fixed solution")
@@ -1886,7 +1887,7 @@ class ArucoDockingController:
                     if self.state == "CORNER_FINDING":
                         count = 0
                         self.state_pub.publish(self.state)
-                        while self.align_st != 4:
+                        while self.nav_st != 4:
                             count += 1
                             if count > 20:
                                 rospy.logwarn("not fixed solution")
