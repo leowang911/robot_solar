@@ -344,7 +344,7 @@ class MQTTRobotBridge:
             "y": msg.gyro_y,
             "z": msg.gyro_z
         }
-        self.robot_data_debug['align_st'] = msg.align_st
+        # self.robot_data_debug['align_st'] = msg.align_st
         self.robot_data_debug['nav_st'] = msg.nav_st
 
 
