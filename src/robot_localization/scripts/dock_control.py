@@ -1833,8 +1833,8 @@ class ArucoDockingController:
                             count += 1
                             if count > 20:
                                 rospy.logwarn("not fixed solution")
-                                break
                                 count = 0
+                                break
                             rospy.logwarn("Waiting 固定解 ")
                             time.sleep(0.1)
                         self.latitude_drone = self.latitude
