@@ -1829,14 +1829,14 @@ class ArucoDockingController:
                     
                     elif self.state == "CORNER_FINDING":
                         self.state_pub.publish(self.state)
-                        while self.nav_st != 4:
-                            count += 1
-                            if count > 20:
-                                rospy.logwarn("not fixed solution")
-                                count = 0
-                                break
-                            rospy.logwarn("Waiting 固定解 ")
-                            time.sleep(0.1)
+                        # while self.nav_st != 4:
+                        #     count += 1
+                        #     if count > 20:
+                        #         rospy.logwarn("not fixed solution")
+                        #         count = 0
+                        #         break
+                        #     rospy.logwarn("Waiting 固定解 ")
+                        #     time.sleep(0.1)
                         self.latitude_drone = self.latitude
                         self.longitude_drone = self.longitude
                         rospy.logwarn(f"latitude_drone: {self.latitude_drone} longitude_drone: {self.longitude_drone}")
