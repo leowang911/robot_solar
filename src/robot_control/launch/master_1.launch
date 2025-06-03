@@ -6,7 +6,7 @@
     <arg name="connection_delay" default="100"/>
     <arg name="log_level" default="none"/>
     <arg name="publish_tf" default="true"/>
-    <arg name="tf_publish_rate" default="0.0"/>
+    <arg name="tf_publish_rate" default="30.0"/>
     <arg name="enable_frame_sync" default="true"/>
     <arg name="time_domain" default="global"/><!-- "device", "global", "system" -->
     <arg name="enable_sync_host_time" default="true"/>
@@ -51,7 +51,7 @@
     <arg name="depth_width" default="0"/>
     <arg name="depth_height" default="0"/>
     <arg name="depth_fps" default="0"/>
-    <arg name="enable_depth" default="false"/>
+    <arg name="enable_depth" default="true"/>
     <arg name="depth_format" default="Y16"/>
     <arg name="depth_registration" default="true"/>
     <!-- depth rotation degree : 0, 90, 180, 270 -->
@@ -137,8 +137,8 @@
     <arg name="device_num" default="1"/>
 
     <arg name="retry_on_usb3_detection_failure" default="false"/>
-    <arg name="enable_d2c_viewer" default="true"/>
-    <arg name="laser_energy_level" default="-1"/>   
+    <arg name="enable_d2c_viewer" default="false"/>
+    <arg name="laser_energy_level" default="-1"/>
     <arg name="enable_ldp" default="true"/>
     <arg name="enable_heartbeat" default="false"/>
     <arg name="enable_hardware_reset" default="false"/>
