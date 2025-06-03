@@ -441,6 +441,8 @@ class MQTTRobotBridge:
                 self._handle_route_command(command)
             elif cmd_type == "newID":
                 self._handle_newID_command(command)
+            elif cmd_type == "debug":
+                self.debug_flag == True
             else:
                 rospy.logwarn(f"Unknown command type: {cmd_type}")
 
