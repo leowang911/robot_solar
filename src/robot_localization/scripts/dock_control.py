@@ -33,7 +33,7 @@ class ArucoDockingController:
         self.offset = rospy.get_param('~offset', 0.025)  # 偏移量（米）
         # self.offset = 0.055
         self.target_distance = 1 # 目标距离（米）
-        self.stop_refine_pose_dlt_y=0.0
+        self.stop_refine_pose_dlt_y=0.03
         self.align_threshold = math.radians(1)  # 航向对准阈值
         self.current_yaw = 0 # 当前航向角
         self.target_yaw = 0# 目标航向角
