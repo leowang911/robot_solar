@@ -1893,11 +1893,10 @@ class ArucoDockingController:
                         self.state_pub.publish(self.state)
                         while self.nav_st != 4:
                             count_nav += 1
-                            if count_nav > 20:
+                            if count_nav > 600:
                                 rospy.logwarn("no fixed solution")
                                 count_nav = 0
-                                break
-                                
+                                self.error = 1
                             rospy.logwarn("Waiting 固定解 ")
                             time.sleep(0.1)
                         self.latitude_drone = self.latitude
