@@ -392,7 +392,7 @@ class MQTTRobotBridge:
             rospy.logerr(f"MQTT publish error: {str(e)}")
 
     def run(self):
-        rate = rospy.Rate(1/5)  # 发布频率5s一次
+        rate = rospy.Rate(1)  # 发布频率5s一次
         while not rospy.is_shutdown():
             self.publish_robot_status()
             rate.sleep()
