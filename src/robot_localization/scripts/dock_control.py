@@ -1759,21 +1759,21 @@ class ArucoDockingController:
         # and (rospy.Time.now()-time_current).to_sec()<10*60:
             pass
         
-        if self.complete_state == 8:
-            self.auto_cleaning_flag = True
-            self.count  = 0
-            # while self.rc_control != 1:
-            #     if self.rc_control == 0:
-            #         rospy.logwarn("rc_control == 0")
-            #         return 1
-            control = self.compose_control(0,0,self.current_yaw,0,1)
-            self.control_pub.publish(control)
-            time.sleep(0.1)
-                # pass
-            return 1
+        # if self.complete_state == 8:
+        self.auto_cleaning_flag = True
+        self.count  = 0
+        # while self.rc_control != 1:
+        #     if self.rc_control == 0:
+        #         rospy.logwarn("rc_control == 0")
+        #         return 1
+        control = self.compose_control(0,0,self.current_yaw,0,1)
+        self.control_pub.publish(control)
+        time.sleep(0.1)
+            # pass
+        return 1
 
-        else:
-            self.error = 1
+        # else:
+        #     self.error = 1
 
 
 
@@ -1829,20 +1829,23 @@ class ArucoDockingController:
                     
                     elif self.state == "CORNER_FINDING":
                         self.state_pub.publish(self.state)
-                        # while self.nav_st != 4:
-                        #     count += 1
-                        #     if count > 20:
-                        #         rospy.logwarn("not fixed solution")
-                        #         count = 0
-                        #         break
-                        #     rospy.logwarn("Waiting 固定解 ")
-                        #     time.sleep(0.1)
+                        count_nav = 0
+                        self.state_pub.publish(self.state)
+                        while self.nav_st != 4:
+                            count_nav += 1
+                            if count_nav > 20:
+                                rospy.logwarn("no fixed solution")
+                                count_nav = 0
+                                break
+                            rospy.logwarn("Waiting 固定解 ")
+                            time.sleep(0.1)
                         self.latitude_drone = self.latitude
                         self.longitude_drone = self.longitude
                         rospy.logwarn(f"latitude_drone: {self.latitude_drone} longitude_drone: {self.longitude_drone}")
                         rospy.logwarn("CORNER_FINDING")
                         if(self.process_corner_finding())==1:
                             self.state = "AUTO_CLEANING"
+                            time.sleep(0.1)
 
                     elif self.state == "AUTO_CLEANING":
                         # if self.count == 0:
@@ -1850,6 +1853,7 @@ class ArucoDockingController:
                         rospy.logwarn("AUTO CLEANING")
                         if(self.process_cleaning())==1:
                             self.state = "FINISHED_CLEANING"
+                            time.sleep(0.1)
                 else:
                     control = self.compose_control(0,0,self.current_yaw,0,1)
                     self.control_pub.publish(control)
@@ -1885,14 +1889,15 @@ class ArucoDockingController:
                             self.state = "CORNER_FINDING"
                     
                     if self.state == "CORNER_FINDING":
-                        count = 0
+                        count_nav = 0
                         self.state_pub.publish(self.state)
                         while self.nav_st != 4:
-                            count += 1
-                            if count > 20:
-                                rospy.logwarn("not fixed solution")
+                            count_nav += 1
+                            if count_nav > 20:
+                                rospy.logwarn("no fixed solution")
+                                count_nav = 0
                                 break
-                                count = 0
+                                
                             rospy.logwarn("Waiting 固定解 ")
                             time.sleep(0.1)
                         self.latitude_drone = self.latitude
