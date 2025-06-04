@@ -69,7 +69,7 @@ class ArucoDockingController:
         self.complete_state = 0
         self.first_look_flag = False
         self.count = 0
-        
+        self.out_dock_yaw = 0.0  # 出坞时的航向角
 
         # 存储检测数据（基坐标系）
         self.markers = {
@@ -1203,6 +1203,9 @@ class ArucoDockingController:
             rospy.logwarn(f"gps_move:drone_distance: {self.distance2drone} yaw: {self.yaw2drone}")
             
             drone_distance=np.clip(self.distance2drone,0,2)
+            if drone_distance < 1.5:
+                drone_distance = 0
+
             control.distance = np.uint16((drone_distance)*1000)
             
             # rospy.loginfo(f"gps_yaw: {self.yaw_to_target_yaw_angle(self.yaw2drone, 0)}")
@@ -1899,6 +1902,7 @@ class ArucoDockingController:
                                 self.error = 1
                             rospy.logwarn("Waiting 固定解 ")
                             time.sleep(0.1)
+                        self.out_dock_yaw = self.current_yaw
                         self.latitude_drone = self.latitude
                         self.longitude_drone = self.longitude
                         rospy.logwarn(f"latitude_drone: {self.latitude_drone} longitude_drone: {self.longitude_drone}")
