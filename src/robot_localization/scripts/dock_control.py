@@ -1348,14 +1348,14 @@ class ArucoDockingController:
                         rospy.loginfo(f"complete_state: {self.complete_state}")
                         if target_vec[0]>0:
                             self.target_distance = np.linalg.norm(target_vec) 
-                            self.target_distance=np.clip(self.target_distance,0,0.2)
+                            self.target_distance=np.clip(self.target_distance,-0.2,0.2)
                             self.target_yaw = math.atan2(target_vec[1], target_vec[0])
                             self.target_yaw =np.clip(self.target_yaw,-0.2,0.2)
                             if  np.linalg.norm(target_vec)<0.1:
                                 self.target_yaw=0
                         else:
                             self.target_distance = -np.linalg.norm(target_vec) 
-                            self.target_distance=np.clip(self.target_distance,0,0.2)
+                            self.target_distance=np.clip(self.target_distance,-0.2,0.2)
                             self.target_yaw = math.atan2(-target_vec[1], -target_vec[0])
                             self.target_yaw =np.clip(self.target_yaw,-0.2,0.2)
                             if  np.linalg.norm(target_vec)<0.1:
@@ -1840,6 +1840,9 @@ class ArucoDockingController:
                                 rospy.logwarn("no fixed solution")
                                 count_nav = 0
                                 self.error = 1
+                            if self.rc_control == 0 or self.state_change_flag==True:
+                                rospy.logwarn("interrupted")
+                                break
                             rospy.logwarn("Waiting 固定解 ")
                             time.sleep(0.1)
                         self.latitude_drone = self.latitude
