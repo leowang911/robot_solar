@@ -1876,52 +1876,17 @@ class ArucoDockingController:
                 if self.rc_control == 1:
                     self.state == "HOLD"
 
-                    if self.state == "FINISHED_CLEANING":
-                        self.state = "SEARCH"
-
-                    elif self.state == "SEARCH":
-                        self.state_pub.publish(self.state)
-                        if self.state_prev != "SEARCH":
-                            rospy.logwarn("SEARCH")
-                        if(self.process_searching()) == 1:
-                            self.state = "LOADING"
-
-                    elif self.state == "LOADING":
-                        self.state_pub.publish(self.state)
-                        rospy.logwarn("LOADING")
-                        if(self.process_loading()) == 1:
-                            self.state = "IN_DOCK"
-
                 elif self.rc_control == 2:
 
                     if self.state == "IN_DOCK" or "HOLD":
                         rospy.logwarn("IN_DOCK or HOLD")
                         self.state = "CORNER_FINDING"
-
-                    elif self.state == 'UNLOADING':
-                        self.state_pub.publish(self.state)
-                        rospy.logwarn("UNLOADING")
-                        if (self.process_unloading())==1:
-                            self.state = "CORNER_FINDING"
+                        time.sleep(0.1)
                     
                     elif self.state == "CORNER_FINDING":
                         self.state_pub.publish(self.state)
                         count_nav = 0
                         self.state_pub.publish(self.state)
-                        # while self.nav_st != 4:
-                        #     count_nav += 1
-                        #     if count_nav > 600:
-                        #         rospy.logwarn("no fixed solution")
-                        #         count_nav = 0
-                        #         self.error = 1
-                        #     if self.rc_control == 0 or self.state_change_flag==True:
-                        #         rospy.logwarn("interrupted")
-                        #         break
-                        #     rospy.logwarn("Waiting 固定解 ")
-                        #     time.sleep(0.1)
-                        # self.latitude_drone = self.latitude
-                        # self.longitude_drone = self.longitude
-                        # rospy.logwarn(f"latitude_drone: {self.latitude_drone} longitude_drone: {self.longitude_drone}")
                         rospy.logwarn("CORNER_FINDING")
                         if(self.process_corner_finding())==1:
                             self.state = "AUTO_CLEANING"
