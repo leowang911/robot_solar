@@ -1871,7 +1871,7 @@ class ArucoDockingController:
                     self.state == "HOLD"
 
                 elif self.rc_control == 2:
-
+                    self.state = "CORNER_FINDING"
                     if self.state == "IN_DOCK" or "HOLD":
                         rospy.logwarn("IN_DOCK or HOLD")
                         self.state = "CORNER_FINDING"
