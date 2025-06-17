@@ -1877,7 +1877,7 @@ class ArucoDockingController:
                         self.state = "CORNER_FINDING"
                         time.sleep(0.1)
                     
-                    elif self.state == "CORNER_FINDING":
+                    if self.state == "CORNER_FINDING":
                         self.state_pub.publish(self.state)
                         count_nav = 0
                         self.state_pub.publish(self.state)
@@ -1886,7 +1886,7 @@ class ArucoDockingController:
                             self.state = "AUTO_CLEANING"
                             time.sleep(0.1)
 
-                    elif self.state == "AUTO_CLEANING":
+                    if self.state == "AUTO_CLEANING":
                         # if self.count == 0:
                         self.state_pub.publish(self.state)
                         rospy.logwarn("AUTO CLEANING")
