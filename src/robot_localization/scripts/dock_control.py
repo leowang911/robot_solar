@@ -1865,7 +1865,7 @@ class ArucoDockingController:
                     self.control_pub.publish(control)
             
             if self.control_device == "rc_test":
-
+                rospy.logwarn(f"rc_control: {self.rc_control} state: {self.state} state_prev: {self.state_prev}")
                 if self.rc_control == 1:
                     rospy.logwarn("RC_CONTROL 1")
                     self.state == "HOLD"
