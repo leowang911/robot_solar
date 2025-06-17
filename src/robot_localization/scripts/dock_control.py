@@ -1866,13 +1866,6 @@ class ArucoDockingController:
             
             if self.control_device == "rc_test":
 
-                if self.state == "IN_DOCK" or self.state == "FINISHED_CLEANING" or self.state == "HOLD":
-                        control = self.compose_control(0,0,self.current_yaw,0,1)
-                        self.control_pub.publish(control)
-                        self.state_pub.publish(self.state)
-                        time.sleep(0.1)
-                        rospy.logwarn("WAITING")
-
                 if self.rc_control == 1:
                     self.state == "HOLD"
 
@@ -1902,7 +1895,14 @@ class ArucoDockingController:
                 else:
                     control = self.compose_control(0,0,self.current_yaw,0,1)
                     self.control_pub.publish(control)
-            
+
+                if self.state == "IN_DOCK" or self.state == "FINISHED_CLEANING" or self.state == "HOLD":
+                        control = self.compose_control(0,0,self.current_yaw,0,1)
+                        self.control_pub.publish(control)
+                        self.state_pub.publish(self.state)
+                        time.sleep(0.1)
+                        rospy.logwarn("WAITING")
+
             else:
                 if self.rc_control != 0:
 
