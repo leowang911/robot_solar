@@ -431,13 +431,13 @@
      </node> -->
 
 
-    <node pkg="robot_mqtt" type="mqtt_robot_publisher.py" name="mqtt_sub_node">
+    <!-- <node pkg="robot_mqtt" type="mqtt_robot_publisher.py" name="mqtt_sub_node">
         <param name="mqtt_broker" value="haf6061f.ala.cn-hangzhou.emqxsl.cn"/>
         <param name="mqtt_port" value="8883"/>
         <param name="mqtt_user" value="giifen"/>
         <param name="mqtt_password" value="20230810"/>
         <param name="robot_id" value="GFSTJM120250301"/>
-        </node>
+        </node> -->
 
     <!-- <node pkg="robot_mqtt" type="test_data_publisher.py" name="mqtt_pub_node">
         </node> -->
