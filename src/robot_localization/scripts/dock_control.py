@@ -1818,8 +1818,8 @@ class ArucoDockingController:
                         if(self.process_corner_finding())==1:
                             self.state = "AUTO_CLEANING"
                             time.sleep(0.1)
-                        else:
-                            self.state = "HOLD"
+                        # else:
+                        #     self.state = "HOLD"
 
                 if self.state == "AUTO_CLEANING":
                         # if self.count == 0:
