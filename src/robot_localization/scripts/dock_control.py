@@ -247,7 +247,7 @@ class ArucoDockingController:
         self.distance_base = msg.distance
         self.sensor_state = msg.sensor_state
         self.complete_state = msg.complete_state
-        self.rc_control_prev = self.rc_control
+        # self.rc_control_prev = self.rc_control
         self.rc_control = msg.rc_state
         # self.battery = msg.battery # 电池电量(todo)
 
@@ -1799,56 +1799,43 @@ class ArucoDockingController:
             if self.control_device == "rc_test":
                 # rospy.logwarn(f"rc_control: {self.rc_control} state: {self.state} state_prev: {self.state_prev}")
                 if self.rc_control == 1:
-                    if self.state == "IN_DOCK" or "HOLD":
+                    if self.state != "AUTO_CLEANING" and self.state != "FININSHED_CLEANING":
                         self.state == "CORNER_FINDING"
-                    
-                    if self.state == "CORNER_FINDING":
-                        self.state_pub.publish(self.state)
-                        count_nav = 0
-                        self.state_pub.publish(self.state)
-                        rospy.logwarn("CORNER_FINDING")
-                        if(self.process_corner_finding())==1:
-                            self.state = "AUTO_CLEANING"
-                            time.sleep(0.1)
-
-                    if self.state == "AUTO_CLEANING":
-                        # if self.count == 0:
-                        self.state_pub.publish(self.state)
-                        rospy.logwarn("AUTO CLEANING")
-                        if(self.process_cleaning())==1:
-                            self.state = "FININSHED_CLEANING"
-                            time.sleep(0.1)
 
                 elif self.rc_control == 2:
-                    if self.state == "IN_DOCK" or "HOLD" or "CORNER_FINDING":
-                        self.state = "AUTO_CLEANING"
-                    
-                    if self.state == "CORNER_FINDING":
-                        self.state_pub.publish(self.state)
-                        rospy.logwarn("CORNER_FINDING")
-                        if(self.process_corner_finding())==1:
-                            self.state = "AUTO_CLEANING"
-                            time.sleep(0.1)
-
-                    if self.state == "AUTO_CLEANING":
-                        # if self.count == 0:
-                        self.state_pub.publish(self.state)
-                        rospy.logwarn("AUTO CLEANING")
-                        if(self.process_cleaning())==1:
-                            self.state = "FININSHED_CLEANING"
-                            time.sleep(0.1)
+                    if self.state != "AUTO_CLEANING" and self.state != "FININSHED_CLEANING":
+                        self.state = "AUTO_CLEANING"  
 
                 elif self.rc_control == 0:
                     self.state = "HOLD"
-                    control = self.compose_control(0,0,self.current_yaw,0,1)
-                    self.control_pub.publish(control)
+                    # control = self.compose_control(0,0,self.current_yaw,0,1)
+                    # self.control_pub.publish(control)
 
-                # if self.state == "IN_DOCK" or self.state == "FINISHED_CLEANING" or self.state == "HOLD":
-                #         control = self.compose_control(0,0,self.current_yaw,0,1)
-                #         self.control_pub.publish(control)
-                #         self.state_pub.publish(self.state)
-                #         time.sleep(0.1)
-                #         rospy.logwarn("WAITING")
+                if self.state == "CORNER_FINDING":
+                        self.state_pub.publish(self.state)
+                        rospy.logwarn("CORNER_FINDING")
+                        if(self.process_corner_finding())==1:
+                            self.state = "AUTO_CLEANING"
+                            time.sleep(0.1)
+                        else:
+                            self.state = "HOLD"
+
+                if self.state == "AUTO_CLEANING":
+                        # if self.count == 0:
+                        self.state_pub.publish(self.state)
+                        rospy.logwarn("AUTO CLEANING")
+                        if(self.process_cleaning())==1:
+                            self.state = "FININSHED_CLEANING"
+                            time.sleep(0.1)
+                        else:
+                            self.state = "HOLD"
+
+                if self.state == "IN_DOCK" or self.state == "FINISHED_CLEANING" or self.state == "HOLD":
+                        control = self.compose_control(0,0,self.current_yaw,0,1)
+                        self.control_pub.publish(control)
+                        self.state_pub.publish(self.state)
+                        time.sleep(0.1)
+                        rospy.logwarn("WAITING")
             
         else:
             control = self.compose_control(0,0,self.current_yaw,0,1)
