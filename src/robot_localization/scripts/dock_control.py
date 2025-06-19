@@ -1799,7 +1799,7 @@ class ArucoDockingController:
             if self.control_device == "rc_test":
                 # rospy.logwarn(f"rc_control: {self.rc_control} state: {self.state} state_prev: {self.state_prev}")
                 if self.rc_control == 1:
-                    if self.state != "AUTO_CLEANING" and self.state != "CORNER_FINDING" and self.state != "FININSHED_CLEANING":
+                    if self.state != "CORNER_FINDING" and self.state != "FININSHED_CLEANING":
                         self.state == "CORNER_FINDING"
 
                 elif self.rc_control == 2:
