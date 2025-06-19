@@ -1796,11 +1796,12 @@ class ArucoDockingController:
         # rospy.loginfo(f"in_dock_flag: {self.in_dock_flag} docking_flag: {self.docking_flag} rc_control: {self.rc_control}")
         if self.stop_flag == False: #是否进入停止状态
             self.control_seq += 1
-            if self.control_device == "rc_test":
+            if True:
                 # rospy.logwarn(f"rc_control: {self.rc_control} state: {self.state} state_prev: {self.state_prev}")
                 if self.rc_control == 1:
                     if self.state != "CORNER_FINDING" and self.state != "FININSHED_CLEANING":
                         self.state == "CORNER_FINDING"
+                        rospy.logwarn("CORNER_FINDING")
 
                 elif self.rc_control == 2:
                     if self.state != "AUTO_CLEANING" and self.state != "FININSHED_CLEANING":
