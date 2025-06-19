@@ -1825,10 +1825,6 @@ class ArucoDockingController:
                 elif self.rc_control == 2:
                     if self.state == "IN_DOCK" or "HOLD":
                         self.state = "AUTO_CLEANING"
-                    if self.state == "IN_DOCK" or "HOLD":
-                        rospy.logwarn("IN_DOCK or HOLD")
-                        self.state = "CORNER_FINDING"
-                        time.sleep(0.1)
                     
                     if self.state == "CORNER_FINDING":
                         self.state_pub.publish(self.state)
