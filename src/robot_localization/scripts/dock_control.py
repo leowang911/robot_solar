@@ -1828,8 +1828,8 @@ class ArucoDockingController:
                         if(self.process_cleaning())==1:
                             self.state = "FININSHED_CLEANING"
                             time.sleep(0.1)
-                        else:
-                            self.state = "HOLD"
+                        # else:
+                        #     self.state = "HOLD"
 
                 if self.state == "IN_DOCK" or self.state == "FINISHED_CLEANING" or self.state == "HOLD":
                         control = self.compose_control(0,0,self.current_yaw,0,1)
