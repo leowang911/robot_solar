@@ -55,6 +55,7 @@ class ArucoDockingController:
         self.lock_current=False
         self.lock_refine=False
         self.rc_control = 0
+        self.rc_control_prev = 0
         self.search_count = 0
         self.control_device = "rc_test" # 控制设备，默认为遥控器
         # TF配置
@@ -134,7 +135,7 @@ class ArucoDockingController:
         rospy.Subscriber("/camera/aruco_103/pose", PoseStamped, self.center_left_cb)
         rospy.Subscriber("/camera/aruco_104/pose", PoseStamped, self.center_right_cb)
         rospy.Subscriber("/camera/depth/image_raw", Image, self.depth_cb)
-        rospy.Subscriber("/mqtt_received",String, self.mqtt_cb)
+        # rospy.Subscriber("/mqtt_received",String, self.mqtt_cb)
         
         # rospy.Subscriber("/virtual_marker_102/pose", PoseStamped, self.center_cb)
         # rospy.Subscriber("/virtual_markers", PoseArray, self.markers_cb)
@@ -246,6 +247,7 @@ class ArucoDockingController:
         self.distance_base = msg.distance
         self.sensor_state = msg.sensor_state
         self.complete_state = msg.complete_state
+        self.rc_control_prev = self.rc_control
         self.rc_control = msg.rc_state
         # self.battery = msg.battery # 电池电量(todo)
 
@@ -1799,11 +1801,6 @@ class ArucoDockingController:
                 if self.rc_control == 1:
                     if self.state == "IN_DOCK" or "HOLD":
                         self.state == "CORNER_FINDING"
-
-                    if self.state == "IN_DOCK" or "HOLD":
-                        rospy.logwarn("IN_DOCK or HOLD")
-                        self.state = "CORNER_FINDING"
-                        time.sleep(0.1)
                     
                     if self.state == "CORNER_FINDING":
                         self.state_pub.publish(self.state)
@@ -1823,7 +1820,7 @@ class ArucoDockingController:
                             time.sleep(0.1)
 
                 elif self.rc_control == 2:
-                    if self.state == "IN_DOCK" or "HOLD":
+                    if self.state == "IN_DOCK" or "HOLD" or "CORNER_FINDING":
                         self.state = "AUTO_CLEANING"
                     
                     if self.state == "CORNER_FINDING":
@@ -1840,17 +1837,18 @@ class ArucoDockingController:
                         if(self.process_cleaning())==1:
                             self.state = "FININSHED_CLEANING"
                             time.sleep(0.1)
-                else:
+
+                elif self.rc_control == 0:
                     self.state = "HOLD"
                     control = self.compose_control(0,0,self.current_yaw,0,1)
                     self.control_pub.publish(control)
 
-                if self.state == "IN_DOCK" or self.state == "FINISHED_CLEANING" or self.state == "HOLD":
-                        control = self.compose_control(0,0,self.current_yaw,0,1)
-                        self.control_pub.publish(control)
-                        self.state_pub.publish(self.state)
-                        time.sleep(0.1)
-                        rospy.logwarn("WAITING")
+                # if self.state == "IN_DOCK" or self.state == "FINISHED_CLEANING" or self.state == "HOLD":
+                #         control = self.compose_control(0,0,self.current_yaw,0,1)
+                #         self.control_pub.publish(control)
+                #         self.state_pub.publish(self.state)
+                #         time.sleep(0.1)
+                #         rospy.logwarn("WAITING")
             
         else:
             control = self.compose_control(0,0,self.current_yaw,0,1)
