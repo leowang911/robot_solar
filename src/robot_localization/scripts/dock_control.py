@@ -1824,7 +1824,8 @@ class ArucoDockingController:
                         self.state = "AUTO_CLEANING"  
 
                 else:
-                    self.state = "HOLD"
+                    1
+                    # self.state = "HOLD"
                     # control = self.compose_control(0,0,self.current_yaw,0,1)
                     # self.control_pub.publish(control)
 
