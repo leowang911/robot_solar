@@ -9,14 +9,16 @@ from robot_control.msg import controlData  # 根据实际包名调整
 import numpy as np
 from std_srvs.srv import Trigger, TriggerResponse
 import time
+import can
 
 class BaseSerialNode:
     def __init__(self):
         rospy.init_node('base_serial_node')
 
         # 参数配置
-        self.port = rospy.get_param('~port', '/dev/baseSerial')
-        self.baudrate = rospy.get_param('~baudrate', 115200)
+        self.frame_part1 = None  # 存储第一次接收到的8字节
+        self.frame_part2 = None  # 存储第二次接收到的5字节 共13字节   发14字节
+
         self.angle_dir = rospy.get_param('~angle_dir', -1)
         self.rx_frame_length = 14       # 接收帧长度
         self.tx_frame_length = 13       # 发送帧长度
@@ -35,7 +37,16 @@ class BaseSerialNode:
         self.distance_prev = 0
         self.robot_state_prev = 1
         self.voltage = 0
-        self.last_tx_data = None
+        # self.last_tx_data = None
+        self.last_tx_data = {
+            'distance': 10,
+            'target_yaw': 20,
+            'roller_speed': 30,
+            'yaw':66,
+            'robot_state': 1,
+            'voltage': 15,
+            'error': 0
+        }
         self.last_tx_data_prev = {
             'distance': 0,
             'target_yaw': 0,
@@ -48,7 +59,7 @@ class BaseSerialNode:
 
         # 初始化串口
         self.ser = None
-        self.init_serial()
+        # self.init_serial()
 
         # 发布接收数据
         self.wheel_pub = rospy.Publisher('base_status', baseStatus, queue_size=10)
@@ -69,27 +80,56 @@ class BaseSerialNode:
         self.handle_reboot # 处理函数
         )
 
+        # 初始化CAN接口
+        self.init_can()
+
+    def init_can(self):
+        """初始化CAN接口"""
+        try:
+            self.bus = can.interface.Bus(channel='vcan0', interface='socketcan')
+            rospy.loginfo("Connected to CAN interface on channel 'can0'")
+        except Exception as e:
+            rospy.logerr(f"CAN interface error: {e}")
+            rospy.signal_shutdown("CAN interface init failed")
     def inspvae_cb(self, msg):
         # self.latitude = msg.latitude
         # self.longitude = msg.longitude
         self.current_yaw = math.radians(msg.yaw)
     
+    def process_data(self, msg):
+        # 确保数据是有效的
+        # if msg.data[0] != 0xAA or len(msg.data) not in [8, 5]:
+        if len(msg.data) not in [8, 5]:
+            rospy.logwarn("Invalid frame or wrong data length")
+            return None
+        if msg.arbitration_id != 0x123:  # 根据实际的CAN ID进行检查
+            rospy.logwarn(f"Unknown CAN frame ID: {msg.arbitration_id.hex()}")
+            return None
+        # 分别处理第一次和第二次接收到的数据
+        if len(msg.data) == 8:
+            self.frame_part1 = msg.data
+        elif len(msg.data) == 5:
+            self.frame_part2 = msg.data
+        
+        # 当两部分数据都接收到时，合并它们并开始解析
+        if self.frame_part1 and self.frame_part2:
+            full_data = self.frame_part1 + self.frame_part2  # 合并两部分数据
+            # 重置数据部分
+            self.frame_part1 = None
+            self.frame_part2 = None
+            print(f"Received full data: {full_data.hex()}")
+            # 校验和检查
+            print(f"Checksum: {full_data[12]}, Calculated: {sum(full_data[:12]) & 0xFF}")
+            self.parse_can_frame(full_data)
+            # if full_data[12] != sum(full_data[:12]) & 0xFF:
+            #     rospy.logwarn("Checksum error")
+            #     return None
+            # else:
+               
+           
 
-    def init_serial(self):
-        """初始化串口连接"""
-        try:
-            self.ser = serial.Serial(
-                port=self.port,
-                baudrate=self.baudrate,
-                bytesize=serial.EIGHTBITS,
-                parity=serial.PARITY_NONE,
-                stopbits=serial.STOPBITS_ONE,
-                timeout=0.1  # 设置适当的超时时间
-            )
-            rospy.loginfo(f"Connected to {self.port} at {self.baudrate} baud")
-        except serial.SerialException as e:
-            rospy.logerr(f"Serial port error: {e}")
-            rospy.signal_shutdown("Serial port init failed")
+
+
 
     def control_data_callback(self, msg):
         """速度指令回调"""
@@ -102,34 +142,34 @@ class BaseSerialNode:
         }
         # rospy.logwarning(f'yaw: {self.current_yaw}')
 
-    def parse_rx_frame(self, data):
-        """解析接收数据帧"""
-        try:
-            if data[0] != 0xAA or len(data) != self.rx_frame_length or data[13] != sum(data[:13]) & 0xFF:
-                rospy.logwarn("Invalid frame or checksum error")
-                return None
+    # def parse_rx_frame(self, data):
+    #     """解析接收数据帧"""
+    #     try:
+    #         if data[0] != 0xAA or len(data) != self.rx_frame_length or data[13] != sum(data[:13]) & 0xFF:
+    #             rospy.logwarn("Invalid frame or checksum error")
+    #             return None
             
-            # 解析各字段（大端序）
-            self.speed = struct.unpack('>h', data[1:3])[0]
-            self.distance = struct.unpack('>i', data[3:7])[0]
-            self.sensor_state = data[7]
-            self.complete_state = data[9]     ####初始设置为1
-            self.rc_state = data[10]
-            self.voltage = data[11]
-            self.error = data[12]
-            return {
-                'speed': self.speed,
-                'distance': self.distance,
-                'sensor_state': self.sensor_state,
-                'complete_state': self.complete_state,
-                'rc_state': self.rc_state,
-                'voltage': self.voltage,
-                'error': self.error
-            }
+    #         # 解析各字段（大端序）
+    #         self.speed = struct.unpack('>h', data[1:3])[0]
+    #         self.distance = struct.unpack('>i', data[3:7])[0]
+    #         self.sensor_state = data[7]
+    #         self.complete_state = data[9]     ####初始设置为1
+    #         self.rc_state = data[10]
+    #         self.voltage = data[11]
+    #         self.error = data[12]
+    #         return {
+    #             'speed': self.speed,
+    #             'distance': self.distance,
+    #             'sensor_state': self.sensor_state,
+    #             'complete_state': self.complete_state,
+    #             'rc_state': self.rc_state,
+    #             'voltage': self.voltage,
+    #             'error': self.error
+    #         }
 
-        except Exception as e:
-            rospy.logerr(f"Parse error: {e}")
-            return None
+    #     except Exception as e:
+    #         rospy.logerr(f"Parse error: {e}")
+    #         return None
         
     def yaw_to_target_yaw_angle(self, yaw, current_yaw):
         """将航向角转换为控制角度"""
@@ -200,62 +240,151 @@ class BaseSerialNode:
             )
 
 
+    # def create_tx_frame(self, data):
+    #     """创建发送数据帧"""
+    #     if data is None:
+    #         return None
+
+    #     state = data.get('robot_state', 0x00)
+
+    #     # if self.rc_state_prev != 2 and self.rc_state == 2:
+    #     #     self.last_tx_data_prev = data
+    #     #     state = 0x01
+
+    #     if self.complete_state != 0 or state == 0x01:
+    #         self.last_tx_data_prev = data
+
+    #     # if state == 0x02 and self.complete_state_prev == 0 and self.complete_state ==1:
+    #     #     self.last_tx_data_prev = data
+    #     #     # rospy.loginfo("robot_state: 0x02, complete_state_prev: 0, complete_state: 1")
+    #     #     state = 0x01
+ 
+    #     tx_distance = int(self.last_tx_data_prev.get('distance', 0.0))
+    #     tx_target_yaw = np.int16(self.last_tx_data_prev.get('target_yaw', 0.0))
+    #     tx_roller_speed = np.uint16(self.last_tx_data_prev.get('roller_speed', 0.0))
+    #     # tx_yaw = np.uint16(data.get('yaw', 0.0))
+    #     tx_yaw = self.yaw_to_target_yaw_angle(self.current_yaw,0)
+    #     #self.yaw_to_target_yaw_angle(self.current_yaw,0)
+    #     # rospy.logwarn(f"tx_yaw: {tx_yaw}")
+    #     # rospy.logwarn(f"tx_distance: {tx_distance}, tx_target_yaw: {tx_target_yaw}, tx_roller_speed: {tx_roller_speed}, tx_yaw: {tx_yaw}, state: {state}")
+
+    #     # if state == 0x02 and self.complete_state_prev ==0 and self.complete_state == 1:
+    #     #     state = 0x01
+
+    #     if self.stop_flag:
+    #         state = 0x01
+        
+ 
+    #     # if state == 0x02 & self.complete_state == 0:
+    #     #     tx_distance = self.distance_prev
+    #     #     tx_target_yaw = self.yaw_prev
+
+
+    #     frame = struct.pack('<BiHHHB',
+    #                         0x55,
+    #                         tx_distance,    
+    #                         tx_target_yaw & 0xFFFF,
+    #                         # 2800 & 0xFFFF,  # 2200
+    #                         tx_roller_speed & 0xFFFF,
+    #                         tx_yaw & 0xFFFF,
+    #                         state)
+
+    #     # 计算校验和
+    #     checksum = sum(frame[:12]) & 0xFF
+    #     final_frame = frame + bytes([checksum])
+    #     # rospy.loginfo(f"Creating frame: {final_frame.hex()}")
+    #     self.complete_state_prev = self.complete_state
+    #     self.rc_state_prev  = self.rc_state
+    #     return final_frame
+    
     def create_tx_frame(self, data):
-        """创建发送数据帧"""
+        """创建发送CAN数据帧"""
         if data is None:
             return None
 
         state = data.get('robot_state', 0x00)
 
-        # if self.rc_state_prev != 2 and self.rc_state == 2:
-        #     self.last_tx_data_prev = data
-        #     state = 0x01
-
-        if self.complete_state != 0 or state == 0x01:
+        if self.complete_state_prev != 0 or state == 0x01:
             self.last_tx_data_prev = data
 
-        # if state == 0x02 and self.complete_state_prev == 0 and self.complete_state ==1:
-        #     self.last_tx_data_prev = data
-        #     # rospy.loginfo("robot_state: 0x02, complete_state_prev: 0, complete_state: 1")
-        #     state = 0x01
- 
         tx_distance = int(self.last_tx_data_prev.get('distance', 0.0))
         tx_target_yaw = np.int16(self.last_tx_data_prev.get('target_yaw', 0.0))
         tx_roller_speed = np.uint16(self.last_tx_data_prev.get('roller_speed', 0.0))
-        # tx_yaw = np.uint16(data.get('yaw', 0.0))
-        tx_yaw = self.yaw_to_target_yaw_angle(self.current_yaw,0)
-        #self.yaw_to_target_yaw_angle(self.current_yaw,0)
-        # rospy.logwarn(f"tx_yaw: {tx_yaw}")
-        # rospy.logwarn(f"tx_distance: {tx_distance}, tx_target_yaw: {tx_target_yaw}, tx_roller_speed: {tx_roller_speed}, tx_yaw: {tx_yaw}, state: {state}")
-
-        # if state == 0x02 and self.complete_state_prev ==0 and self.complete_state == 1:
-        #     state = 0x01
+        tx_yaw = self.yaw_to_target_yaw_angle(self.current_yaw, 0)
 
         if self.stop_flag:
             state = 0x01
-        
- 
-        # if state == 0x02 & self.complete_state == 0:
-        #     tx_distance = self.distance_prev
-        #     tx_target_yaw = self.yaw_prev
 
-
-        frame = struct.pack('<BiHHHB',
-                            0x55,
-                            tx_distance,    
-                            tx_target_yaw & 0xFFFF,
-                            # 2800 & 0xFFFF,  # 2200
-                            tx_roller_speed & 0xFFFF,
-                            tx_yaw & 0xFFFF,
-                            state)
+        # 按照CAN协议将数据分为多个帧
+        frame_data = struct.pack('<BiHHHB',
+                                 0x55,  # 帧头？？？
+                                 tx_distance,
+                                 tx_target_yaw & 0xFFFF,
+                                 tx_roller_speed & 0xFFFF,
+                                 tx_yaw & 0xFFFF,
+                                 state)
 
         # 计算校验和
-        checksum = sum(frame[:12]) & 0xFF
-        final_frame = frame + bytes([checksum])
-        # rospy.loginfo(f"Creating frame: {final_frame.hex()}")
+        checksum = sum(frame_data[:12]) & 0xFF
+        frame_data = frame_data + bytes([checksum])
+
+        # 如果数据超出8字节，拆分成多个帧
+        frames = []
+        max_data_length = 8  # CAN帧最大字节数
+
+        for i in range(0, len(frame_data), max_data_length):
+            frame_chunk = frame_data[i:i+max_data_length]
+            frames.append(frame_chunk)  # 仅保存数据部分
+
         self.complete_state_prev = self.complete_state
-        self.rc_state_prev  = self.rc_state
-        return final_frame
+        self.rc_state_prev = self.rc_state
+
+        return frames  # 返回多个分帧数据
+
+        # for i in range(0, len(frame_data), max_data_length):
+        #     frame_chunk = frame_data[i:i+max_data_length]
+        #     # 这里将CAN帧的ID、数据长度、内容和校验和添加
+        #     frame = struct.pack('<H', 0x123)  # 假设CAN帧的ID为0x123
+        #     frame += struct.pack('<B', len(frame_chunk))  # 数据长度
+        #     frame += frame_chunk  # 数据内容
+        #     frames.append(frame)
+        #     print(f"Created CAN frame: {frame.hex()}")
+
+        # self.complete_state_prev = self.complete_state
+        # self.rc_state_prev = self.rc_state
+
+        # return frames  # 返回多个分帧数据
+    
+
+    def parse_can_frame(self, msg):
+        """解析CAN数据帧"""
+        try:
+            # if msg.arbitration_id == 0x123:  # 根据帧ID解析
+            if 1:  # 根据帧ID解析
+                self.speed = msg[0] | (msg[1] << 8)
+                self.distance = msg[2] | (msg[3] << 8)
+                self.sensor_state = msg[4]
+                self.complete_state = msg[5]
+                self.rc_state = msg[6]
+                self.error = msg[7]
+                print(f"Parsed CAN frame: speed={self.speed}, \
+                        distance={self.distance}, sensor_state={self.sensor_state}, \
+                        complete_state={self.complete_state}, rc_state={self.rc_state},\
+                        error={self.error}")
+                return {
+                    'speed': self.speed,
+                    'distance': self.distance,
+                    'sensor_state': self.sensor_state,
+                    'complete_state': self.complete_state,
+                    'rc_state': self.rc_state,
+                    'error': self.error
+                }
+            else:
+                rospy.logwarn(f"Unknown CAN frame ID: {msg.arbitration_id}")
+                return None
+        except Exception as e:
+            rospy.logerr(f"Error parsing CAN frame: {e}")
+            return None
 
     def publish_wheel_status(self, data):
         """发布车轮状态"""
@@ -271,44 +400,41 @@ class BaseSerialNode:
         msg.error = data['error']
         self.wheel_pub.publish(msg)
 
+        
+    #测试发送CAN数据帧
+    def send_can_frame(self, data):
+        """发送CAN数据帧"""
+        try:
+            frames = self.create_tx_frame(data)  # 获取分帧数据
+            if frames:
+                for frame in frames:  # 遍历每个帧
+                    msg = can.Message(
+                        arbitration_id=0x321,  # 设置CAN ID
+                        data=frame,  # 数据部分
+                        is_extended_id=False  # 使用标准帧
+                    )
+                    self.bus.send(msg)  # 发送单个CAN帧
+                    rospy.loginfo(f"Sent CAN frame: {msg}")
+        except Exception as e:
+            rospy.logerr(f"Error sending CAN frame: {e}")
+
     def run(self):
         """主循环"""
-        buffer = bytearray()
         while not rospy.is_shutdown():
             try:
-                # 1. 尝试读取串口数据
-                if self.ser.in_waiting > 0:
-                    buffer += self.ser.read(self.ser.in_waiting)
+                # 接收CAN帧
+                msg = self.bus.recv(timeout=0.1)
+                if msg:
+                    parsed = self.process_data(msg)  # 传递完整的 CAN 消息对象
+                    if parsed:
+                        self.publish_wheel_status(parsed)
 
-                # 2. 处理接收到的完整帧
-                if len(buffer) >= self.rx_frame_length:
-                    # 查找帧头
-                    header_pos = buffer.find(b'\xAA')
-                    if header_pos >= 0 and len(buffer) >= header_pos + self.rx_frame_length:
-                        # 提取完整帧
-                        frame = buffer[header_pos:header_pos+self.rx_frame_length]
-                        buffer = buffer[header_pos+self.rx_frame_length:]
+                # 发送CAN帧
+                # if self.last_tx_data:
+                if 1:
+                    self.send_can_frame(self.last_tx_data)
 
-                        # 解析数据
-                        parsed = self.parse_rx_frame(frame)
-                        rospy.loginfo(f"Received frame: {frame.hex()}")
-                        if parsed:
-                            self.publish_wheel_status(parsed)
-
-                            # 3. 收到完整帧后立即发送数据
-                            if self.last_tx_data is not None:
-                                tx_frame = self.create_tx_frame(self.last_tx_data)
-                                if tx_frame is not None and len(tx_frame) == self.tx_frame_length:
-                                    self.ser.write(tx_frame)
-                                    # rospy.logdebug(f"Sent frame after receiving: {tx_frame.hex()}")
-
-                # 控制循环频率
-                rospy.sleep(0.001)
-
-            except serial.SerialException as e:
-                rospy.logerr(f"Serial communication error: {e}")
-                self.init_serial()  # 尝试重新初始化串口
-                rospy.sleep(1)
+                rospy.sleep(0.01)
             except Exception as e:
                 rospy.logerr(f"Unexpected error: {e}")
                 rospy.sleep(1)

@@ -18,10 +18,18 @@ class MQTTRobotBridge:
         # 初始化MQTT参数
         # self.mqtt_broker = rospy.get_param('~mqtt_broker', '106.12.23.8')
         # self.mqtt_port = rospy.get_param('~mqtt_port', 13234)
-        self.mqtt_broker = rospy.get_param('~mqtt_broker', 'broker.emqx.io')
-        self.mqtt_port = rospy.get_param('~mqtt_port', 1883)
-        self.mqtt_user = rospy.get_param('~mqtt_user', 'gifeng')
-        self.mqtt_password = rospy.get_param('~mqtt_password', '8dY9hE5FVF2GEIi')
+        # self.mqtt_broker = rospy.get_param('~mqtt_broker', 'broker.emqx.io')
+        # self.mqtt_port = rospy.get_param('~mqtt_port', 1883)
+        # self.mqtt_user = rospy.get_param('~mqtt_user', 'gifeng')
+        # self.mqtt_password = rospy.get_param('~mqtt_password', '8dY9hE5FVF2GEIi')
+
+        self.mqtt_broker = rospy.get_param('~mqtt_broker', 'pec81f9f.ala.cn-hangzhou.emqxsl.cn')
+        self.mqtt_port = rospy.get_param('~mqtt_port', 8883)  # 使用8883端口用于TLS加密
+        self.mqtt_tls = rospy.get_param('~mqtt_tls', True)  # 启用TLS
+        self.mqtt_user = rospy.get_param('~mqtt_user', 'admin')
+        self.mqtt_password = rospy.get_param('~mqtt_password', 'admin')
+        # self.mqtt_protocol = rospy.get_param('~mqtt_protocol', 'mqtt')
+
         # self.mqtt_user = rospy.get_param('~mqtt_user', '123')
         # self.mqtt_password = rospy.get_param('~mqtt_password', '123')
         self.robot_id = rospy.get_param('~robot_id', 'GFSTJM120250201')
@@ -30,7 +38,7 @@ class MQTTRobotBridge:
         self.uuid = str(uuid.uuid4())  # 生成唯一ID
         self.mqtt_connected = False
         self.low_8 = 0b00000000  # 低8位错误码初始化为0
-        
+          
         
         # 存储机器人状态数据
         self.robot_data = {
@@ -88,6 +96,10 @@ class MQTTRobotBridge:
         # 初始化MQTT客户端
         self.mqtt_client = mqtt.Client(client_id=f"{self.robot_id}",
                                         callback_api_version=mqtt.CallbackAPIVersion.VERSION2 )
+        # 启用TLS连接
+        if self.mqtt_tls:
+            self.mqtt_client.tls_set()  # 使用默认证书，如果有自定义证书，可以在此传入文件路径
+            # self.mqtt_client.tls_insecure_set(True)  # 如果你不验证服务器证书（不推荐）  
         self.setup_mqtt()# 初始化ROS发布者和订阅者
         
         
