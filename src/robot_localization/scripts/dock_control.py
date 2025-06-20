@@ -1798,7 +1798,7 @@ class ArucoDockingController:
             self.control_seq += 1
             if True:
                 # rospy.logwarn(f"rc_control: {self.rc_control} state: {self.state} state_prev: {self.state_prev}")
-                if self.rc_control == 2:
+                if self.rc_control == 1:
                     # if self.state != "CORNER_FINDING" and self.state != "FININSHED_CLEANING":
                     self.state == "CORNER_FINDING"
                     rospy.logwarn("CORNER_FINDING")
@@ -1819,13 +1819,12 @@ class ArucoDockingController:
                         else:
                             self.state = "HOLD"
 
-                elif self.rc_control == 1:
+                elif self.rc_control == 2:
                     if self.state != "AUTO_CLEANING" and self.state != "FININSHED_CLEANING":
                         self.state = "AUTO_CLEANING"  
 
                 else:
-                    1
-                    # self.state = "HOLD"
+                    self.state = "HOLD"
                     # control = self.compose_control(0,0,self.current_yaw,0,1)
                     # self.control_pub.publish(control)
 
