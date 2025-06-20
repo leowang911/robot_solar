@@ -19,6 +19,16 @@ import time
 import copy
 import json
 
+# 状态管理类
+class RobotState:
+    CORNER_FINDING = "CORNER_FINDING"
+    AUTO_CLEANING = "AUTO_CLEANING"
+    FINISHED_CLEANING = "FININSHED_CLEANING"
+    LOADING = "LOADING"
+    UNLOADING = "UNLOADING"
+    HOLD = "HOLD"
+    # 可扩展更多状态
+
 class ArucoDockingController:
     def __init__(self):
         
@@ -1788,64 +1798,51 @@ class ArucoDockingController:
     # def compose_control(distance,roller_speed,yaw,target_yaw,robot_state):
 
     def control_loop(self, event):
-        """主控制循环""" 
-        
+        """主控制循环（优化版）"""
         control = controlData()
         self.state_change_flag = False
-        
-        # rospy.loginfo(f"in_dock_flag: {self.in_dock_flag} docking_flag: {self.docking_flag} rc_control: {self.rc_control}")
-        if self.stop_flag == False: #是否进入停止状态
-            self.control_seq += 1
-            if True:
-                # rospy.logwarn(f"rc_control: {self.rc_control} state: {self.state} state_prev: {self.state_prev}")
-                if self.rc_control == 1:
-                    # if self.state != "CORNER_FINDING" and self.state != "FININSHED_CLEANING":
-                        self.state = "1"
-                        if(self.process_corner_finding())==1:
-                            self.state = "AUTO_CLEANING"
-                            if(self.process_cleaning())==1:
-                                self.state = "FININSHED_CLEANING"
-                            time.sleep(0.1)
 
-                elif self.rc_control == 2:
-                    if self.state != "AUTO_CLEANING" and self.state != "FININSHED_CLEANING":
-                        self.state = "AUTO_CLEANING"  
-
-                else:
-                    self.state = "HOLD"
-                    # control = self.compose_control(0,0,self.current_yaw,0,1)
-                    # self.control_pub.publish(control)
-
-                if self.state == "CORNER_FINDING":
-                        self.state_pub.publish(self.state)
-                        rospy.logwarn("CORNER_FINDING")
-                        if(self.process_corner_finding())==1:
-                            self.state = "AUTO_CLEANING"
-                            time.sleep(0.1)
-                        # else:
-                        #     self.state = "HOLD"
-
-                if self.state == "AUTO_CLEANING":
-                        # if self.count == 0:
-                        self.state_pub.publish(self.state)
-                        rospy.logwarn("AUTO CLEANING")
-                        if(self.process_cleaning())==1:
-                            self.state = "FININSHED_CLEANING"
-                            time.sleep(0.1)
-                        else:
-                            self.state = "HOLD"
-
-                if self.state == "FININSHED_CLEANING" or self.state == "HOLD":
-                        control = self.compose_control(0,0,self.current_yaw,0,1)
-                        self.control_pub.publish(control)
-                        self.state_pub.publish(self.state)
-                        time.sleep(0.1)
-                        rospy.logwarn("WAITING")
-            
-        else:
+        if self.stop_flag:
+            # 停止状态，直接停车
             control = self.compose_control(0,0,self.current_yaw,0,1)
             self.control_pub.publish(control)
-        
+            self.state_prev = self.state
+            return
+
+        # 外部输入优先级最高
+        if self.rc_control == 0:
+            self.state = RobotState.HOLD
+        elif self.rc_control == 1:
+            self.state = RobotState.CORNER_FINDING
+        elif self.rc_control == 2:
+            self.state = RobotState.AUTO_CLEANING
+
+        # 状态分发
+        if self.state == RobotState.CORNER_FINDING:
+            self.state_pub.publish(self.state)
+            rospy.loginfo("状态：寻找角点")
+            if self.process_corner_finding() == 1:
+                self.state = RobotState.AUTO_CLEANING
+
+        elif self.state == RobotState.AUTO_CLEANING:
+            self.state_pub.publish(self.state)
+            rospy.loginfo("状态：自动清扫")
+            if self.process_cleaning() == 1:
+                self.state = RobotState.FINISHED_CLEANING
+
+        elif self.state == RobotState.FINISHED_CLEANING:
+            self.state_pub.publish(self.state)
+            rospy.loginfo("状态：清扫完成，等待指令")
+            control = self.compose_control(0,0,self.current_yaw,0,1)
+            self.control_pub.publish(control)
+
+        elif self.state == RobotState.HOLD:
+            self.state_pub.publish(self.state)
+            rospy.loginfo("状态：等待")
+            control = self.compose_control(0,0,self.current_yaw,0,1)
+            self.control_pub.publish(control)
+
+        # 可扩展更多状态
         self.state_prev = self.state
 
 #---------------------------------------------------------------------------------------------------------------------------------------
