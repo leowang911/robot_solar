@@ -172,6 +172,7 @@ catkin_install_python(PROGRAMS
   scripts/base_serial_node.py
   scripts/dock_control.py
   scripts/imu_inspvae.py
+  scripts/camera_align.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
