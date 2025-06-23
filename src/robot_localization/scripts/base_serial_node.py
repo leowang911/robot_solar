@@ -99,17 +99,25 @@ class BaseSerialNode:
     def process_data(self, msg):
         # 确保数据是有效的
         # if msg.data[0] != 0xAA or len(msg.data) not in [8, 5]:
-        if len(msg.data) not in [8, 5]:
+        if len(msg.data) != 8:
             rospy.logwarn("Invalid frame or wrong data length")
             return None
         if msg.arbitration_id != 0x123:  # 根据实际的CAN ID进行检查
-            rospy.logwarn(f"Unknown CAN frame ID: {msg.arbitration_id.hex()}")
+            rospy.logwarn(f"Unknown CAN frame ID: {hex(msg.arbitration_id)}")
             return None
         # 分别处理第一次和第二次接收到的数据
-        if len(msg.data) == 8:
-            self.frame_part1 = msg.data
-        elif len(msg.data) == 5:
+        if len(msg.data) == 8 and msg.data[-3:] == bytearray(b'\x00\x00\x00'):
+        # 第二次消息
             self.frame_part2 = msg.data
+            # rospy.loginfo("Received second part of the frame.")
+        elif len(msg.data) == 8:
+        # 第一次消息
+            self.frame_part1 = msg.data
+
+        # if len(msg.data) == 8:
+        #     self.frame_part1 = msg.data
+        # elif len(msg.data) == 5:
+        #     self.frame_part2 = msg.data
         
         # 当两部分数据都接收到时，合并它们并开始解析
         if self.frame_part1 and self.frame_part2:
@@ -315,7 +323,7 @@ class BaseSerialNode:
         if self.stop_flag:
             state = 0x01
 
-        # 按照CAN协议将数据分为多个帧
+        # 按照CAN协议将数据分为多个帧  1、2、2、2、2、1、
         frame_data = struct.pack('<BiHHHB',
                                  0x55,  # 帧头？？？
                                  tx_distance,
@@ -334,6 +342,11 @@ class BaseSerialNode:
 
         for i in range(0, len(frame_data), max_data_length):
             frame_chunk = frame_data[i:i+max_data_length]
+
+            # 判断如果拆分后的数据长度不足8字节，补充0x00
+            if len(frame_chunk) < max_data_length:
+                frame_chunk = frame_chunk.ljust(max_data_length, b'\x00')  # 使用0x00补齐
+
             frames.append(frame_chunk)  # 仅保存数据部分
 
         self.complete_state_prev = self.complete_state
