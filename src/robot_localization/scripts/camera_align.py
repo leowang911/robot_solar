@@ -25,7 +25,7 @@ class WhiteLineDetector:
         self.max_line_gap = 20
         
         # 白线检测阈值
-        self.lower_white = np.array([150, 150, 150])
+        self.lower_white = np.array([100, 100, 100])
         self.upper_white = np.array([255, 255, 255])
         
         # 竖直白线检测参数
