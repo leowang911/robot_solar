@@ -12,7 +12,7 @@ class WhiteLineDetector:
         
         # 参数设置
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber('/camera/image_raw', Image, self.image_callback)
+        self.image_sub = rospy.Subscriber('/camera/color/image_raw', Image, self.image_callback)
         self.angle_pub = rospy.Publisher('/selected_line_angle', Float32, queue_size=10)
         self.debug_pub = rospy.Publisher('/debug_image', Image, queue_size=1)
         self.edge_pub = rospy.Publisher('/edge_image', Image, queue_size=1)  # 新增边缘图像发布
