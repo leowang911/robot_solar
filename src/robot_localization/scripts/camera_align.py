@@ -12,8 +12,9 @@ class WhiteLineDetector:
         
         # 参数设置
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber('/camera/color/image_raw', Image, self.image_callback)
+        self.image_sub = rospy.Subscriber('/camera/image_raw', Image, self.image_callback)
         self.angle_pub = rospy.Publisher('/selected_line_angle', Float32, queue_size=10)
+        self.debug_pub = rospy.Publisher('/debug_image', Image, queue_size=1)  # 添加调试图像发布
         
         # 图像处理参数
         self.gaussian_kernel = (5, 5)
@@ -26,7 +27,11 @@ class WhiteLineDetector:
         self.lower_white = np.array([200, 200, 200])
         self.upper_white = np.array([255, 255, 255])
         
-        rospy.loginfo("White line detector initialized")
+        # 跟踪线参数
+        self.selected_line_color = (0, 0, 255)  # 红色
+        self.other_lines_color = (0, 255, 0)    # 绿色
+        
+        rospy.loginfo("White line detector initialized with visualization")
 
     def image_callback(self, msg):
         try:
@@ -35,24 +40,58 @@ class WhiteLineDetector:
             rospy.logerr(e)
             return
 
+        # 创建调试图像
+        debug_img = cv_image.copy()
+        
         # 图像处理流程
         processed_img = self.preprocess_image(cv_image)
         lines = self.detect_lines(processed_img)
         
         if lines is not None:
-            angles = self.calculate_angles(lines, cv_image.shape)
-            selected_angle = self.select_line(angles, lines, cv_image.shape)
+            # 绘制所有检测到的线段
+            for line in lines:
+                x1, y1, x2, y2 = line[0]
+                cv2.line(debug_img, (x1, y1), (x2, y2), self.other_lines_color, 2)
             
-            # 发布选择的线角度
-            if selected_angle is not None:
+            angles = self.calculate_angles(lines, cv_image.shape)
+            selected_line, selected_angle = self.select_line(angles, lines, cv_image.shape)
+            
+            # 绘制选定的线段
+            if selected_line is not None:
+                x1, y1, x2, y2 = selected_line
+                cv2.line(debug_img, (x1, y1), (x2, y2), self.selected_line_color, 4)
+                
+                # 计算并绘制角度指示器
+                center_x = debug_img.shape[1] // 2
+                center_y = debug_img.shape[0] - 50
+                angle_deg = np.degrees(selected_angle)
+                angle_text = f"Angle: {angle_deg:.1f}°"
+                cv2.putText(debug_img, angle_text, (20, 40), 
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                
+                # 绘制方向指示线
+                end_x = center_x + int(100 * np.sin(selected_angle))
+                end_y = center_y - int(100 * np.cos(selected_angle))
+                cv2.arrowedLine(debug_img, (center_x, center_y), (end_x, end_y), 
+                               (255, 0, 0), 3, tipLength=0.3)
+                
+                # 发布选择的线角度
                 self.angle_pub.publish(selected_angle)
-                rospy.loginfo(f"Selected line angle: {np.degrees(selected_angle):.2f} degrees")
+                rospy.loginfo(f"Selected line angle: {angle_deg:.2f} degrees")
         else:
             rospy.logwarn("No lines detected")
+            cv2.putText(debug_img, "No lines detected", (20, 40), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        
+        # 发布调试图像
+        try:
+            debug_msg = self.bridge.cv2_to_imgmsg(debug_img, "bgr8")
+            self.debug_pub.publish(debug_msg)
+        except Exception as e:
+            rospy.logerr(f"Error publishing debug image: {e}")
 
     def preprocess_image(self, img):
         # 颜色空间转换并提取白色区域
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         mask = cv2.inRange(img, self.lower_white, self.upper_white)
         white_only = cv2.bitwise_and(img, img, mask=mask)
         
@@ -91,20 +130,22 @@ class WhiteLineDetector:
                 dx = -dx
                 dy = -dy
             
-            # 计算与垂直方向的夹角
-            angle = np.arctan2(dx, abs(dy))
-            angles.append(angle)
+            # 计算与垂直方向的夹角（弧度）
+            if abs(dy) > 1e-5:  # 避免除以零
+                angle = np.arctan2(dx, abs(dy))
+                angles.append(angle)
             
         return angles
 
     def select_line(self, angles, lines, img_shape):
         if not angles:
-            return None
+            return None, None
         
         height, width = img_shape[:2]
         center_x = width // 2
         min_distance = float('inf')
         selected_angle = None
+        selected_line = None
         
         # 选择最靠近图像中心的线
         for i, line in enumerate(lines):
@@ -118,8 +159,9 @@ class WhiteLineDetector:
                 if distance < min_distance:
                     min_distance = distance
                     selected_angle = angles[i]
+                    selected_line = [x1, y1, x2, y2]
         
-        return selected_angle
+        return selected_line, selected_angle
 
 if __name__ == '__main__':
     try:
