@@ -107,10 +107,11 @@ class BaseSerialNode:
             return None
         # 分别处理第一次和第二次接收到的数据
         if len(msg.data) == 8 and msg.data[-3:] == bytearray(b'\x00\x00\x00'):
+        # if msg.data[-3:] == bytearray(b'\x00\x00\x00') and not hasattr(self, 'frame_part2'):
         # 第二次消息
             self.frame_part2 = msg.data
             # rospy.loginfo("Received second part of the frame.")
-        elif len(msg.data) == 8:
+        elif len(msg.data) == 8 :
         # 第一次消息
             self.frame_part1 = msg.data
 
@@ -121,12 +122,13 @@ class BaseSerialNode:
         
         # 当两部分数据都接收到时，合并它们并开始解析
         if self.frame_part1 and self.frame_part2:
+        # if hasattr(self, 'frame_part1') and hasattr(self, 'frame_part2'):
             full_data = self.frame_part1 + self.frame_part2  # 合并两部分数据
             # 重置数据部分
             self.frame_part1 = None
             self.frame_part2 = None
             print(f"Received full data: {full_data.hex()}")
-            # 校验和检查
+            # 校验和检查  
             print(f"Checksum: {full_data[12]}, Calculated: {sum(full_data[:12]) & 0xFF}")
             self.parse_can_frame(full_data)
             # if full_data[12] != sum(full_data[:12]) & 0xFF:
@@ -374,22 +376,30 @@ class BaseSerialNode:
         try:
             # if msg.arbitration_id == 0x123:  # 根据帧ID解析
             if 1:  # 根据帧ID解析
-                self.speed = msg[0] | (msg[1] << 8)
-                self.distance = msg[2] | (msg[3] << 8)
-                self.sensor_state = msg[4]
-                self.complete_state = msg[5]
-                self.rc_state = msg[6]
-                self.error = msg[7]
+                # self.speed = msg[0] | (msg[1] << 8)
+                self.speed = struct.unpack('>h', msg[1:3])[0]
+                # self.distance = msg[2] | (msg[3] << 8)
+                self.distance = struct.unpack('>i', msg[3:7])[0]
+                self.sensor_state = msg[7]
+                self.complete_state = msg[9]
+                self.rc_state = msg[10]
+                self.voltage = msg[11]
+                self.error = msg[12]
+    #         self.speed = struct.unpack('>h', data[1:3])[0]
+    #         self.distance = struct.unpack('>i', data[3:7])[0]
+
+
                 print(f"Parsed CAN frame: speed={self.speed}, \
                         distance={self.distance}, sensor_state={self.sensor_state}, \
                         complete_state={self.complete_state}, rc_state={self.rc_state},\
-                        error={self.error}")
+                        voltage={self.voltage}, error={self.error}")
                 return {
                     'speed': self.speed,
                     'distance': self.distance,
                     'sensor_state': self.sensor_state,
                     'complete_state': self.complete_state,
                     'rc_state': self.rc_state,
+                    'voltage': self.voltage,
                     'error': self.error
                 }
             else:
@@ -444,8 +454,8 @@ class BaseSerialNode:
 
                 # 发送CAN帧
                 # if self.last_tx_data:
-                if 1:
-                    self.send_can_frame(self.last_tx_data)
+                # if 1:
+                #     self.send_can_frame(self.last_tx_data)
 
                 rospy.sleep(0.01)
             except Exception as e:
