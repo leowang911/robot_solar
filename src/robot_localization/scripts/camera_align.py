@@ -29,8 +29,8 @@ class WhiteLineDetector:
         self.upper_white = np.array([255, 255, 255])
         
         # 竖直白线检测参数
-        self.max_angle = np.radians(30)  # 只考虑±30度内的线
-        self.min_vertical_length = 0.5   # 最小垂直长度比例
+        self.max_angle = np.radians(45)  # 只考虑±30度内的线
+        self.min_vertical_length = 0.3   # 最小垂直长度比例
         
         # 跟踪线参数
         self.selected_line_color = (0, 0, 255)  # 红色
