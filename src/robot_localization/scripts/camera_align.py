@@ -12,9 +12,10 @@ class WhiteLineDetector:
         
         # 参数设置
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber('/camera/color/image_raw', Image, self.image_callback)
+        self.image_sub = rospy.Subscriber('/camera/image_raw', Image, self.image_callback)
         self.angle_pub = rospy.Publisher('/selected_line_angle', Float32, queue_size=10)
-        self.debug_pub = rospy.Publisher('/debug_image', Image, queue_size=1)  # 添加调试图像发布
+        self.debug_pub = rospy.Publisher('/debug_image', Image, queue_size=1)
+        self.edge_pub = rospy.Publisher('/edge_image', Image, queue_size=1)  # 新增边缘图像发布
         
         # 图像处理参数
         self.gaussian_kernel = (5, 5)
@@ -27,11 +28,15 @@ class WhiteLineDetector:
         self.lower_white = np.array([200, 200, 200])
         self.upper_white = np.array([255, 255, 255])
         
+        # 竖直白线检测参数
+        self.max_angle = np.radians(30)  # 只考虑±30度内的线
+        self.min_vertical_length = 0.5   # 最小垂直长度比例
+        
         # 跟踪线参数
         self.selected_line_color = (0, 0, 255)  # 红色
-        self.other_lines_color = (0, 255, 0)    # 绿色
+        self.vertical_lines_color = (0, 255, 0)  # 绿色
         
-        rospy.loginfo("White line detector initialized with visualization")
+        rospy.loginfo("Vertical white line detector initialized")
 
     def image_callback(self, msg):
         try:
@@ -47,37 +52,85 @@ class WhiteLineDetector:
         processed_img = self.preprocess_image(cv_image)
         lines = self.detect_lines(processed_img)
         
+        # 发布边缘图像
+        try:
+            edge_msg = self.bridge.cv2_to_imgmsg(processed_img, "mono8")
+            self.edge_pub.publish(edge_msg)
+        except Exception as e:
+            rospy.logerr(f"Error publishing edge image: {e}")
+        
         if lines is not None:
-            # 绘制所有检测到的线段
+            # 计算每条线的角度并过滤垂直方向的线
+            vertical_lines = []
+            vertical_angles = []
+            
             for line in lines:
                 x1, y1, x2, y2 = line[0]
-                cv2.line(debug_img, (x1, y1), (x2, y2), self.other_lines_color, 2)
-            
-            angles = self.calculate_angles(lines, cv_image.shape)
-            selected_line, selected_angle = self.select_line(angles, lines, cv_image.shape)
-            
-            # 绘制选定的线段
-            if selected_line is not None:
-                x1, y1, x2, y2 = selected_line
-                cv2.line(debug_img, (x1, y1), (x2, y2), self.selected_line_color, 4)
+                angle = self.calculate_line_angle(x1, y1, x2, y2)
                 
-                # 计算并绘制角度指示器
-                center_x = debug_img.shape[1] // 2
-                center_y = debug_img.shape[0] - 50
-                angle_deg = np.degrees(selected_angle)
-                angle_text = f"Angle: {angle_deg:.1f}°"
-                cv2.putText(debug_img, angle_text, (20, 40), 
+                # 只考虑接近垂直的线
+                if abs(angle) < self.max_angle:
+                    # 计算线段的垂直长度比例
+                    line_length = np.sqrt((x2-x1)**2 + (y2-y1)**2)
+                    min_y = min(y1, y2)
+                    max_y = max(y1, y2)
+                    vertical_length = max_y - min_y
+                    vertical_ratio = vertical_length / line_length
+                    
+                    # 只考虑垂直部分占比大的线
+                    if vertical_ratio > self.min_vertical_length:
+                        vertical_lines.append(line)
+                        vertical_angles.append(angle)
+            
+            # 绘制所有垂直白线并显示角度
+            for i, line in enumerate(vertical_lines):
+                x1, y1, x2, y2 = line[0]
+                cv2.line(debug_img, (x1, y1), (x2, y2), self.vertical_lines_color, 2)
+                
+                # 在线段中点显示角度
+                mid_x = (x1 + x2) // 2
+                mid_y = (y1 + y2) // 2
+                angle_deg = np.degrees(vertical_angles[i])
+                angle_text = f"{abs(angle_deg):.1f}°"
+                
+                # 根据角度方向调整文本位置
+                text_offset = 30 if angle_deg > 0 else -80
+                cv2.putText(debug_img, angle_text, 
+                            (mid_x + text_offset, mid_y),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, 
+                            (0, 255, 255), 2)
+            
+            # 选择并跟踪一条线
+            if vertical_lines:
+                selected_line, selected_angle = self.select_line(vertical_angles, vertical_lines, cv_image.shape)
+                
+                if selected_line is not None:
+                    x1, y1, x2, y2 = selected_line
+                    cv2.line(debug_img, (x1, y1), (x2, y2), self.selected_line_color, 4)
+                    
+                    # 绘制方向指示器
+                    center_x = debug_img.shape[1] // 2
+                    center_y = debug_img.shape[0] - 50
+                    angle_deg = np.degrees(selected_angle)
+                    
+                    # 计算方向箭头
+                    end_x = center_x + int(100 * np.sin(selected_angle))
+                    end_y = center_y - int(100 * np.cos(selected_angle))
+                    cv2.arrowedLine(debug_img, (center_x, center_y), (end_x, end_y), 
+                                   (255, 0, 0), 3, tipLength=0.3)
+                    
+                    # 在顶部显示选定线的角度
+                    angle_text = f"Tracking: {angle_deg:.1f}°"
+                    cv2.putText(debug_img, angle_text, (20, 40), 
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, 
+                                (0, 0, 255), 2)
+                    
+                    # 发布选择的线角度
+                    self.angle_pub.publish(selected_angle)
+            else:
+                rospy.logwarn("No vertical lines detected")
+                cv2.putText(debug_img, "No vertical lines", (20, 40), 
                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                
-                # 绘制方向指示线
-                end_x = center_x + int(100 * np.sin(selected_angle))
-                end_y = center_y - int(100 * np.cos(selected_angle))
-                cv2.arrowedLine(debug_img, (center_x, center_y), (end_x, end_y), 
-                               (255, 0, 0), 3, tipLength=0.3)
-                
-                # 发布选择的线角度
-                self.angle_pub.publish(selected_angle)
-                rospy.loginfo(f"Selected line angle: {angle_deg:.2f} degrees")
         else:
             rospy.logwarn("No lines detected")
             cv2.putText(debug_img, "No lines detected", (20, 40), 
@@ -114,28 +167,20 @@ class WhiteLineDetector:
             maxLineGap=self.max_line_gap
         )
 
-    def calculate_angles(self, lines, img_shape):
-        angles = []
-        height, width = img_shape[:2]
+    def calculate_line_angle(self, x1, y1, x2, y2):
+        # 计算线段与垂直方向的夹角
+        dx = x2 - x1
+        dy = y2 - y1
         
-        for line in lines:
-            x1, y1, x2, y2 = line[0]
-            
-            # 计算角度（相对于垂直方向）
-            dx = x2 - x1
-            dy = y2 - y1
-            
-            # 确保线段方向一致（从下往上）
-            if dy > 0:
-                dx = -dx
-                dy = -dy
-            
-            # 计算与垂直方向的夹角（弧度）
-            if abs(dy) > 1e-5:  # 避免除以零
-                angle = np.arctan2(dx, abs(dy))
-                angles.append(angle)
-            
-        return angles
+        # 确保线段方向一致（从下往上）
+        if dy > 0:
+            dx = -dx
+            dy = -dy
+        
+        # 计算与垂直方向的夹角（弧度）
+        if abs(dy) > 1e-5:  # 避免除以零
+            return np.arctan2(dx, abs(dy))
+        return 0
 
     def select_line(self, angles, lines, img_shape):
         if not angles:
@@ -151,15 +196,12 @@ class WhiteLineDetector:
         for i, line in enumerate(lines):
             x1, y1, x2, y2 = line[0]
             mid_x = (x1 + x2) // 2
+            distance = abs(mid_x - center_x)
             
-            # 只考虑图像下半部分的线
-            if min(y1, y2) > height // 2:
-                distance = abs(mid_x - center_x)
-                
-                if distance < min_distance:
-                    min_distance = distance
-                    selected_angle = angles[i]
-                    selected_line = [x1, y1, x2, y2]
+            if distance < min_distance:
+                min_distance = distance
+                selected_angle = angles[i]
+                selected_line = [x1, y1, x2, y2]
         
         return selected_line, selected_angle
 
