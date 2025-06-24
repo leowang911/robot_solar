@@ -41,7 +41,7 @@ class BaseSerialNode:
         self.last_tx_data = {
             'distance': 10,
             'target_yaw': 20,
-            'roller_speed': 30,
+            'roller_speed': 3000,
             'yaw':66,
             'robot_state': 1,
             'voltage': 15,
@@ -237,7 +237,8 @@ class BaseSerialNode:
 
         # 按照CAN协议将数据分为多个帧  0x55 + 4 dis + 2 yaw + 00
         #                          0x56 + 2 roll + 2 tx_yaw + 1 state + SUM + 00
-        frame_data = struct.pack('<BiHBBHHB',
+        # frame_data = struct.pack('>BiHBBHHB',# 大端字节序  3000roll>>0B B8
+        frame_data = struct.pack('<BiHBBHHB',# 小端字节序    3000roll>>B8 0B   原代码为小端
                                  0x55,  # 帧头
                                  tx_distance,
                                  tx_target_yaw & 0xFFFF,
@@ -273,7 +274,7 @@ class BaseSerialNode:
     def parse_can_frame(self, msg):
         """解析CAN数据帧"""
         try:
-            # if msg.arbitration_id == 0x123:  # 根据帧ID解析
+            # if msg.arbitration_id == 0x100:  # 根据帧ID解析
             if msg[0] == 0xAA and msg[8] == 0xAB:  
                 # 根据帧ID解析   AA +2 speed +4 dis +1 sensor
                                 # AB + 00 + 4 + 00 + 00      
@@ -356,7 +357,7 @@ class BaseSerialNode:
                 # 发送CAN帧
                 # if self.last_tx_data:
                 # if 1:
-                #     self.send_can_frame(self.last_tx_data)
+                    # self.send_can_frame(self.last_tx_data)
 
                 rospy.sleep(0.01)
             except Exception as e:
