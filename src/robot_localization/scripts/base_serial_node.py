@@ -9,6 +9,7 @@ from robot_control.msg import controlData  # 根据实际包名调整
 import numpy as np
 from std_srvs.srv import Trigger, TriggerResponse
 import time
+import subprocess
 import can
 
 class BaseSerialNode:
@@ -86,6 +87,11 @@ class BaseSerialNode:
     def init_can(self):
         """初始化CAN接口"""
         try:
+             # 执行设置 CAN 接口的命令
+            # subprocess.run(["sudo", "ip", "link", "set", "can0", "down"], check=True)
+            # subprocess.run(["sudo", "ip", "link", "set", "can0", "type", "can", "bitrate", "1000000"], check=True)
+            # subprocess.run(["sudo", "ip", "link", "set", "can0", "up"], check=True)
+            # 创建CAN接口: 虚拟为vcan0  接线使用can0
             self.bus = can.interface.Bus(channel='vcan0', interface='socketcan')
             rospy.loginfo("Connected to CAN interface on channel 'can0'")
         except Exception as e:
@@ -356,8 +362,8 @@ class BaseSerialNode:
 
                 # 发送CAN帧
                 # if self.last_tx_data:
-                # if 1:
-                    # self.send_can_frame(self.last_tx_data)
+                if 1:
+                    self.send_can_frame(self.last_tx_data)
 
                 rospy.sleep(0.01)
             except Exception as e:
