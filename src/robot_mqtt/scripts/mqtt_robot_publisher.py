@@ -23,7 +23,7 @@ class MQTTRobotBridge:
         # self.mqtt_broker = rospy.get_param('~mqtt_broker', '106.12.23.8')
         # self.mqtt_port = rospy.get_param('~mqtt_port', 13234)
         self.mqtt_broker = rospy.get_param('~mqtt_broker', '129.211.16.114')
-        self.mqtt_port = rospy.get_param('~mqtt_port', 8883)
+        self.mqtt_port = rospy.get_param('~mqtt_port', 1883)
         # self.mqtt_user = rospy.get_param('~mqtt_user', 'gifeng')
         # self.mqtt_password = rospy.get_param('~mqtt_password', '8dY9hE5FVF2GEIi')
         self.mqtt_user = rospy.get_param('~mqtt_user', None)
