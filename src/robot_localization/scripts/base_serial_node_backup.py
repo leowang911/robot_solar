@@ -199,7 +199,6 @@ class BaseSerialNode:
                 message=f"Error during reboot: {str(e)}"
             )
 
-
     def create_tx_frame(self, data):
         """创建发送数据帧"""
         if data is None:

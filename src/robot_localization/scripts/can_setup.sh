@@ -2,7 +2,7 @@
 #第一步:赋予可执行权限
 # 启用 CAN 接口
 #sudo ip link set can0 down
-#sleep 2
+#sleep 15
 # 设置 CAN 波特率为 1000kbps
 #sudo ip link set can0 type can bitrate 1000000
 # sudo ip link set can0 up
@@ -48,3 +48,7 @@ echo "CAN interface configured and started"
 
 # [Install]
 # WantedBy=multi-user.target
+
+# 启用并启动服务
+# sudo systemctl enable can_setup.service
+# sudo systemctl start can_setup.service
