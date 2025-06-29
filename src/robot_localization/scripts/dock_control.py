@@ -1824,19 +1824,19 @@ class ArucoDockingController:
             if self.process_corner_finding() == 1:
                 self.state = RobotState.AUTO_CLEANING
 
-        elif self.state == RobotState.AUTO_CLEANING:
+        if self.state == RobotState.AUTO_CLEANING:
             self.state_pub.publish(self.state)
             rospy.loginfo("状态：自动清扫")
             if self.process_cleaning() == 1:
                 self.state = RobotState.FINISHED_CLEANING
 
-        elif self.state == RobotState.FINISHED_CLEANING:
+        if self.state == RobotState.FINISHED_CLEANING:
             self.state_pub.publish(self.state)
             rospy.loginfo("状态：清扫完成，等待指令")
             control = self.compose_control(0,0,self.current_yaw,0,1)
             self.control_pub.publish(control)
 
-        elif self.state == RobotState.HOLD:
+        if self.state == RobotState.HOLD:
             self.state_pub.publish(self.state)
             rospy.loginfo("状态：等待")
             control = self.compose_control(0,0,self.current_yaw,0,1)
