@@ -26,7 +26,7 @@ def main():
         rospy.logerr("Error opening serial port {}: {}".format(port, e))
         return
 
-    rate = rospy.Rate(1) # 1 Hz
+    rate = rospy.Rate(2) # 2 Hz
 
     # 读取基本信息的命令
     read_basic_info_cmd = bytearray([0xDD, 0xA5, 0x03, 0x00, 0xFF, 0xFD, 0x77])
