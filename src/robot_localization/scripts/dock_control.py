@@ -1833,6 +1833,10 @@ class ArucoDockingController:
                             rospy.logwarn("no fixed solution")
                             count_nav = 0
                             self.error = 1
+                            break
+                        if self.state != "CORNER_FINDING":
+                            rospy.logwarn("change state")
+                            break
                         rospy.logwarn("Waiting 固定解 ")
                         time.sleep(0.1)
                     self.out_dock_yaw = self.current_yaw
