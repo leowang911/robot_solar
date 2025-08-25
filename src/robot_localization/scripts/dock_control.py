@@ -1230,7 +1230,7 @@ class ArucoDockingController:
             gps_move_flag = True
             rospy.logwarn(f"gps_move:drone_distance: {self.distance2drone} yaw: {self.yaw2drone}")
             
-            drone_distance=np.clip(self.distance2drone,0,2)
+            drone_distance=np.clip(self.distance2drone, 0, 2)
             if drone_distance < 1.5:
                 drone_distance = 0
 
@@ -1330,10 +1330,16 @@ class ArucoDockingController:
                     control.robot_state = 2 
                     control.header.stamp = rospy.Time.now()
                 self.control_pub.publish(control)
+                # 添加超时机制避免无限等待
+                wait_start_time = rospy.Time.now()
                 while self.complete_state!=2:
                     if self.rc_control == 0 or self.state_change_flag==True:
                         rospy.logwarn("interrupted")
                         return 0
+                    # 添加超时检查，避免无限等待
+                    if (rospy.Time.now() - wait_start_time).to_sec() > 5.0:  # 5秒超时
+                        rospy.logwarn("Timeout waiting for motion completion")
+                        break
                     rospy.sleep(0.01)  # 避免忙等待
                 control.distance = 0
                 control.target_yaw = self.yaw_to_target_yaw_angle(yaw_final,self.current_yaw)
@@ -1343,10 +1349,16 @@ class ArucoDockingController:
                 rospy.sleep(0.05)
                 control.robot_state = 2
                 self.control_pub.publish(control)
+                # 添加超时机制避免无限等待
+                wait_start_time = rospy.Time.now()
                 while self.complete_state!=2:
                     if self.rc_control == 0 or self.state_change_flag==True:
                         rospy.logwarn("interrupted")
                         return 0
+                    # 添加超时检查，避免无限等待
+                    if (rospy.Time.now() - wait_start_time).to_sec() > 5.0:  # 5秒超时
+                        rospy.logwarn("Timeout waiting for motion completion")
+                        break
                     rospy.sleep(0.01)  # 避免忙等待
                 self.control_seq += 1
                 self.lock_current=False
@@ -1550,13 +1562,19 @@ class ArucoDockingController:
                             control.robot_state = 2
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
-                            rospy.sleep(0.5)
+                            rospy.sleep(0.1)
                             rospy.loginfo(f'等待回退结束 ')
+                            # 添加超时机制避免无限等待
+                            wait_start_time = rospy.Time.now()
                             while self.complete_state != 2:
                                 # rospy.sleep(0.1)
                                 if self.rc_control == 0 or self.state_change_flag==True:
                                     rospy.logwarn("interrupted")
                                     return 0
+                                # 添加超时检查，避免无限等待
+                                if (rospy.Time.now() - wait_start_time).to_sec() > 5.0:  # 5秒超时
+                                    rospy.logwarn("Timeout waiting for motion completion")
+                                    break
                                 rospy.sleep(0.01)  # 避免忙等待
                             rospy.loginfo(f'成功回退！！ ')
                             #执行结束
@@ -1573,11 +1591,17 @@ class ArucoDockingController:
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
                             rospy.sleep(0.1)
-                            rospy.loginfo(f'等待回正结束 ')     
+                            rospy.loginfo(f'等待回正结束 ')
+                            # 添加超时机制避免无限等待
+                            wait_start_time = rospy.Time.now()     
                             while self.complete_state != 2:
                                 if self.rc_control == 0 or self.state_change_flag==True:
                                     rospy.logwarn("interrupted")
                                     return 0 
+                                # 添加超时检查，避免无限等待
+                                if (rospy.Time.now() - wait_start_time).to_sec() > 5.0:  # 5秒超时
+                                    rospy.logwarn("Timeout waiting for motion completion")
+                                    break
                                 rospy.sleep(0.01)  # 避免忙等待
                             rospy.loginfo(f'step1 成功回正！ ')
                             #执行结束
@@ -1589,7 +1613,7 @@ class ArucoDockingController:
                             control.robot_state = 1
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
-                            rospy.sleep(1.0)
+                            rospy.sleep(0.1)
 
                             current_pose_state=self.get_five_avg()#取5次平均值进行计算
 
@@ -1603,13 +1627,19 @@ class ArucoDockingController:
                             control.robot_state = 2
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
-                            rospy.sleep(1.0)
+                            rospy.sleep(0.1)
                             rospy.loginfo(f'等待前进结束 ')
+                            # 添加超时机制避免无限等待
+                            wait_start_time = rospy.Time.now()
                             while self.complete_state != 2:
                                 #rospy.sleep(0.1)
                                 if self.rc_control == 0 or self.state_change_flag==True:
                                     rospy.logwarn("interrupted")
                                     return 0
+                                # 添加超时检查，避免无限等待
+                                if (rospy.Time.now() - wait_start_time).to_sec() > 5.0:  # 5秒超时
+                                    rospy.logwarn("Timeout waiting for motion completion")
+                                    break
                                 rospy.sleep(0.01)  # 避免忙等待
                             rospy.loginfo(f'step2 成功前进！！ ')
                             #执行结束
@@ -1630,12 +1660,12 @@ class ArucoDockingController:
                             control.robot_state = 2
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
-                            rospy.sleep(1.0)
+                            rospy.sleep(0.1)
                             rospy.loginfo(f'step2 等待回正结束')
                             # while self.complete_state != 1:
                             #     pass
                             rospy.loginfo(f'step2 成功回正！！')
-                            rospy.sleep(1.0 ) 
+                            rospy.sleep(0.1 ) 
 
                             #对齐
 
@@ -1804,7 +1834,6 @@ class ArucoDockingController:
 
         # else:
         #     self.error = 1
-
 
 
 
