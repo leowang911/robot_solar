@@ -297,7 +297,7 @@ class ArucoDockingController:
         self.check_data_expiry()  # 先执行数据清理
         self.valid_center_markers = []
         valid_target = []
-        left_right=[]
+        left_right = []
         current_target = {
             'position': np.array([0.0, 0.0, 0.0]),
             'yaw': 0.0,
@@ -330,17 +330,22 @@ class ArucoDockingController:
             #     self.valid_center_markers.append(self.markers['center_left'])
             # if valid_center_right:
             #     self.valid_center_markers.append(self.markers['center_right'])
-            ct1=self.calculate_center_target()
-            if ct1 is not None:
-                valid_target.append(ct1)
+            try:
+                ct1 = self.calculate_center_target()
+                if ct1 is not None:
+                    valid_target.append(ct1)
+            except Exception as e:
+                rospy.logwarn(f"计算中心目标时出错: {str(e)}")
             #rospy.loginfo(f"center: {valid_target}")
-
 
         if self.markers['left'] is not None:
             if self.markers['center_left'] is None and self.markers['center_right'] is None:
-                side_target = self.estimate_center('left') 
-                if side_target is not None:
-                    self.side_target = side_target 
+                try:
+                    side_target = self.estimate_center('left') 
+                    if side_target is not None:
+                        self.side_target = side_target 
+                except Exception as e:
+                    rospy.logwarn(f"估算左侧中心时出错: {str(e)}")
                 # if left_side_target is not None: 
                 #     valid_target.append(left_side_target)
                     # left_right.append(left_target)
@@ -351,9 +356,12 @@ class ArucoDockingController:
 
         if self.markers['right'] is not None:
             if self.markers['center_left'] is None and self.markers['center_right'] is None:
-                side_target = self.estimate_center('right')  
-                if side_target is not None:
-                    self.side_target = side_target 
+                try:
+                    side_target = self.estimate_center('right')  
+                    if side_target is not None:
+                        self.side_target = side_target 
+                except Exception as e:
+                    rospy.logwarn(f"估算右侧中心时出错: {str(e)}")
                 # if right_side_target is not None: 
                 #     valid_target.append(right_side_target)
             else:
@@ -361,28 +369,37 @@ class ArucoDockingController:
                 self.side_target = side_target
 
         if self.markers['center_left'] is not None:
-            left_target = self.calculate_center_side_target('center_left')  
-            if left_target is not None: 
-                valid_target.append(left_target)
-                left_right.append(left_target)
+            try:
+                left_target = self.calculate_center_side_target('center_left')  
+                if left_target is not None: 
+                    valid_target.append(left_target)
+                    left_right.append(left_target)
+            except Exception as e:
+                rospy.logwarn(f"计算左侧中心目标时出错: {str(e)}")
             # rospy.loginfo(f"left: {valid_target}")
 
         
         if self.markers['center_right'] is not None:
-            right_target = self.calculate_center_side_target('center_right')    
-            if right_target is not None:    
-                valid_target.append(right_target)   
-                left_right.append(right_target)
+            try:
+                right_target = self.calculate_center_side_target('center_right')    
+                if right_target is not None:    
+                    valid_target.append(right_target)   
+                    left_right.append(right_target)
+            except Exception as e:
+                rospy.logwarn(f"计算右侧中心目标时出错: {str(e)}")
             #valid_target.append(self.calculate_center_side_target('center_right'))
             # rospy.loginfo(f"right: {valid_target}")
 
         # for marker_type in ['left', 'right', 'center', 'center_left', 'center_right']:
         #     rospy.loginfo(f"{marker_type} marker_time: {self.marker_time[marker_type]}")
 
-        if self.markers['left'] or self.markers['right'] or self.markers['center'] or self.markers['center_left'] or self.markers['center_right']:
+        has_markers = any([self.markers['left'], self.markers['right'], self.markers['center'], 
+                          self.markers['center_left'], self.markers['center_right']])
+        
+        if has_markers:
             # self.state = "APPROACHING"
             # rospy.loginfo('APPROACHING')
-            if self.first_look_flag == False:
+            if not self.first_look_flag:
                 self.first_look_flag = True
                 # control = controlData()
                 # control.distance = 0 
@@ -399,7 +416,7 @@ class ArucoDockingController:
             # self.state = "SEARCH"
 
             self.first_look_flag = False
-            if self.lock_current==False:
+            if not self.lock_current:
                 self.current_target = None  # 清空目标
         # if len(left_right)==2:
         #     # rospy.loginfo(f"left_right: {left_right}")
@@ -413,12 +430,12 @@ class ArucoDockingController:
         #     self.current_target = current_target
         #     return
 
-        if len(valid_target)>0:
+        if len(valid_target) > 0:
             for target in valid_target:
                 # rospy.loginfo(f"target: {target}")
-                current_target['position']+= target['position']     
-                current_target['yaw']+= target['yaw']
-                current_target['center']+= target['center']  
+                current_target['position'] += target['position']     
+                current_target['yaw'] += target['yaw']
+                current_target['center'] += target['center']  
                     
             current_target['position'] /= len(valid_target)
             current_target['yaw'] /= len(valid_target)
@@ -448,14 +465,21 @@ class ArucoDockingController:
     def check_data_expiry(self):
         """清除过期数据"""
         current_time = rospy.Time.now()
-        for marker_type in ['left', 'right', 'center', 'center_left', 'center_right']:
+        marker_types = ['left', 'right', 'center', 'center_left', 'center_right']
+        data_expiry = self.data_expiry  # 缓存属性访问
+        
+        for marker_type in marker_types:
             # rospy.loginfo(f"{marker_type} current_time: {current_time} marker_time: {self.marker_time[marker_type]}")
-                
-            if self.marker_time[marker_type] and \
-               (current_time - self.marker_time[marker_type]).to_sec() > self.data_expiry:
+            
+            # 检查键是否存在并验证数据是否过期
+            if (marker_type in self.marker_time and marker_type in self.markers and 
+               self.marker_time[marker_type] and 
+               (current_time - self.marker_time[marker_type]).to_sec() > data_expiry):
                 
                 self.markers[marker_type] = None
                 self.marker_time[marker_type] = None
+                # rospy.loginfo(f"清除过期标记数据: {marker_type}")
+
                 # rospy.loginfo(f"清除过期标记数据: {marker_type}")
 
 #------------------------------------CALCULATION---------------------------------------------------------------------------------------------------
@@ -1026,7 +1050,6 @@ class ArucoDockingController:
     #         self.control_pub.publish(control)
     #         self.control_seq += 1
     #         time.sleep(0.5)
-
     #     return control
 
     def get_pre_robot_pose(self,):
@@ -1099,9 +1122,9 @@ class ArucoDockingController:
 
         costh=np.dot(prepoint,axis)/np.linalg.norm(prepoint)
         theta2=math.acos(costh)
-        if (prepoint[0]*axis[1]-prepoint[1]*axis[0])<0:
-            theta2=-theta2
-        distance=np.linalg.norm(prepoint)
+        if (prepoint[0]*axis[1]-prepoint[1]*axis[0]) < 0:
+            theta2 = -theta2
+        distance = np.linalg.norm(prepoint)
         # theta1=math.atan(abs(prepoint[1]/prepoint[0]))
         # if prepoint[1]<0:
         #     theta1=-theta1
@@ -1159,21 +1182,26 @@ class ArucoDockingController:
         start = (n - 5) // 2
         middle_five = sorted_with_indices[start : start+5]
         # 提取原始索引
-        midde_five=[index for index, value in middle_five]
+        middle_five_indices=[index for index, value in middle_five]
         outtarget={'position': np.array([0,0,0.0]),
                    'center': np.array([0,0,0.0])}
+        
+        # 初始化xaxis以避免在循环外使用未定义的变量
+        xaxis = np.array([0,0,0.0])
         for i in range(5):
-            item=target_list[midde_five[i]]
+            item=target_list[middle_five_indices[i]]
             outtarget['center']+=item['center']
             xaxis=item['center']-item['position']
             xaxis[2]=0
             xaxis/=np.linalg.norm(xaxis)
             outtarget['position']+=xaxis
+        
         outtarget['center']/=5
         outtarget['position']/=5
-        xaxis/=np.linalg.norm(outtarget['position'])
+        # 重新计算xaxis以避免使用循环中的旧值
+        xaxis=outtarget['position']
+        xaxis /= np.linalg.norm(outtarget['position'])
         outtarget['position']=outtarget['center']-xaxis*self.stop_distance
-
 
         return outtarget
 #------------------------------------FUNCTION---------------------------------------------------------------------------------------------------
@@ -1219,23 +1247,22 @@ class ArucoDockingController:
             control.header.seq = self.control_seq
             
             rospy.loginfo(f'state: {control.robot_state}')
-            if self.complete_state==2:
+            if self.complete_state == 2:
                 control.robot_state = 1
                 self.control_pub.publish(control)
-                time.sleep(0.05)
+                rospy.sleep(0.05)  # 使用rospy.sleep替代time.sleep
                 control.robot_state = 2 
-                time.sleep(0.05)
+                rospy.sleep(0.05)
             self.control_pub.publish(control)
             self.control_seq += 1
 
 
-        else: #gps距离小于2米,通过aruco数据导航
-            if gps_move_flag == True:
+        else:  # gps距离小于2米,通过aruco数据导航
+            if gps_move_flag:
                 gps_move_flag = False
-                control = self.compose_control(0,
-                                                0, self.current_yaw, 0, 1)
+                control = self.compose_control(0, 0, self.current_yaw, 0, 1)
                 self.control_pub.publish(control)
-                time.sleep(0.01)
+                rospy.sleep(0.01)
                
             #rospy.loginfo(f'state {self.state}')
             #2.1 执行搜索逻辑,持续20次，1s未检测到marker 进行搜索。
@@ -1275,12 +1302,12 @@ class ArucoDockingController:
                     control.header.stamp = rospy.Time.now()
                     control.robot_state = 1
                     self.control_pub.publish(control)
-                    time.sleep(0.05)
+                    rospy.sleep(0.05)
                     control.header.stamp = rospy.Time.now()
                     control.robot_state = 2 
                     self.control_pub.publish(control)
                     self.control_seq += 1
-                    time.sleep(0.5)
+                    rospy.sleep(0.5)
                     
 
                     return 0
@@ -1299,7 +1326,7 @@ class ArucoDockingController:
                     control.robot_state = 1
                     control.header.stamp = rospy.Time.now()
                     self.control_pub.publish(control)
-                    time.sleep(0.05)
+                    rospy.sleep(0.05)
                     control.robot_state = 2 
                     control.header.stamp = rospy.Time.now()
                 self.control_pub.publish(control)
@@ -1307,20 +1334,20 @@ class ArucoDockingController:
                     if self.rc_control == 0 or self.state_change_flag==True:
                         rospy.logwarn("interrupted")
                         return 0
-                    pass
+                    rospy.sleep(0.01)  # 避免忙等待
                 control.distance = 0
                 control.target_yaw = self.yaw_to_target_yaw_angle(yaw_final,self.current_yaw)
                 control.robot_state = 1
                 control.header.stamp = rospy.Time.now()
                 self.control_pub.publish(control)
-                time.sleep(0.05)
+                rospy.sleep(0.05)
                 control.robot_state = 2
                 self.control_pub.publish(control)
                 while self.complete_state!=2:
                     if self.rc_control == 0 or self.state_change_flag==True:
                         rospy.logwarn("interrupted")
                         return 0
-                    pass
+                    rospy.sleep(0.01)  # 避免忙等待
                 self.control_seq += 1
                 self.lock_current=False
                 return 0
@@ -1366,12 +1393,12 @@ class ArucoDockingController:
                             # control.header.stamp = rospy.Time.now()
                             # control.robot_state = 1
                             # self.control_pub.publish(control)
-                            # time.sleep(0.05)
+                            # rospy.sleep(0.05)
                             # control.header.stamp = rospy.Time.now()
                             # control.robot_state = 2 
                             # self.control_pub.publish(control)
                             # self.control_seq += 1
-                            # time.sleep(0.05)
+                            # rospy.sleep(0.05)
                             # self.lock_current=False
                             # return 0
                             
@@ -1386,7 +1413,7 @@ class ArucoDockingController:
                         if self.complete_state==2:
                             control.robot_state = 1
                             self.control_pub.publish(control)
-                            time.sleep(0.05)
+                            rospy.sleep(0.05)
                             control.robot_state = 2 
 
                         self.control_pub.publish(control)
@@ -1409,12 +1436,12 @@ class ArucoDockingController:
                             control.header.stamp = rospy.Time.now()
                             control.header.seq = self.control_seq
                             self.control_pub.publish(control)
-                            time.sleep(0.05)
+                            rospy.sleep(0.05)
                             # control.header.stamp = rospy.Time.now()
                             # self.control_pub.publish(control)
                             # self.control_seq += 1
                             self.align_num=True
-                            time.sleep(0.05)
+                            rospy.sleep(0.05)
                             self.lock_current=False
                             return 0
                     # 2.2.3 对齐align_num 为真,执行对齐动作
@@ -1429,10 +1456,10 @@ class ArucoDockingController:
                                 control.robot_state = 1
                                 control.header.stamp = rospy.Time.now()
                                 self.control_pub.publish(control)
-                                time.sleep(0.05)
+                                rospy.sleep(0.05)
                                 # control.header.stamp = rospy.Time.now()
                                 # self.control_pub.publish(control)
-                                # time.sleep(0.01)
+                                # rospy.sleep(0.01)
                                 control.robot_state = 2
                                 self.control_seq += 1
                                 self.control_pub.publish(control)
@@ -1456,7 +1483,7 @@ class ArucoDockingController:
                                 control.robot_state = 1
                                 control.header.stamp = rospy.Time.now()
                                 self.control_pub.publish(control)
-                                time.sleep(0.02)
+                                rospy.sleep(0.02)
                                 control.robot_state = 2 
                                 control.header.stamp = rospy.Time.now() 
                             self.control_pub.publish(control)
@@ -1474,7 +1501,7 @@ class ArucoDockingController:
                             control.robot_state = 1
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
-                            time.sleep(0.5)
+                            rospy.sleep(0.5)
                             current_pose_state=self.get_five_avg()#取5次平均值进行计算
                             target_vec = current_pose_state['position'][:2]
                             rospy.loginfo(f'target_vec_refine: {target_vec}')
@@ -1498,16 +1525,16 @@ class ArucoDockingController:
                                 control.header.stamp = rospy.Time.now()
                                 self.control_pub.publish(control)
 
-                                time.sleep(0.1)
+                                rospy.sleep(0.1)
                                 control.robot_state = 1
                                 rospy.logwarn(f'************GOOD start final docking**************')
                                 # rospy.loginfo(f)
-                                self.refine_align==False
-                                self.align_num==False
+                                self.refine_align=False  # 修复 == 为 =
+                                self.align_num=False     # 修复 == 为 =
                                 control.header.stamp = rospy.Time.now()
                                 self.control_pub.publish(control)
                                 self.control_seq += 1 
-                                # time.sleep(1000)
+                                # rospy.sleep(1000)
                                 self.docking_flag=True
                                 self.in_dock_flag=False     
                                 self.lock_current=False                          
@@ -1523,14 +1550,14 @@ class ArucoDockingController:
                             control.robot_state = 2
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
-                            time.sleep(0.5)
+                            rospy.sleep(0.5)
                             rospy.loginfo(f'等待回退结束 ')
                             while self.complete_state != 2:
-                                # time.sleep(0.1)
+                                # rospy.sleep(0.1)
                                 if self.rc_control == 0 or self.state_change_flag==True:
                                     rospy.logwarn("interrupted")
                                     return 0
-                                pass
+                                rospy.sleep(0.01)  # 避免忙等待
                             rospy.loginfo(f'成功回退！！ ')
                             #执行结束
                             control.distance = 0
@@ -1538,20 +1565,20 @@ class ArucoDockingController:
                             control.robot_state = 1
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
-                            time.sleep(0.1)
+                            rospy.sleep(0.1)
                             self.complete_state = 0
                             control.distance = 0
                             control.target_yaw = self.yaw_to_target_yaw_angle(yaw2,self.current_yaw)                            
                             control.robot_state = 2
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
-                            time.sleep(0.1)
+                            rospy.sleep(0.1)
                             rospy.loginfo(f'等待回正结束 ')     
                             while self.complete_state != 2:
                                 if self.rc_control == 0 or self.state_change_flag==True:
                                     rospy.logwarn("interrupted")
                                     return 0 
-                                pass
+                                rospy.sleep(0.01)  # 避免忙等待
                             rospy.loginfo(f'step1 成功回正！ ')
                             #执行结束
 
@@ -1562,7 +1589,7 @@ class ArucoDockingController:
                             control.robot_state = 1
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
-                            time.sleep(1.0)
+                            rospy.sleep(1.0)
 
                             current_pose_state=self.get_five_avg()#取5次平均值进行计算
 
@@ -1576,14 +1603,14 @@ class ArucoDockingController:
                             control.robot_state = 2
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
-                            time.sleep(1.0)
+                            rospy.sleep(1.0)
                             rospy.loginfo(f'等待前进结束 ')
                             while self.complete_state != 2:
-                                #time.sleep(0.1)
+                                #rospy.sleep(0.1)
                                 if self.rc_control == 0 or self.state_change_flag==True:
                                     rospy.logwarn("interrupted")
                                     return 0
-                                pass
+                                rospy.sleep(0.01)  # 避免忙等待
                             rospy.loginfo(f'step2 成功前进！！ ')
                             #执行结束
                             control.distance = 0
@@ -1592,7 +1619,7 @@ class ArucoDockingController:
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
 
-                            time.sleep(0.05)
+                            rospy.sleep(0.05)
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
 
@@ -1603,12 +1630,12 @@ class ArucoDockingController:
                             control.robot_state = 2
                             control.header.stamp = rospy.Time.now()
                             self.control_pub.publish(control)
-                            time.sleep(1.0)
+                            rospy.sleep(1.0)
                             rospy.loginfo(f'step2 等待回正结束')
                             # while self.complete_state != 1:
                             #     pass
                             rospy.loginfo(f'step2 成功回正！！')
-                            time.sleep(1.0 ) 
+                            rospy.sleep(1.0 ) 
 
                             #对齐
 
@@ -1626,7 +1653,7 @@ class ArucoDockingController:
                                             control.robot_state = 1
                                             control.header.stamp = rospy.Time.now()
                                             self.control_pub.publish(control)
-                                            time.sleep(0.05)
+                                            rospy.sleep(0.05)
                                             self.control_seq += 1
                                             break
 
@@ -1648,7 +1675,7 @@ class ArucoDockingController:
                                             control.robot_state = 1
                                             control.header.stamp = rospy.Time.now()
                                             self.control_pub.publish(control)
-                                            time.sleep(0.05)
+                                            rospy.sleep(0.05)
                                             control.robot_state = 2 
                                             control.header.stamp = rospy.Time.now() 
                                         self.control_pub.publish(control)
