@@ -1337,9 +1337,9 @@ class ArucoDockingController:
                         rospy.logwarn("interrupted")
                         return 0
                     # 添加超时检查，避免无限等待
-                    if (rospy.Time.now() - wait_start_time).to_sec() > 5.0:  # 5秒超时
-                        rospy.logwarn("Timeout waiting for motion completion")
-                        break
+                    # if (rospy.Time.now() - wait_start_time).to_sec() > 5.0:  # 5秒超时
+                    #     rospy.logwarn("Timeout waiting for motion completion")
+                    #     break
                     rospy.sleep(0.01)  # 避免忙等待
                 control.distance = 0
                 control.target_yaw = self.yaw_to_target_yaw_angle(yaw_final,self.current_yaw)
@@ -1356,9 +1356,9 @@ class ArucoDockingController:
                         rospy.logwarn("interrupted")
                         return 0
                     # 添加超时检查，避免无限等待
-                    if (rospy.Time.now() - wait_start_time).to_sec() > 5.0:  # 5秒超时
-                        rospy.logwarn("Timeout waiting for motion completion")
-                        break
+                    # if (rospy.Time.now() - wait_start_time).to_sec() > 5.0:  # 5秒超时
+                    #     rospy.logwarn("Timeout waiting for motion completion")
+                    #     break
                     rospy.sleep(0.01)  # 避免忙等待
                 self.control_seq += 1
                 self.lock_current=False
@@ -1572,9 +1572,9 @@ class ArucoDockingController:
                                     rospy.logwarn("interrupted")
                                     return 0
                                 # 添加超时检查，避免无限等待
-                                if (rospy.Time.now() - wait_start_time).to_sec() > 5.0:  # 5秒超时
-                                    rospy.logwarn("Timeout waiting for motion completion")
-                                    break
+                                # if (rospy.Time.now() - wait_start_time).to_sec() > 60.0:  # 5秒超时
+                                #     rospy.logwarn("Timeout waiting for motion completion")
+                                #     break
                                 rospy.sleep(0.01)  # 避免忙等待
                             rospy.loginfo(f'成功回退！！ ')
                             #执行结束
@@ -1599,9 +1599,9 @@ class ArucoDockingController:
                                     rospy.logwarn("interrupted")
                                     return 0 
                                 # 添加超时检查，避免无限等待
-                                if (rospy.Time.now() - wait_start_time).to_sec() > 5.0:  # 5秒超时
-                                    rospy.logwarn("Timeout waiting for motion completion")
-                                    break
+                                # if (rospy.Time.now() - wait_start_time).to_sec() > 60.0:  # 5秒超时
+                                #     rospy.logwarn("Timeout waiting for motion completion")
+                                #     break
                                 rospy.sleep(0.01)  # 避免忙等待
                             rospy.loginfo(f'step1 成功回正！ ')
                             #执行结束
@@ -1637,9 +1637,9 @@ class ArucoDockingController:
                                     rospy.logwarn("interrupted")
                                     return 0
                                 # 添加超时检查，避免无限等待
-                                if (rospy.Time.now() - wait_start_time).to_sec() > 5.0:  # 5秒超时
-                                    rospy.logwarn("Timeout waiting for motion completion")
-                                    break
+                                # if (rospy.Time.now() - wait_start_time).to_sec() > 5.0:  # 5秒超时
+                                #     rospy.logwarn("Timeout waiting for motion completion")
+                                #     break
                                 rospy.sleep(0.01)  # 避免忙等待
                             rospy.loginfo(f'step2 成功前进！！ ')
                             #执行结束
