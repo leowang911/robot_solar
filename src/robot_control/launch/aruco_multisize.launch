@@ -1,0 +1,22 @@
+<launch>
+    <!-- Start the Orbbec camera node -->
+    <!-- Please adjust the launch file to match your specific camera model if not using gemini2 -->
+    <include file="$(find orbbec_camera)/launch/gemini2.launch"/>
+
+    <!-- Start the modified Aruco marker publisher -->
+    <node pkg="aruco_ros" type="marker_publisher" name="aruco_marker_publisher">
+        <!-- Load the marker size configuration -->
+        <rosparam command="load" file="$(find robot_control)/config/aruco_config.yaml" />
+
+        <!-- Remap topics to match the camera -->
+        <remap from="/camera_info" to="/camera/color/camera_info" />
+        <remap from="/image" to="/camera/color/image_raw" />
+
+        <!-- Set other parameters -->
+        <param name="use_camera_info" value="true"/>
+        <param name="image_is_rectified" value="true"/>
+        <!-- Set the reference frame for the marker poses -->
+        <!-- Using camera_link is common, but adjust if needed -->
+        <param name="reference_frame" value="camera_color_optical_frame"/>
+    </node>
+</launch>

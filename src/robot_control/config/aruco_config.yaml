@@ -1,0 +1,13 @@
+# Aruco Marker-ID-to-Size Mappings
+# All sizes are in meters.
+
+# Default size for any marker ID not listed below
+default_size: 0.10
+
+# A list of markers with specific sizes
+marker_sizes:
+  - {id: 0, size: 0.15}
+  - {id: 1, size: 0.15}
+  - {id: 5, size: 0.08}
+  - {id: 10, size: 0.08}
+  - {id: 25, size: 0.20}
