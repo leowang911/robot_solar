@@ -48,7 +48,7 @@ class BaseSerialNode:
 
         # 初始化串口
         self.ser = None
-        self.init_serial()
+        self.init_serial() # 初始尝试连接
 
         # 发布接收数据
         self.wheel_pub = rospy.Publisher('base_status', baseStatus, queue_size=10)
@@ -76,7 +76,10 @@ class BaseSerialNode:
     
 
     def init_serial(self):
-        """初始化串口连接"""
+        """初始化或重新初始化串口连接."""
+        if self.ser and self.ser.is_open:
+            self.ser.close()
+        
         try:
             self.ser = serial.Serial(
                 port=self.port,
@@ -84,12 +87,14 @@ class BaseSerialNode:
                 bytesize=serial.EIGHTBITS,
                 parity=serial.PARITY_NONE,
                 stopbits=serial.STOPBITS_ONE,
-                timeout=0.1  # 设置适当的超时时间
+                timeout=0.1
             )
-            rospy.loginfo(f"Connected to {self.port} at {self.baudrate} baud")
+            rospy.loginfo(f"Successfully connected to serial port {self.port}")
+            return True
         except serial.SerialException as e:
-            rospy.logerr(f"Serial port error: {e}")
-            rospy.signal_shutdown("Serial port init failed")
+            rospy.logwarn(f"Failed to connect to {self.port}: {e}. Retrying...")
+            self.ser = None
+            return False
 
     def control_data_callback(self, msg):
         """速度指令回调"""
@@ -271,9 +276,15 @@ class BaseSerialNode:
         self.wheel_pub.publish(msg)
 
     def run(self):
-        """主循环"""
+        """主循环，包含断线重连机制."""
         buffer = bytearray()
         while not rospy.is_shutdown():
+            # 检查串口是否连接，如果未连接则尝试重连
+            if self.ser is None or not self.ser.is_open:
+                if not self.init_serial():
+                    rospy.sleep(1.0)  # 等待1秒后重试
+                    continue
+
             try:
                 # 1. 尝试读取串口数据
                 if self.ser.in_waiting > 0:
@@ -281,39 +292,43 @@ class BaseSerialNode:
 
                 # 2. 处理接收到的完整帧
                 if len(buffer) >= self.rx_frame_length:
-                    # 查找帧头
                     header_pos = buffer.find(b'\xAA')
-                    if header_pos >= 0 and len(buffer) >= header_pos + self.rx_frame_length:
-                        # 提取完整帧
-                        frame = buffer[header_pos:header_pos+self.rx_frame_length]
-                        buffer = buffer[header_pos+self.rx_frame_length:]
+                    if header_pos != -1 and len(buffer) >= header_pos + self.rx_frame_length:
+                        frame = buffer[header_pos:header_pos + self.rx_frame_length]
+                        buffer = buffer[header_pos + self.rx_frame_length:]
 
-                        # 解析数据
                         parsed = self.parse_rx_frame(frame)
-                        rospy.loginfo(f"Received frame: {frame.hex()}")
                         if parsed:
+                            rospy.loginfo(f"Received frame: {frame.hex()}")
                             self.publish_wheel_status(parsed)
 
-                            # 3. 收到完整帧后立即发送数据
+                            # 3. 收到有效帧后发送数据
                             if self.last_tx_data is not None:
                                 tx_frame = self.create_tx_frame(self.last_tx_data)
-                                if tx_frame is not None and len(tx_frame) == self.tx_frame_length:
+                                if tx_frame and len(tx_frame) == self.tx_frame_length:
                                     self.ser.write(tx_frame)
-                                    # rospy.logdebug(f"Sent frame after receiving: {tx_frame.hex()}")
+                                    # rospy.logdebug(f"Sent frame: {tx_frame.hex()}")
+                    elif header_pos == -1:
+                        # 如果找不到帧头，清空缓冲区以防数据错乱
+                        buffer = bytearray()
 
-                # 控制循环频率
+
                 rospy.sleep(0.001)
 
             except serial.SerialException as e:
-                rospy.logerr(f"Serial communication error: {e}")
-                self.init_serial()  # 尝试重新初始化串口
-                rospy.sleep(1)
+                rospy.logerr(f"Serial communication error: {e}. Disconnecting and will try to reconnect.")
+                if self.ser:
+                    self.ser.close()
+                self.ser = None
+                rospy.sleep(0.5)  # 等待0.5秒后尝试重连
             except Exception as e:
-                rospy.logerr(f"Unexpected error: {e}")
-                rospy.sleep(1)
+                rospy.logerr(f"An unexpected error occurred in run loop: {e}")
+                rospy.sleep(1.0)
+
 
     def shutdown(self):
         """安全关闭"""
+        rospy.loginfo("Shutting down serial node.")
         if self.ser and self.ser.is_open:
             self.ser.close()
 
