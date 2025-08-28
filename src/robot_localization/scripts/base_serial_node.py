@@ -276,8 +276,22 @@ class BaseSerialNode:
         self.wheel_pub.publish(msg)
 
     def run(self):
-        """主循环，包含断线重连机制."""
+        """
+        运行主循环，处理串口通信并管理断线重连机制。
+        
+        该函数执行以下主要任务：
+        1. 检查并维护串口连接
+        2. 读取并解析来自串口的数据帧
+        3. 发布解析后的轮式状态信息
+        4. 在收到有效数据后发送控制指令
+        
+        通过一个无限循环实现，直到节点被关闭为止。函数包含异常处理机制，
+        当发生串口通信错误时会自动尝试重连。
+        """
         buffer = bytearray()
+        last_data_time = rospy.Time.now()  # 记录上次接收到数据的时间
+        timeout_duration = rospy.Duration(5.0)  # 设置超时时间为5秒
+        
         while not rospy.is_shutdown():
             # 检查串口是否连接，如果未连接则尝试重连
             if self.ser is None or not self.ser.is_open:
@@ -286,9 +300,22 @@ class BaseSerialNode:
                     continue
 
             try:
+                # 检查数据接收超时
+                if rospy.Time.now() - last_data_time > timeout_duration:
+                    rospy.logwarn("No data received for %.1f seconds. Resetting connection.", timeout_duration.to_sec())
+                    if self.ser:
+                        self.ser.close()
+                    self.ser = None
+                    last_data_time = rospy.Time.now()  # 重置时间
+                    rospy.sleep(0.5)  # 等待0.5秒后尝试重连
+                    continue
+
                 # 1. 尝试读取串口数据
                 if self.ser.in_waiting > 0:
-                    buffer += self.ser.read(self.ser.in_waiting)
+                    new_data = self.ser.read(self.ser.in_waiting)
+                    if new_data:  # 只有在确实读取到数据时才更新时间
+                        buffer += new_data
+                        last_data_time = rospy.Time.now()  # 更新上次接收到数据的时间
 
                 # 2. 处理接收到的完整帧
                 if len(buffer) >= self.rx_frame_length:
@@ -301,6 +328,7 @@ class BaseSerialNode:
                         if parsed:
                             rospy.loginfo(f"Received frame: {frame.hex()}")
                             self.publish_wheel_status(parsed)
+                            last_data_time = rospy.Time.now()  # 更新数据接收时间
 
                             # 3. 收到有效帧后发送数据
                             if self.last_tx_data is not None:
@@ -320,6 +348,7 @@ class BaseSerialNode:
                 if self.ser:
                     self.ser.close()
                 self.ser = None
+                last_data_time = rospy.Time.now()  # 重置时间
                 rospy.sleep(0.5)  # 等待0.5秒后尝试重连
             except Exception as e:
                 rospy.logerr(f"An unexpected error occurred in run loop: {e}")
